@@ -6,9 +6,9 @@ if ! [ -x "$(command -v wget)" ]; then
   pkg install wget -y
 fi
 
-if ! [ -x "$(command -v unzip)" ]; then
-  echo "\e[1;36m[*] Installing unzip\e[0m"
-  pkg install unzip -y
+if ! [ -x "$(command -v tar)" ]; then
+  echo "\e[1;36m[*] Installing tar\e[0m"
+  pkg install tar -y
 fi
 
 if ! [ -x "$(command -v npm)" ]; then
@@ -42,9 +42,9 @@ if [ -d "~/.acodeX-server" ]; then
 else
 	echo -e "\e[1;36m[*] Installing acodeX-server... \e[0m"
 	mkdir .acodeX-server
-    wget https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/server/acodeXServer.zip
-	unzip acodeXServer.zip -d .acodeX-server
-    rm -rf acodeXServer.zip
+    wget https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/server/acodeXServer.tar.gz
+    tar -xzvf acodeXServer.tar.gz -C ~/.acodeX-server
+    rm -rf acodeXServer.tar.gz
 fi
 cd ~/.acodeX-server
 echo -e "\e[1;36m[*] Installing Dependencies... \e[0m"
