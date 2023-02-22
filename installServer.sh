@@ -1,11 +1,6 @@
 #!/bin/bash
 
 # check for packages and install if not found
-if ! [ -x "$(command -v wget)" ]; then
-  echo -e "\e[1;36m[*] Installing wget\e[0m"
-  pkg install wget -y
-fi
-
 if ! [ -x "$(command -v tar)" ]; then
   echo "\e[1;36m[*] Installing tar\e[0m"
   pkg install tar -y
@@ -42,9 +37,9 @@ if [ -d "~/.acodeX-server" ]; then
 else
 	echo -e "\e[1;36m[*] Installing acodeX-server... \e[0m"
 	mkdir .acodeX-server
-    wget https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/server/acodeXServer.tar.gz
-    tar -xzvf acodeXServer.tar.gz -C ~/.acodeX-server
-    rm -rf acodeXServer.tar.gz
+    curl -L -o acodeXServer.zip https://github.com/bajrangCoder/acode-plugin-acodex/raw/main/server/acodeXServer.zip
+    unzip acodeXServer.zip -d ~/.acodeX-server
+    rm -rf acodeXServer.zip
 fi
 cd ~/.acodeX-server
 echo -e "\e[1;36m[*] Installing Dependencies... \e[0m"
