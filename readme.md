@@ -1,5 +1,5 @@
 # [AcodeX - Terminal Emulator](https://github.com/bajrangCoder/acode-plugin-acodex)
-<center>![Logo](https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/icon.png)</center>
+![Logo](https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/icon.png)
 
 **AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
