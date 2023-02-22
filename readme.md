@@ -1,4 +1,4 @@
-# AcodeX - Terminal Emulator
+# [AcodeX - Terminal Emulator](https://github.com/bajrangCoder/acode-plugin-acodex)
 ![Logo](https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/icon.png)
 
 **AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
@@ -26,7 +26,7 @@ Install plugin in **Acode App** From `Acode > Settings > Plugins > AcodeX`
 And Install server in termux via below command:
 
 ```bash
-  curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash && acodeX-server
+curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash && acodeX-server
 ```
     
 ## How to use?
@@ -61,3 +61,5 @@ acodeX-server
 
 
 To contribute to **AcodeX**, visit the plugin's GitHub page and leave a star 🌟 to show your support. You can also report bugs, suggest improvements, or contribute to the codebase. **AcodeX** is an open-source project, and contributions are welcomes from the community
+
+❤️❤️ Thanks for using AcodeX ❤️❤️
