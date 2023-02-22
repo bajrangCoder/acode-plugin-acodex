@@ -1,0 +1,14 @@
+{
+  "id": "bajrangcoder.acodex",
+  "name": "AcodeX",
+  "main": "dist/main.js",
+  "version": "1.0.0",
+  "readme": "readme.md",
+  "icon": "icon.png",
+  "files": ["xterm.css"],
+  "author": {
+    "name": "Raunak Raj",
+    "email": "bajrangcoders@gmail.com",
+    "github": "bajrangCoder"
+  }
+}
