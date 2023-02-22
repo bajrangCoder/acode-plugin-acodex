@@ -2,49 +2,54 @@
 
 # check for packages and install if not found
 if ! [ -x "$(command -v wget)" ]; then
-  echo "[*] Installing wget"
+  echo -e "\e[1;36m[*] Installing wget\e[0m"
   pkg install wget -y
-  echo "wget installed"
 fi
 
 if ! [ -x "$(command -v unzip)" ]; then
-  echo "[*] Installing unzip"
+  echo "\e[1;36m[*] Installing unzip\e[0m"
   pkg install unzip -y
-  echo "unzip installed"
 fi
 
 if ! [ -x "$(command -v npm)" ]; then
-  echo 'Error: npm is not installed.' >&2
+  echo '\e[31m[!] Error: npm is not installed.\e[0m' >&2
   exit 1
 fi
 
 if ! [ -x "$(command -v node)" ]; then
-  echo "[*] Installing Nodejs"
+  echo -e "\e[1;36m[*] Installing Nodejs\e[0m"
   pkg install nodejs -y
-  echo "nodejs installed"
 fi
 
 if ! [ -x "$(command -v python)" ]; then
-  echo "[*] Installing Python"
+  echo -e "\e[1;36m[*] Installing Python\e[0m"
   pkg install python -y
-  echo "python installed"
+fi
+
+if ! [ -x "$(command -v make)" ]; then
+  echo -e "\e[1;36m[*] Installing make\e[0m"
+  pkg install make -y
+fi
+
+if ! [ -x "$(command -v build-essential)" ]; then
+  echo -e "\e[1;36m[*] Installing build-essential\e[0m"
+  pkg install build-essential -y
 fi
 
 # check if directory exists
 if [ -d "~/.acodeX-server" ]; then
-	echo "[*] acodeX-server Installation exists already."
+	echo -e "\e[31m[!] acodeX-server Installation exists already. \e[0m"
 else
-	echo "[*] Installing acodeX-server..."
-    pkg install -y make build-essential
+	echo -e "\e[1;36m[*] Installing acodeX-server... \e[0m"
 	mkdir .acodeX-server
     wget https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/server/acodeXServer.zip
 	unzip acodeXServer.zip -d .acodeX-server
     rm -rf acodeXServer.zip
 fi
 cd ~/.acodeX-server
-echo "[*] Installing Dependencies..."
+echo -e "\e[1;36m[*] Installing Dependencies... \e[0m"
 npm install
 npm link .
 cd ~/
 chmod +x /data/data/com.termux/files/usr/bin/acodeX-server
-echo '`acodeX-server` installed successfully. Run `acodeX-server` to start the server.'
+echo -e '\e[1;32m`acodeX-server` installed successfully. Run `acodeX-server` to start the server. \e[0m'
