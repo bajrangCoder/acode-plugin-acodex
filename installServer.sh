@@ -29,7 +29,7 @@ if [ -d "~/.acodeX-server" ]; then
 else
 	echo "[*] Installing acodeX-server..."
 	mkdir .acodeX-server
-    wget <url of zip>
+    wget https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/server/acodeXServer.zip
 	unzip acodeXServer.zip -d .acodeX-server
     rm -rf acodeXServer.zip
 fi
