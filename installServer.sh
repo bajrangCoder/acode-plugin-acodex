@@ -28,10 +28,11 @@ if [ -d "~/.acodeX-server" ]; then
 	echo "[*] acodeX-server Installation exists already."
 else
 	echo "[*] Installing acodeX-server..."
+        pkg install -y make python build-essential
 	mkdir .acodeX-server
-    wget https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/server/acodeXServer.zip
+        wget https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/server/acodeXServer.zip
 	unzip acodeXServer.zip -d .acodeX-server
-    rm -rf acodeXServer.zip
+        rm -rf acodeXServer.zip
 fi
 cd ~/.acodeX-server
 echo "[*] Installing Dependencies..."
