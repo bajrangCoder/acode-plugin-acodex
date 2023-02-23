@@ -31,7 +31,7 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
     
 ## How to use?
 
-<video src="#" height="270" width="340" controls>
+<video src="https://user-images.githubusercontent.com/71929976/220828170-158cc64d-ed9b-4d48-b7b6-5d7a530b2d18.mp4" height="270" width="340" controls>
 </video>
 <br>
 
