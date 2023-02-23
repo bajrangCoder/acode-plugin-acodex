@@ -31,8 +31,9 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
     
 ## How to use?
 
-<video src="https://user-images.githubusercontent.com/71929976/213693817-46e1d6c7-beea-44a5-8e83-2cf75c217002.mp4" height="270" width="340" controls>
+<video src="#" height="270" width="340" controls>
 </video>
+<br>
 
 - First Start Server on Termux via : `acodeX-server`
 - To use **AcodeX**, press `Ctrl+K` or search for `"Open Terminal"` in the command palette. 
