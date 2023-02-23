@@ -1,5 +1,5 @@
 # [AcodeX - Terminal Emulator](https://github.com/bajrangCoder/acode-plugin-acodex)
-![Logo](https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/icon.png)
+<p align="center"><img src="https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/icon.png"/></p>
 
 **AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
@@ -31,10 +31,10 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
     
 ## How to use?
 
-- First Start Server on Termux via :
-```bash
-acodeX-server
-```
+<video src="https://user-images.githubusercontent.com/71929976/213693817-46e1d6c7-beea-44a5-8e83-2cf75c217002.mp4" height="270" width="340" controls>
+</video>
+
+- First Start Server on Termux via : `acodeX-server`
 - To use **AcodeX**, press `Ctrl+K` or search for `"Open Terminal"` in the command palette. 
 - Then enter the port number, and the terminal will start running. 
 - Use the `⇓` button to hide the terminal while coding, and the `⇑` button to show it. 
