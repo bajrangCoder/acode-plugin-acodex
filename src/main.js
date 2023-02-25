@@ -13,10 +13,11 @@ const alert = acode.require('alert');
 const confirm = acode.require('confirm');
 const helpers = acode.require('helpers');
 const prompt = acode.require('prompt');
+const appSettings = acode.require('settings');
+
 
 /*
 TODO:
-- Add settings to customise terminal
 - Fix keyboard issue
 */
 
@@ -24,6 +25,69 @@ class AcodeX {
     isDragging = false;
     startY;
     startHeight;
+    // default settings for terminal
+    CURSOR_BLINK = true;
+    CURSOR_STYLE1 = "block";
+    CURSOR_STYLE2 = "underline";
+    CURSOR_STYLE3 = "bar";
+    FONT_SIZE = 18;
+    SCROLLBACK = 1000;
+    SCROLL_SENSITIVITY = 1000;
+    FONT_FAMILY = "Fira Code, monospace";
+    // Terminal Theme Color
+    BACKGROUND_COLOR = "#1c2431";
+    FOREGROUND_COLOR = "#cccccc";
+    SELECTIONBACKGROUND = "#399ef440";
+    BLACK = "#666666";
+    BLUE = "#399ef4";
+    BRIGHT_BLACK = "#666666";
+    BRIGHT_BLUE = "#399ef4";
+    BRIGHT_CYAN = "#21c5c7";
+    BRIGHT_GREEN = "#4eb071";
+    BRIGHT_MAGENTA = "#b168df";
+    BRIGHT_RED = "#da6771";
+    BRIGHT_WHITE = "#efefef";
+    BRIGHT_YELLOW = "#fff099";
+    CYAN = "#21c5c7";
+    GREEN = "#4eb071";
+    MAGENTA = "#b168df";
+    RED = "#da6771";
+    WHITE = "#efefef";
+    YELLOW = "#fff099";
+    
+    
+    constructor() {
+        if (!appSettings.value[plugin.id]) {
+          appSettings.value[plugin.id] = {
+            cursorBlink: this.CURSOR_BLINK,
+            cursorStyle: this.CURSOR_STYLE1,
+            fontSize: this.FONT_SIZE,
+            scrollBack: this.SCROLLBACK,
+            scrollSensitivity: this.SCROLL_SENSITIVITY,
+            fontFamily: this.FONT_FAMILY,
+            backgroundColor: this.BACKGROUND_COLOR,
+            foregroundColor: this.FOREGROUND_COLOR,
+            selectionBackground: this.SELECTIONBACKGROUND,
+            black: this.BLACK,
+            blue: this.BLUE,
+            brightBlack: this.BRIGHT_BLACK,
+            brightBlue: this.BRIGHT_BLUE,
+            brightCyan: this.BRIGHT_CYAN,
+            brightGreen: this.BRIGHT_GREEN,
+            brightMagenta: this.BRIGHT_MAGENTA,
+            brightRed: this.BRIGHT_RED,
+            brightWhite: this.BRIGHT_WHITE,
+            brightYellow: this.BRIGHT_YELLOW,
+            cyan: this.CYAN,
+            green: this.GREEN,
+            magenta: this.MAGENTA,
+            red: this.RED,
+            white: this.WHITE,
+            yellow: this.YELLOW,
+          };
+          appSettings.update(false);
+        }
+    }
     
     async init() {
         try{
@@ -114,9 +178,33 @@ class AcodeX {
                 this.$terminalContainer.style.height = "270px";
                 // initialise xtermjs Terminal class
                 this.$terminal = new Terminal({
-                    cursorBlink: true,
-                    cursorStyle: "block",// underline, bar, block
-                    scrollBack: 1000
+                    cursorBlink: this.settings.cursorBlink,
+                    cursorStyle: this.settings.cursorStyle,
+                    scrollBack: this.settings.scrollBack,
+                    scrollSensitivity: this.settings.scrollSensitivity,
+                    fontSize: this.settings.fontSize,
+                    fontFamily: this.settings.fontFamily,
+                    theme: {
+                        background: this.settings.backgroundColor,
+                        foreground: this.settings.foregroundColor,
+                        selectionBackground: this.settings.selectionBackground,
+                        black: this.settings.black,
+                        blue: this.settings.blue,
+                        brightBlack: this.settings.brightBlack,
+                        brightBlue: this.settings.brightBlue,
+                        brightCyan: this.settings.brightCyan,
+                        brightGreen: this.settings.brightGreen,
+                        brightMagenta: this.settings.brightMagenta,
+                        brightRed: this.settings.brightRed,
+                        brightWhite: this.settings.brightWhite,
+                        brightYellow: this.settings.brightYellow,
+                        cyan: this.settings.cyan,
+                        green: this.settings.green,
+                        magenta: this.settings.magenta,
+                        red: this.settings.red,
+                        white: this.settings.white,
+                        yellow: this.settings.yellow
+                    }
                 });
                 this.$fitAddon = new FitAddon();
                 this.$terminal.loadAddon(this.$fitAddon);
@@ -237,6 +325,338 @@ class AcodeX {
         window.removeEventListener('mouseup', this.stopDragging);
         window.removeEventListener('touchend', this.stopDragging);
     }
+    
+    get settingsObj() {
+        return {
+            list: [
+                {
+                    key: 'cursorBlink',
+                    text: 'Cursor Blink',
+                    value: this.settings.cursorBlink,
+                    info: 'Whether the cursor blinks.',
+                    checkbox: true
+                },
+                {
+                    key: 'cursorStyle',
+                    text: 'Cursor Style',
+                    value: this.settings.cursorStyle,
+                    info: 'The style of the cursor.',
+                    select: [this.CURSOR_STYLE1,this.CURSOR_STYLE2,this.CURSOR_STYLE3]
+                },
+                {
+                    key: 'fontSize',
+                    text: 'Font Size',
+                    value: this.settings.fontSize,
+                    info: "The font size used to render text.",
+                    prompt: "Font Size",
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^[0-9]+$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'scrollBack',
+                    text: 'Scroll Back',
+                    value: this.settings.scrollBack,
+                    info: "The amount of scrollback in the terminal. Scrollback is the amount of rows that are retained when lines are scrolled beyond the initial viewport.",
+                    prompt: 'Scroll Back',
+                    promptType: "number",
+                    promptOption: [
+                        {
+                            match: /^[0-9]+$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'scrollSensitivity',
+                    text: 'Scroll Sensitivity',
+                    value: this.settings.scrollSensitivity,
+                    info: "The scrolling speed multiplier used for adjusting normal scrolling speed.",
+                    prompt: 'Scroll Sensitivity',
+                    promptType: "number",
+                    promptOption: [
+                        {
+                            match: /^[0-9]+$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'fontFamily',
+                    text: 'Font Family',
+                    value: this.settings.fontFamily,
+                    info: "The font family used to render text.",
+                    prompt: "Font Family",
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'backgroundColor',
+                    text: 'Background Color',
+                    value: this.settings.backgroundColor,
+                    prompt: 'Background Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'foregroundColor',
+                    text: 'Foreground Color',
+                    value: this.settings.foregroundColor,
+                    prompt: 'Foreground Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'selectionBackground',
+                    text: 'Selection Background Color',
+                    value: this.settings.selectionBackground,
+                    prompt: 'Selection Background Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'black',
+                    text: 'Black Color',
+                    value: this.settings.black,
+                    prompt: 'Black Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'blue',
+                    text: 'Blue Color',
+                    value: this.settings.blue,
+                    prompt: 'Blue Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'brightBlack',
+                    text: 'Bright Black Color',
+                    value: this.settings.brightBlack,
+                    prompt: 'Bright Black Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'brightBlue',
+                    text: 'Bright Blue Color',
+                    value: this.settings.brightBlue,
+                    prompt: 'Bright Blue Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'brightCyan',
+                    text: 'Bright Cyan Color',
+                    value: this.settings.brightCyan,
+                    prompt: 'Bright Cyan Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'brightGreen',
+                    text: 'Bright Green Color',
+                    value: this.settings.brightGreen,
+                    prompt: 'Bright Green Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'brightMagenta',
+                    text: 'Bright Magenta Color',
+                    value: this.settings.brightMagenta,
+                    prompt: 'Bright Magenta Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'brightRed',
+                    text: 'Bright Red Color',
+                    value: this.settings.brightRed,
+                    prompt: 'Bright Red Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'brightWhite',
+                    text: 'Bright White Color',
+                    value: this.settings.brightWhite,
+                    prompt: 'Bright White Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'brightYellow',
+                    text: 'Bright Yellow Color',
+                    value: this.settings.brightYellow,
+                    prompt: 'Bright Yellow Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'cyan',
+                    text: 'Cyan Color',
+                    value: this.settings.cyan,
+                    prompt: 'Cyan Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'green',
+                    text: 'Green Color',
+                    value: this.settings.green,
+                    prompt: 'Green Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'magenta',
+                    text: 'Magenta Color',
+                    value: this.settings.magenta,
+                    prompt: 'Magenta Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'red',
+                    text: 'Red Color',
+                    value: this.settings.red,
+                    prompt: 'Red Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'white',
+                    text: 'White Color',
+                    value: this.settings.white,
+                    prompt: 'White Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    key: 'yellow',
+                    text: 'Yellow Color',
+                    value: this.settings.yellow,
+                    prompt: 'Yellow Color',
+                    promptType: "text",
+                    promptOption: [
+                        {
+                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
+                            required: true
+                        }
+                    ]
+                },
+            ],
+            cb: (key, value) => {
+                this.settings[key] = value;
+                appSettings.update();
+            },
+        }
+    }
+    
+    get settings() {
+        return appSettings.value[plugin.id];
+    }
+    
 }
 
 if (window.acode) {
@@ -249,7 +669,7 @@ if (window.acode) {
             }
             acodePlugin.baseUrl = baseUrl;
             acodePlugin.init($page, cacheFile, cacheFileUrl);
-        }
+        },acodePlugin.settingsObj
     );
     acode.setPluginUnmount(plugin.id, () => {
         acodePlugin.destroy();

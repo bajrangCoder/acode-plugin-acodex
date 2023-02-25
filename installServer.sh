@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # check for packages and install if not found
-if ! [ -x "$(command -v tar)" ]; then
-  echo "\e[1;36m[*] Installing tar\e[0m"
-  pkg install tar -y
+if ! [ -x "$(command -v unzip)" ]; then
+  echo "\e[1;36m[*] Installing unzip\e[0m"
+  pkg install unzip -y
 fi
 
 if ! [ -x "$(command -v npm)" ]; then

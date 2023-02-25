@@ -3,6 +3,26 @@
 
 **AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
+<details>
+    <summary>
+        Updates
+    </summary>
+    <code><strong>v1.0.1</strong></code>
+    <ul>
+        <li>
+            Now you can customise terminal, by changing:
+                <ul>
+                    <li>Font Size</li>
+                    <li>Font Family</li>
+                    <li>Cursor Style</li>
+                    <li>Cursor Blink</li>
+                    <li>Scroll back</li>
+                    <li>Scroll Sensitivity</li>
+                    <li>Theme</li>
+                </ul>
+        </li>
+    </ul>
+</details>
 
 ## Features
 
@@ -10,7 +30,7 @@
 - **Productivity**: By using _AcodeX_, developers can save time by accessing the terminal directly within _Acode_ and executing commands without switching between apps.
 - **Terminal panel**: The terminal panel can be moved around, resized, minimized, and maximized based on the developer's preferences
 - **User-friendly interface**: _AcodeX_ offers a simple and intuitive interface, making it easy to use for all levels of developers.
-
+- **Customisable**: You can customise AcodeX terminal according to your preference 
 
 ## Prerequisites
 
@@ -26,7 +46,7 @@ Install plugin in **Acode App** From `Acode > Settings > Plugins > AcodeX`
 And Install server in termux via below command:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash && acodeX-server
+curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash
 ```
     
 ## How to use?
