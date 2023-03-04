@@ -7,6 +7,23 @@
     <summary>
         Updates
     </summary>
+    <code><strong>v1.0.3</strong></code>
+    <ul>
+        <li>Removed deprecated Acode API for smooth functioning in latest Acode</li>
+        <li>
+            <details>
+                <summary>
+                    Spoiler for Next Update
+                </summary>
+                🤫🤫🤫 You will able to open any file or folder by running a single command in <strong>AcodeX</strong> terminal🤫🤫🤫
+            </details>
+        </li>
+    </ul>
+    <code><strong>v1.0.2</strong></code>
+    <ul>
+        <li>Plugin Setting Ui improved</li>
+        <li>For closing the terminal use <code>Ctrl+J</code></li>
+    </ul>
     <code><strong>v1.0.1</strong></code>
     <ul>
         <li>

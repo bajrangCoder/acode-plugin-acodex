@@ -91,12 +91,14 @@ class AcodeX {
     
     async init() {
         try{
-            // load xterm.css
-            helpers.loadStyles(this.baseUrl+'xterm.css')
+            this.xtermCss = tag("link",{
+                rel: "stylesheet",
+                href: this.baseUrl+"xterm.css"
+            });
             this.$style = tag("style",{
                 textContent: style
             });
-            document.head.append(this.$style);
+            document.head.append(this.xtermCss,this.$style);
             // add command in command Pallete for opening and closing terminal
             editorManager.editor.commands.addCommand({
                 name: "acodex:open_terminal",
@@ -107,7 +109,7 @@ class AcodeX {
             editorManager.editor.commands.addCommand({
                 name: "acodex:close_terminal",
                 description: "Close Terminal",
-                bindKey: {win: 'Ctrl-X'},
+                bindKey: {win: 'Ctrl-J'},
                 exec: this.closeTerminal.bind(this)
             });
             // main terminal container
@@ -163,7 +165,7 @@ class AcodeX {
             window.addEventListener('mouseup', this.stopDragging.bind(this));
             window.addEventListener('touchend', this.stopDragging.bind(this));
         }catch(err){
-            alert("Please Restart the App")
+            alert("Warning","Please Restart the app to use AcodeX")
         }
     }
     
@@ -330,13 +332,14 @@ class AcodeX {
         return {
             list: [
                 {
+                    index: 0,
                     key: 'cursorBlink',
                     text: 'Cursor Blink',
-                    value: this.settings.cursorBlink,
                     info: 'Whether the cursor blinks.',
-                    checkbox: true
+                    checkbox: !!this.settings.cursorBlink
                 },
                 {
+                    index: 1,
                     key: 'cursorStyle',
                     text: 'Cursor Style',
                     value: this.settings.cursorStyle,
@@ -344,6 +347,7 @@ class AcodeX {
                     select: [this.CURSOR_STYLE1,this.CURSOR_STYLE2,this.CURSOR_STYLE3]
                 },
                 {
+                    index: 2,
                     key: 'fontSize',
                     text: 'Font Size',
                     value: this.settings.fontSize,
@@ -358,6 +362,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 3,
                     key: 'scrollBack',
                     text: 'Scroll Back',
                     value: this.settings.scrollBack,
@@ -372,6 +377,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 4,
                     key: 'scrollSensitivity',
                     text: 'Scroll Sensitivity',
                     value: this.settings.scrollSensitivity,
@@ -386,6 +392,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 5,
                     key: 'fontFamily',
                     text: 'Font Family',
                     value: this.settings.fontFamily,
@@ -399,6 +406,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 6,
                     key: 'backgroundColor',
                     text: 'Background Color',
                     value: this.settings.backgroundColor,
@@ -412,6 +420,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 7,
                     key: 'foregroundColor',
                     text: 'Foreground Color',
                     value: this.settings.foregroundColor,
@@ -425,6 +434,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 8,
                     key: 'selectionBackground',
                     text: 'Selection Background Color',
                     value: this.settings.selectionBackground,
@@ -438,6 +448,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 9,
                     key: 'black',
                     text: 'Black Color',
                     value: this.settings.black,
@@ -451,6 +462,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 10,
                     key: 'blue',
                     text: 'Blue Color',
                     value: this.settings.blue,
@@ -464,6 +476,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 11,
                     key: 'brightBlack',
                     text: 'Bright Black Color',
                     value: this.settings.brightBlack,
@@ -477,6 +490,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 12,
                     key: 'brightBlue',
                     text: 'Bright Blue Color',
                     value: this.settings.brightBlue,
@@ -490,6 +504,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 13,
                     key: 'brightCyan',
                     text: 'Bright Cyan Color',
                     value: this.settings.brightCyan,
@@ -503,6 +518,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 14,
                     key: 'brightGreen',
                     text: 'Bright Green Color',
                     value: this.settings.brightGreen,
@@ -516,6 +532,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 15,
                     key: 'brightMagenta',
                     text: 'Bright Magenta Color',
                     value: this.settings.brightMagenta,
@@ -529,6 +546,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 16,
                     key: 'brightRed',
                     text: 'Bright Red Color',
                     value: this.settings.brightRed,
@@ -542,6 +560,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 17,
                     key: 'brightWhite',
                     text: 'Bright White Color',
                     value: this.settings.brightWhite,
@@ -555,6 +574,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 18,
                     key: 'brightYellow',
                     text: 'Bright Yellow Color',
                     value: this.settings.brightYellow,
@@ -568,6 +588,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 19,
                     key: 'cyan',
                     text: 'Cyan Color',
                     value: this.settings.cyan,
@@ -581,6 +602,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 20,
                     key: 'green',
                     text: 'Green Color',
                     value: this.settings.green,
@@ -594,6 +616,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 21,
                     key: 'magenta',
                     text: 'Magenta Color',
                     value: this.settings.magenta,
@@ -607,6 +630,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 22,
                     key: 'red',
                     text: 'Red Color',
                     value: this.settings.red,
@@ -620,6 +644,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 23,
                     key: 'white',
                     text: 'White Color',
                     value: this.settings.white,
@@ -633,6 +658,7 @@ class AcodeX {
                     ]
                 },
                 {
+                    index: 24,
                     key: 'yellow',
                     text: 'Yellow Color',
                     value: this.settings.yellow,
