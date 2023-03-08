@@ -6,7 +6,7 @@ import { Terminal } from 'xterm';
 // xtermjs addons
 import { FitAddon } from 'xterm-addon-fit';
 import { WebglAddon } from 'xterm-addon-webgl';
-import { AttachAddon } from 'xterm-addon-attach';
+import { AttachAddon } from './xterm-addon-attach.js';
 
 // acode commopents & api
 const alert = acode.require('alert');
@@ -180,6 +180,8 @@ class AcodeX {
                 this.$terminalContainer.style.height = "270px";
                 // initialise xtermjs Terminal class
                 this.$terminal = new Terminal({
+                    allowProposedApi: true,
+                    scrollOnUserInput: true,
                     cursorBlink: this.settings.cursorBlink,
                     cursorStyle: this.settings.cursorStyle,
                     scrollBack: this.settings.scrollBack,
@@ -218,9 +220,10 @@ class AcodeX {
                 this.$fitAddon.fit();
             }
         } catch(err){
-            window.alert(err);
+            window.toast(err,5000);
         }
     }
+    
     
     async runCmdByInp(){
         let cmd = this.$cmdInput.value;
