@@ -7,56 +7,64 @@
 
 <details>
     <summary>
-        Updates
+        Updates 🤩🤩
     </summary>
-    <code><strong>v1.0.4</strong></code>
-    <ul>
-        <li>Now you can use any keyboard in terminal(recommend -> keyboard which cantains ctrl key and so on)</li>
-        <li>Some Improvement</li>
-        <li>There is little bit limitations with keys that will be fixed in next update</li>
-        <li>
-            Supported Keys
-            <ul>
-                <li>Enter key</li>
-                <li>Space key</li>
-                <li>Ctrl+C key</li>
-                <li>Delete/Backspace key</li>
-                <li>Others ae treated as normal printable keys</li>
-            </ul>
-        </li>
-    </ul>
-    <code><strong>v1.0.3</strong></code>
-    <ul>
-        <li>Removed deprecated Acode API for smooth functioning in latest Acode</li>
-        <li>
-            <details>
-                <summary>
-                    Spoiler for Next Update
-                </summary>
-                🤫🤫🤫 You will able to open any file or folder by running a single command in <strong>AcodeX</strong> terminal🤫🤫🤫
-            </details>
-        </li>
-    </ul>
-    <code><strong>v1.0.2</strong></code>
-    <ul>
-        <li>Plugin Setting Ui improved</li>
-        <li>For closing the terminal use <code>Ctrl+J</code></li>
-    </ul>
-    <code><strong>v1.0.1</strong></code>
-    <ul>
-        <li>
-            Now you can customise terminal, by changing:
+    <details>
+        <summary>
+            <code><strong>v1.0.4</strong></code>
+        </summary>
+        <ul>
+            <li>Now you can use any keyboard in terminal(recommend -> keyboard which cantains ctrl key and so on)</li>
+            <li>Some Improvement</li>
+            <li>There is little bit limitations with keys that will be fixed in next update</li>
+            <li>
+                Supported Keys
                 <ul>
-                    <li>Font Size</li>
-                    <li>Font Family</li>
-                    <li>Cursor Style</li>
-                    <li>Cursor Blink</li>
-                    <li>Scroll back</li>
-                    <li>Scroll Sensitivity</li>
-                    <li>Theme</li>
+                    <li>Enter key</li>
+                    <li>Space key</li>
+                    <li>Ctrl+C key</li>
+                    <li>Delete/Backspace key</li>
+                    <li>Others treated as normal printable keys</li>
                 </ul>
-        </li>
-    </ul>
+            </li>
+        </ul>
+    </details>
+    <details>
+        <summary>
+            <code><strong>v1.0.3</strong></code>
+        </summary>
+        <ul>
+            <li>Removed deprecated Acode API for smooth functioning in latest Acode</li>
+        </ul>
+    </details>
+    <details>
+        <summary>
+            <code><strong>v1.0.2</strong></code>
+        </summary>
+        <ul>
+            <li>Plugin Setting Ui improved</li>
+            <li>For closing the terminal use <code>Ctrl+J</code></li>
+        </ul>
+    </details>
+    <details>
+        <summary>
+            <code><strong>v1.0.1</strong></code>
+        </summary>
+        <ul>
+            <li>
+                Now you can customise terminal, by changing:
+                    <ul>
+                        <li>Font Size</li>
+                        <li>Font Family</li>
+                        <li>Cursor Style</li>
+                        <li>Cursor Blink</li>
+                        <li>Scroll back</li>
+                        <li>Scroll Sensitivity</li>
+                        <li>Theme</li>
+                    </ul>
+            </li>
+        </ul>
+    </details>
 </details>
 
 ## Features
@@ -80,10 +88,6 @@ We apologize for any inconvenience caused by this issue and appreciate your pati
 ## Prerequisites
 
 To use **AcodeX**, you need to have the **Termux app** installed on your Android device. However, you do not need to switch between apps to use the terminal, as **AcodeX** offers a convenient way to access the terminal directly within the **Acode app** with the help of **Termux**
-
-## Limitations
-
-Although **AcodeX** is a useful plugin but there is a limitation with the `mobile keyboard` when using the terminal. This is a known issue, and the developer is working to fix it. For the time being, users can use the `input fields` to enter commands if the mobile keyboard is not working. Note that this limitation is not specific to **AcodeX**, but rather an issue with xtermjs, the terminal emulator used by the plugin.
 
 ## Installation
 
