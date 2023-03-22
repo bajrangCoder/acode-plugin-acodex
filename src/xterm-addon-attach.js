@@ -1,10 +1,4 @@
-"use strict";
-/**
- * Copyright (c) 2014, 2019 The xterm.js authors. All rights reserved.
- * @license MIT
- *
- * Implements the attach method, that attaches the terminal to a WebSocket stream.
- */
+
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AttachAddon = void 0;
 var AttachAddon = /** @class */ (function () {
@@ -36,6 +30,8 @@ var AttachAddon = /** @class */ (function () {
                     return;
                 }
             };
+            let cmdHistory = JSON.parse(localStorage.getItem("cmdHistory")) || [];
+            let currentInputIndex = cmdHistory.length;
             var command_1 = '';
             this._disposables.push(terminal.onData(function (data) {
                 switch (data) {
@@ -45,6 +41,12 @@ var AttachAddon = /** @class */ (function () {
                         break;
                     case '\r': // Enter
                         runCommand(terminal, command_1);
+                        cmdHistory.push(command_1);
+                        if (cmdHistory.length > 50) {
+                            cmdHistory.shift();
+                        }
+                        currentInputIndex = cmdHistory.length;
+                        localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
                         command_1 = '';
                         break;
                     case '\u007F': // Backspace (DEL)
@@ -53,6 +55,22 @@ var AttachAddon = /** @class */ (function () {
                             terminal.write('\b \b');
                             if (command_1.length > 0) {
                                 command_1 = command_1.substr(0, command_1.length - 1);
+                            }
+                        }
+                        break;
+                    case '\u001B[A':
+                        if (currentInputIndex > 0) { // Only go back in history if we're not at the beginning
+                            currentInputIndex--;
+                            terminal.write("\x1b[2K\r" + cmdHistory[currentInputIndex]); // Clear the current input and print the previous one
+                        }
+                        break;
+                    case "\u001b[B": // If user pressed the down arrow key
+                        if (currentInputIndex < cmdHistory.length) { // Only go forward in history if we're not at the end
+                            currentInputIndex++;
+                            if (currentInputIndex === cmdHistory.length) { // If we're at the end, clear the input
+                              terminal.write("\x1b[2K\r");
+                            } else {
+                              terminal.write("\x1b[2K\r" + cmdHistory[currentInputIndex]); // Clear the current input and print the next one
                             }
                         }
                         break;

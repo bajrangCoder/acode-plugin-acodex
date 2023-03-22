@@ -23,20 +23,12 @@ server.on("connection", function (connection) {
             shell.kill("SIGTERM");
             connection.close();
             return;
-        }/*else if (command === "acode ." || command === "acode . ") {
-            
-            try {
-                cwd = shell.process.cwd();
-            } catch (e) {
-                connection.send(`Error: ${e.message}`);
-                return;
-            }
-            if (cwd === '') {
-                //connection.send(`Error: You do not have permission to access root directory`);
-            } else {
-                connection.send(`Current directory: ${cwd}`);
-            }
-        } else if (command.startsWith("open ")) {
+        }else if (command === "acode ." || command === "acode . ") {
+            shell.write('pwd\r');
+            shell.onData((data) => {
+                console.log(data.trim())
+            })
+        }/* else if (command.startsWith("open ")) {
             const filenames = command.slice(5).split(' ').filter(filename => filename.trim() !== '');
             if (filenames.length === 0) {
                 connection.send(`Error: No filename provided`);
@@ -62,12 +54,9 @@ server.on("connection", function (connection) {
                     connection.send(`File paths:\n${paths}`);
                 }
             }
-        } else {*/
-        
-        
-        shell.write(command+"\r");
-        
-        //}
+        }*/ else {
+            shell.write(command+"\r");
+        }
     });
 
     shell.on("data", function (data) {
