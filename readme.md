@@ -11,6 +11,20 @@
     </summary>
     <details>
         <summary>
+            <code><strong>v1.0.5</strong></code>
+        </summary>
+        <ul>
+            <li>
+                Now you can get previous command(history of command) same as Termux feature:
+                <ul>
+                    <li>For previous command -> ⇑</li>
+                    <li>For next command -> ⇓</li>
+                </ul>
+            </li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.0.4</strong></code>
         </summary>
         <ul>

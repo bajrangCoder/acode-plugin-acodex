@@ -61,16 +61,21 @@ var AttachAddon = /** @class */ (function () {
                     case '\u001B[A':
                         if (currentInputIndex > 0) { // Only go back in history if we're not at the beginning
                             currentInputIndex--;
-                            terminal.write("\x1b[2K\r" + cmdHistory[currentInputIndex]); // Clear the current input and print the previous one
+                            clearInput(terminal,command_1);
+                            terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the previous one
+                            command_1 = cmdHistory[currentInputIndex];
                         }
                         break;
                     case "\u001b[B": // If user pressed the down arrow key
                         if (currentInputIndex < cmdHistory.length) { // Only go forward in history if we're not at the end
                             currentInputIndex++;
                             if (currentInputIndex === cmdHistory.length) { // If we're at the end, clear the input
-                              terminal.write("\x1b[2K\r");
+                                clearInput(terminal,command_1);
+                                command_1 = '';
                             } else {
-                              terminal.write("\x1b[2K\r" + cmdHistory[currentInputIndex]); // Clear the current input and print the next one
+                                clearInput(terminal,command_1);
+                                command_1 = cmdHistory[currentInputIndex];
+                                terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the next one
                             }
                         }
                         break;
