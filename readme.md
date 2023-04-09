@@ -5,6 +5,7 @@
 
 > Note: Please you should set terminal height according to your screen , for smooth functioning.
 
+Support this project with your small contribution - <a href='https://github.com/sponsors/bajrangCoder'>Click Me 💗</a>
 <details>
     <summary>
         Updates 🤩🤩
