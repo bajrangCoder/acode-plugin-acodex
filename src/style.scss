@@ -20,6 +20,30 @@
         h3{
             margin: 0;
         }
+        .arrowBtns{
+            display: flex;
+            justify-content: space-between;
+            align-content: center;
+            .upArrowBtn{
+                font-size: 17px;
+                height: 27px;
+                width: 27px;
+                border-radius: 10px;
+                background: var(--active-icon-color);
+                border: none;
+                color: var(--primary-text-color);
+                margin-right: 5px;
+            }
+            .downArrowBtn{
+                font-size: 17px;
+                height: 27px;
+                width: 27px;
+                border-radius: 10px;
+                background: var(--active-icon-color);
+                border: none;
+                color: var(--primary-text-color);
+            }
+        }
         .control-btn{
             display: flex;
             justify-content: space-between;

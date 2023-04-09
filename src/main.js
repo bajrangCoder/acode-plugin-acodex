@@ -6,20 +6,18 @@ import { Terminal } from 'xterm';
 // xtermjs addons
 import { FitAddon } from 'xterm-addon-fit';
 import { WebglAddon } from 'xterm-addon-webgl';
-import { AttachAddon } from './xterm-addon-attach.js';
+import { SerializeAddon } from "xterm-addon-serialize";
 
 // acode commopents & api
 const alert = acode.require('alert');
 const confirm = acode.require('confirm');
-const helpers = acode.require('helpers');
 const prompt = acode.require('prompt');
 const appSettings = acode.require('settings');
+const helpers = acode.require('helpers');
+const fsOperation = acode.require('fsOperation');
 
-
-/*
-TODO:
-- Fix keyboard issue
-*/
+// constants
+const TERMINAL_STORE_PATH = window.DATA_STORAGE+"terminals";
 
 class AcodeX {
     isDragging = false;
@@ -122,11 +120,17 @@ class AcodeX {
             this.$terminalTitle = tag("h3",{
                 textContent: "AcodeX"
             });
-            this.$cmdInput = tag("input",{
-                type:'text',
-                placeholder: 'Type your command here..'
+            const $arrowBtns = tag("div",{
+                className: "arrowBtns"
             });
-            this.$cmdInput.onchange = this.runCmdByInp.bind(this);
+            this.$upArrowBtn = tag("button",{
+                className: "upArrowBtn",
+                textContent: "↑"
+            });
+            this.$downArrowBtn = tag("button",{
+                className: "downArrowBtn",
+                textContent: "↓"
+            });
             const $controlBtn = tag("div",{
                 className: "control-btn"
             });
@@ -138,8 +142,9 @@ class AcodeX {
                 className: "close-terminal-btn",
                 textContent: "✗"
             });
-            $controlBtn.append(...[this.$hideTermBtn,this.$closeTermBtn])
-            this.$terminalHeader.append(...[this.$terminalTitle,this.$cmdInput,$controlBtn]);
+            $arrowBtns.append(...[this.$upArrowBtn,this.$downArrowBtn]);
+            $controlBtn.append(...[this.$hideTermBtn,this.$closeTermBtn]);
+            this.$terminalHeader.append(...[this.$terminalTitle,$arrowBtns,$controlBtn]);
             this.$terminalContent = tag("div",{
                 className: "terminal-content",
             });
@@ -154,22 +159,44 @@ class AcodeX {
             
             this.$showTermBtn.classList.add("hide");
             this.$terminalContainer.classList.add("hide");
+            
+            this.$showTermBtn.classList.add("hide");
+            this.$terminalContainer.classList.add("hide");
             // add event listnner to all buttons and terminal panel header
-            this.$terminalTitle.addEventListener('mousedown', this.startDragging.bind(this));
-            this.$terminalTitle.addEventListener('touchstart', this.startDragging.bind(this));
+            this.$terminalHeader.addEventListener('mousedown', this.startDragging.bind(this));
+            this.$terminalHeader.addEventListener('touchstart', this.startDragging.bind(this));
+            
             this.$closeTermBtn.addEventListener('click',this.closeTerminal.bind(this));
             this.$hideTermBtn.addEventListener('click',this.minimise.bind(this));
             this.$showTermBtn.addEventListener('click',this.maxmise.bind(this));
+            
+            this.$upArrowBtn.addEventListener('click',this.upArrowKeyWorker.bind(this));
+            this.$downArrowBtn.addEventListener('click',this.downArrowKeyWorker.bind(this));
+            
             window.addEventListener('mousemove', this.drag.bind(this));
             window.addEventListener('touchmove', this.drag.bind(this));
             window.addEventListener('mouseup', this.stopDragging.bind(this));
             window.addEventListener('touchend', this.stopDragging.bind(this));
+            //const fileData = await fsOperation(TERMINAL_STORE_PATH+"session1.json").readFile();
+            //window.alert(JSON.stringify(await helpers.decodeText(fileData)))
+            if(await fsOperation(TERMINAL_STORE_PATH).exists()){
+                let terminalFileData = await fsOperation(TERMINAL_STORE_PATH+"session1.txt").readFile('utf8');
+                window.alert(terminalFileData)
+                /*let terminalState = JSON.parse(fileData);
+                window.alert(terminalState.terminalContainerHeight)
+                this.openTerminal(terminalState.terminalContainerHeight,terminalState.terminalContentHeight);
+                this.$terminal.write(terminalState.terminalData);
+                this.$fitAddon.fit();*/
+                
+            }
+            
         }catch(err){
             alert("Warning","Please Restart the app to use AcodeX")
+            window.alert(JSON.stringify(err))
         }
     }
     
-    async openTerminal(){
+    async openTerminal(termContainerHeight="270px",termContentHeight="230px"){
         /*
         open terminal in app
         */
@@ -177,7 +204,8 @@ class AcodeX {
             const port = await prompt("Port","8767","number",{required: true,});
             if(port){
                 this.$terminalContainer.classList.remove('hide');
-                this.$terminalContainer.style.height = "270px";
+                this.$terminalContainer.style.height = termContainerHeight;
+                this.$terminalContent.style.height = termContentHeight;
                 // initialise xtermjs Terminal class
                 this.$terminal = new Terminal({
                     allowProposedApi: true,
@@ -212,11 +240,92 @@ class AcodeX {
                 });
                 this.$fitAddon = new FitAddon();
                 this.$terminal.loadAddon(this.$fitAddon);
+                this.$serializeAddon = new SerializeAddon();
+                this.$terminal.loadAddon(this.$serializeAddon);
                 this.$terminal.open(this.$terminalContent);
                 this.$terminal.loadAddon(new WebglAddon());
                 this.ws = new WebSocket(`ws://localhost:${port}/`);
-                const attachAddon = new AttachAddon(this.ws);
-                this.$terminal.loadAddon(attachAddon);
+                this.ws.binaryType = 'arraybuffer';
+                this.checkTerminalFolder();
+                this.ws.onmessage = async (ev) => {
+                    let data = ev.data;
+                    this.$terminal.write(typeof data === 'string' ? data : new Uint8Array(data), async () => {
+                        let terminalState = this.$serializeAddon.serialize();
+                        //window.alert(terminalState)
+                        let test = [""]
+                        test.push(terminalState)
+                        window.alert(test)
+                        let terminalCont = {
+                            "terminalContainerHeight": this.$terminalContainer.offsetHeight+"px",
+                            "terminalContentHeight": this.$terminalContent.offsetHeight+"px",
+                            "terminalData": test
+                        }
+                        if(!await fsOperation(TERMINAL_STORE_PATH+"session1.txt").exists()){
+                            await fsOperation(TERMINAL_STORE_PATH).createFile('session1.txt', terminalState);
+                        }else{
+                            //await fsOperation(TERMINAL_STORE_PATH+"session1.txt").writeFile(" ");
+                            await fsOperation(TERMINAL_STORE_PATH+"session1.txt").writeFile(terminalState);
+                        }
+                    });
+                }
+                let cmdHistory = JSON.parse(localStorage.getItem("cmdHistory")) || [];
+                let currentInputIndex = cmdHistory.length;
+                
+                let command = '';
+                this.$terminal.onData((data) => {
+                    switch (data) {
+                        case '\u0003': // Ctrl+C
+                            this.$terminal.write('^C');
+                            this._sendData(data);
+                            break;
+                        case '\r': // Enter
+                            this._runCommand(this.$terminal, command);
+                            cmdHistory.push(command);
+                            if (cmdHistory.length > 50) {
+                                cmdHistory.shift();
+                            }
+                            currentInputIndex = cmdHistory.length;
+                            localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
+                            command = '';
+                            break;
+                        case '\u007F': // Backspace (DEL)
+                            // Do not delete the prompt
+                            if (this.$terminal._core.buffer.x > 4) {
+                                this.$terminal.write('\b \b');
+                                if (command.length > 0) {
+                                    command = command.substr(0, command.length - 1);
+                                }
+                            }
+                            break;
+                        case '\u001B[A':
+                            if (currentInputIndex > 0) { // Only go back in history if we're not at the beginning
+                                currentInputIndex--;
+                                this._clearInput(this.$terminal,command);
+                                this.$terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the previous one
+                                command = cmdHistory[currentInputIndex];
+                            }
+                            break;
+                        case "\u001b[B": // If user pressed the down arrow key
+                            if (currentInputIndex < cmdHistory.length) { // Only go forward in history if we're not at the end
+                                currentInputIndex++;
+                                if (currentInputIndex === cmdHistory.length) { // If we're at the end, clear the input
+                                    this._clearInput(this.$terminal,command);
+                                    command = '';
+                                } else {
+                                    this._clearInput(this.$terminal,command);
+                                    command = cmdHistory[currentInputIndex];
+                                    this.$terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the next one
+                                }
+                            }
+                            break;
+                        default:
+                            if (data >= String.fromCharCode(0x20) && data <= String.fromCharCode(0x7E) || data >= '\u00a0') {
+                                command += data;
+                                this.$terminal.write(data);
+                            }
+                    }
+                })
+                this.$terminal.onBinary((data) => { return this._sendBinary(data); });
                 this.$fitAddon.fit();
             }
         } catch(err){
@@ -224,12 +333,72 @@ class AcodeX {
         }
     }
     
-    
-    async runCmdByInp(){
-        let cmd = this.$cmdInput.value;
-        this.ws.send(cmd);
-        this.$cmdInput.value = '';
+    async checkTerminalFolder(){
+        if (!await fsOperation(TERMINAL_STORE_PATH).exists()) {
+            await fsOperation(window.DATA_STORAGE).createDirectory('terminals');
+        }
     }
+    
+    _clearInput(term, cmd) {
+        /*
+        clear the input area of terminal
+        */
+        let inputLengh = cmd.length;
+        for (let i = 0; i < inputLengh; i++) {
+            term.write('\b \b');
+        }
+    }
+    
+    _runCommand(term, cmd) {
+        /*
+        run guven `cmd` in terminal
+        */
+        if (cmd.length > 0) {
+            this._clearInput(term, cmd);
+            this._sendData(cmd);
+            return;
+        }
+    }
+    
+    _sendData(data) {
+        /*
+        send command to backend via websocket
+        */
+        if (!this._checkOpenSocket()) {
+            return;
+        }
+        this.ws.send(data);
+    }
+    
+    _sendBinary(data) {
+        /*
+        send binary data to backend via websocket
+        */
+        if (!this._checkOpenSocket()) {
+            return;
+        }
+        let buffer = new Uint8Array(data.length);
+        for (var i = 0; i < data.length; ++i) {
+            buffer[i] = data.charCodeAt(i) & 255;
+        }
+        this.ws.send(buffer);
+    }
+    
+    _checkOpenSocket() {
+        switch (this.ws.readyState) {
+            case WebSocket.OPEN:
+                return true;
+            case WebSocket.CONNECTING:
+                throw new Error('script was loaded before socket was open');
+            case WebSocket.CLOSING:
+                console.warn('socket is closing');
+                return false;
+            case WebSocket.CLOSED:
+                throw new Error('socket is closed');
+            default:
+                throw new Error('Unexpected socket state');
+        }
+    };
     
     async closeTerminal(){
         /*
@@ -240,6 +409,7 @@ class AcodeX {
         this.$terminalContent.innerHTML = '';
         this.$terminalContainer.classList.add('hide');
         this.$showTermBtn.classList.add('hide');
+        await fsOperation(TERMINAL_STORE_PATH).delete();
     }
     
     startDragging(e) {
@@ -320,6 +490,26 @@ class AcodeX {
         }
     }
     
+    async upArrowKeyWorker(){
+        /*
+        up arrow key worker function
+        */
+        if(!this.$terminal) return;
+        const event = new KeyboardEvent('keydown', { keyCode: 38 });
+        this.$terminal.textarea.dispatchEvent(event);
+        this.$terminal.focus();
+    }
+    
+    async downArrowKeyWorker(){
+        /*
+        down arrow key worker function
+        */
+        if(!this.$terminal) return;
+        const event = new KeyboardEvent('keydown', { keyCode: 40 });
+        this.$terminal.textarea.dispatchEvent(event);
+        this.$terminal.focus();
+    }
+    
     async destroy() {
         editorManager.editor.commands.removeCommand("terminal:open_terminal");
         editorManager.editor.commands.removeCommand("terminal:close_terminal");
@@ -329,6 +519,9 @@ class AcodeX {
         window.removeEventListener('touchmove', this.drag);
         window.removeEventListener('mouseup', this.stopDragging);
         window.removeEventListener('touchend', this.stopDragging);
+        if(await fsOperation(TERMINAL_STORE_PATH).exists()){
+            await fsOperation(TERMINAL_STORE_PATH).delete();
+        }
     }
     
     get settingsObj() {
