@@ -22,6 +22,7 @@
     "autoprefixer": "^10.4.13",
     "babel-loader": "^9.1.0",
     "jszip": "^3.10.1",
+    "ip": "^1.1.8",
     "live-server": "^1.2.2",
     "postcss": "^8.4.21",
     "postcss-loader": "^7.0.2",
