@@ -102,7 +102,7 @@ class AcodeX {
                 name: "acodex:open_terminal",
                 description: "Open Terminal",
                 bindKey: {win: 'Ctrl-K'},
-                exec: this.openTerminal.bind(this)
+                exec: this.openNewTerminal.bind(this)
             });
             editorManager.editor.commands.addCommand({
                 name: "acodex:close_terminal",
@@ -177,166 +177,161 @@ class AcodeX {
             window.addEventListener('touchmove', this.drag.bind(this));
             window.addEventListener('mouseup', this.stopDragging.bind(this));
             window.addEventListener('touchend', this.stopDragging.bind(this));
-            //const fileData = await fsOperation(TERMINAL_STORE_PATH+"session1.json").readFile();
-            //window.alert(JSON.stringify(await helpers.decodeText(fileData)))
-            if(await fsOperation(TERMINAL_STORE_PATH).exists()){
-                let terminalFileData = await fsOperation(TERMINAL_STORE_PATH+"session1.txt").readFile('utf8');
-                window.alert(terminalFileData)
-                /*let terminalState = JSON.parse(fileData);
-                window.alert(terminalState.terminalContainerHeight)
-                this.openTerminal(terminalState.terminalContainerHeight,terminalState.terminalContentHeight);
-                this.$terminal.write(terminalState.terminalData);
-                this.$fitAddon.fit();*/
-                
+
+            const fs = fsOperation(TERMINAL_STORE_PATH+"/session1.json");
+            if(await fs.exists()){
+                let terminalFileData = await fs.readFile('utf8');
+                let terminalState = JSON.parse(terminalFileData);
+                this.openPreviousTerminal(terminalState.wsPort,terminalState.terminalContainerHeight,terminalState.terminalContentHeight,terminalState.terminalData);
             }
-            
         }catch(err){
             alert("Warning","Please Restart the app to use AcodeX")
-            window.alert(JSON.stringify(err))
         }
     }
     
-    async openTerminal(termContainerHeight="270px",termContentHeight="230px"){
+    async openNewTerminal(termContainerHeight="270px",termContentHeight="230px"){
         /*
-        open terminal in app
+        open a new terminal in app
         */
         try{
             const port = await prompt("Port","8767","number",{required: true,});
-            if(port){
+            if (port) {
                 this.$terminalContainer.classList.remove('hide');
                 this.$terminalContainer.style.height = termContainerHeight;
                 this.$terminalContent.style.height = termContentHeight;
                 // initialise xtermjs Terminal class
-                this.$terminal = new Terminal({
-                    allowProposedApi: true,
-                    scrollOnUserInput: true,
-                    cursorBlink: this.settings.cursorBlink,
-                    cursorStyle: this.settings.cursorStyle,
-                    scrollBack: this.settings.scrollBack,
-                    scrollSensitivity: this.settings.scrollSensitivity,
-                    fontSize: this.settings.fontSize,
-                    fontFamily: this.settings.fontFamily,
-                    theme: {
-                        background: this.settings.backgroundColor,
-                        foreground: this.settings.foregroundColor,
-                        selectionBackground: this.settings.selectionBackground,
-                        black: this.settings.black,
-                        blue: this.settings.blue,
-                        brightBlack: this.settings.brightBlack,
-                        brightBlue: this.settings.brightBlue,
-                        brightCyan: this.settings.brightCyan,
-                        brightGreen: this.settings.brightGreen,
-                        brightMagenta: this.settings.brightMagenta,
-                        brightRed: this.settings.brightRed,
-                        brightWhite: this.settings.brightWhite,
-                        brightYellow: this.settings.brightYellow,
-                        cyan: this.settings.cyan,
-                        green: this.settings.green,
-                        magenta: this.settings.magenta,
-                        red: this.settings.red,
-                        white: this.settings.white,
-                        yellow: this.settings.yellow
-                    }
-                });
+                this.$terminal = this.terminalObj;
                 this.$fitAddon = new FitAddon();
-                this.$terminal.loadAddon(this.$fitAddon);
                 this.$serializeAddon = new SerializeAddon();
+                this.$terminal.loadAddon(this.$fitAddon);
                 this.$terminal.loadAddon(this.$serializeAddon);
-                this.$terminal.open(this.$terminalContent);
                 this.$terminal.loadAddon(new WebglAddon());
+                this.$terminal.open(this.$terminalContent);
                 this.ws = new WebSocket(`ws://localhost:${port}/`);
                 this.ws.binaryType = 'arraybuffer';
                 this.checkTerminalFolder();
-                this.ws.onmessage = async (ev) => {
-                    let data = ev.data;
-                    this.$terminal.write(typeof data === 'string' ? data : new Uint8Array(data), async () => {
-                        let terminalState = this.$serializeAddon.serialize();
-                        //window.alert(terminalState)
-                        let test = [""]
-                        test.push(terminalState)
-                        window.alert(test)
-                        let terminalCont = {
-                            "terminalContainerHeight": this.$terminalContainer.offsetHeight+"px",
-                            "terminalContentHeight": this.$terminalContent.offsetHeight+"px",
-                            "terminalData": test
-                        }
-                        if(!await fsOperation(TERMINAL_STORE_PATH+"session1.txt").exists()){
-                            await fsOperation(TERMINAL_STORE_PATH).createFile('session1.txt', terminalState);
-                        }else{
-                            //await fsOperation(TERMINAL_STORE_PATH+"session1.txt").writeFile(" ");
-                            await fsOperation(TERMINAL_STORE_PATH+"session1.txt").writeFile(terminalState);
-                        }
-                    });
-                }
-                let cmdHistory = JSON.parse(localStorage.getItem("cmdHistory")) || [];
-                let currentInputIndex = cmdHistory.length;
-                
-                let command = '';
-                this.$terminal.onData((data) => {
-                    switch (data) {
-                        case '\u0003': // Ctrl+C
-                            this.$terminal.write('^C');
-                            this._sendData(data);
-                            break;
-                        case '\r': // Enter
-                            this._runCommand(this.$terminal, command);
-                            cmdHistory.push(command);
-                            if (cmdHistory.length > 50) {
-                                cmdHistory.shift();
-                            }
-                            currentInputIndex = cmdHistory.length;
-                            localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
-                            command = '';
-                            break;
-                        case '\u007F': // Backspace (DEL)
-                            // Do not delete the prompt
-                            if (this.$terminal._core.buffer.x > 4) {
-                                this.$terminal.write('\b \b');
-                                if (command.length > 0) {
-                                    command = command.substr(0, command.length - 1);
-                                }
-                            }
-                            break;
-                        case '\u001B[A':
-                            if (currentInputIndex > 0) { // Only go back in history if we're not at the beginning
-                                currentInputIndex--;
-                                this._clearInput(this.$terminal,command);
-                                this.$terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the previous one
-                                command = cmdHistory[currentInputIndex];
-                            }
-                            break;
-                        case "\u001b[B": // If user pressed the down arrow key
-                            if (currentInputIndex < cmdHistory.length) { // Only go forward in history if we're not at the end
-                                currentInputIndex++;
-                                if (currentInputIndex === cmdHistory.length) { // If we're at the end, clear the input
-                                    this._clearInput(this.$terminal,command);
-                                    command = '';
-                                } else {
-                                    this._clearInput(this.$terminal,command);
-                                    command = cmdHistory[currentInputIndex];
-                                    this.$terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the next one
-                                }
-                            }
-                            break;
-                        default:
-                            if (data >= String.fromCharCode(0x20) && data <= String.fromCharCode(0x7E) || data >= '\u00a0') {
-                                command += data;
-                                this.$terminal.write(data);
-                            }
-                    }
-                })
-                this.$terminal.onBinary((data) => { return this._sendBinary(data); });
+                this._checkForWSMessage(this.ws,this.$terminal,this.$serializeAddon,port)
+                this._actionForOnTerminalData(this.$terminal);
                 this.$fitAddon.fit();
             }
         } catch(err){
-            window.toast(err,5000);
+            window.alert(err);
         }
     }
     
+    async openPreviousTerminal(port,terminalContainerHeight,terminalContentHeight,previousTermState){
+        try{
+            if (port) {
+                this.$terminalContainer.classList.remove('hide');
+                this.$terminalContainer.style.height = terminalContainerHeight;
+                this.$terminalContent.style.height = terminalContentHeight;
+                // initialise xtermjs Terminal class
+                this.$terminal = this.terminalObj;
+                this.$fitAddon = new FitAddon();
+                this.$serializeAddon = new SerializeAddon();
+                this.$terminal.loadAddon(this.$fitAddon);
+                this.$terminal.loadAddon(this.$serializeAddon);
+                this.$terminal.loadAddon(new WebglAddon());
+                this.$terminal.open(this.$terminalContent);
+                this.$terminal.write(previousTermState);
+                this.ws = new WebSocket(`ws://localhost:${port}/`);
+                this.ws.binaryType = 'arraybuffer';
+                this.checkTerminalFolder();
+                this._checkForWSMessage(this.ws,this.$terminal,this.$serializeAddon,port)
+                this._actionForOnTerminalData(this.$terminal);
+                this.$fitAddon.fit();
+            }
+        } catch(err){
+            window.alert(err);
+        }
+    }
+    
+    async _checkForWSMessage($ws,$terminal,$serializeAddon,port){
+        $ws.onmessage = async (ev) => {
+            let data = ev.data;
+            $terminal.write(typeof data === 'string' ? data : new Uint8Array(data));
+            let terminalState = $serializeAddon.serialize();
+            let terminalCont = {
+                "wsPort": port,
+                "terminalContainerHeight": this.$terminalContainer.offsetHeight+"px",
+                "terminalContentHeight": this.$terminalContent.offsetHeight+"px",
+                "terminalData": terminalState
+            }
+            const fs = fsOperation(TERMINAL_STORE_PATH+"/session1.json");
+            if(!await fs.exists()){
+                await fsOperation(TERMINAL_STORE_PATH).createFile('session1.json', terminalCont);
+            }else{
+                await fs.writeFile(terminalCont);
+            }
+            //window.alert(terminalState)
+        }
+    }
+
     async checkTerminalFolder(){
         if (!await fsOperation(TERMINAL_STORE_PATH).exists()) {
             await fsOperation(window.DATA_STORAGE).createDirectory('terminals');
         }
+    }
+    
+    async _actionForOnTerminalData($terminal){
+        let cmdHistory = JSON.parse(localStorage.getItem("cmdHistory")) || [];
+        let currentInputIndex = cmdHistory.length;
+        
+        let command = '';
+        $terminal.onData((data) => {
+            switch (data) {
+                case '\u0003': // Ctrl+C
+                    $terminal.write('^C');
+                    this._sendData(data);
+                    break;
+                case '\r': // Enter
+                    this._runCommand(this.$terminal, command);
+                    cmdHistory.push(command);
+                    if (cmdHistory.length > 50) {
+                        cmdHistory.shift();
+                    }
+                    currentInputIndex = cmdHistory.length;
+                    localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
+                    command = '';
+                    break;
+                case '\u007F': // Backspace (DEL)
+                    // Do not delete the prompt
+                    if ($terminal._core.buffer.x > 4) {
+                        $terminal.write('\b \b');
+                        if (command.length > 0) {
+                            command = command.substr(0, command.length - 1);
+                        }
+                    }
+                    break;
+                case '\u001B[A':
+                    if (currentInputIndex > 0) { // Only go back in history if we're not at the beginning
+                        currentInputIndex--;
+                        this._clearInput($terminal,command);
+                        $terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the previous one
+                        command = cmdHistory[currentInputIndex];
+                    }
+                    break;
+                case "\u001b[B": // If user pressed the down arrow key
+                    if (currentInputIndex < cmdHistory.length) { // Only go forward in history if we're not at the end
+                        currentInputIndex++;
+                        if (currentInputIndex === cmdHistory.length) { // If we're at the end, clear the input
+                            this._clearInput($terminal,command);
+                            command = '';
+                        } else {
+                            this._clearInput($terminal,command);
+                            command = cmdHistory[currentInputIndex];
+                            $terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the next one
+                        }
+                    }
+                    break;
+                default:
+                    if (data >= String.fromCharCode(0x20) && data <= String.fromCharCode(0x7E) || data >= '\u00a0') {
+                        command += data;
+                        $terminal.write(data);
+                    }
+            }
+        })
+        $terminal.onBinary((data) => { return this._sendBinary(data); });
     }
     
     _clearInput(term, cmd) {
@@ -522,6 +517,40 @@ class AcodeX {
         if(await fsOperation(TERMINAL_STORE_PATH).exists()){
             await fsOperation(TERMINAL_STORE_PATH).delete();
         }
+    }
+    
+    get terminalObj(){
+        return new Terminal({
+            allowProposedApi: true,
+            scrollOnUserInput: true,
+            cursorBlink: this.settings.cursorBlink,
+            cursorStyle: this.settings.cursorStyle,
+            scrollBack: this.settings.scrollBack,
+            scrollSensitivity: this.settings.scrollSensitivity,
+            fontSize: this.settings.fontSize,
+            fontFamily: this.settings.fontFamily,
+            theme: {
+                background: this.settings.backgroundColor,
+                foreground: this.settings.foregroundColor,
+                selectionBackground: this.settings.selectionBackground,
+                black: this.settings.black,
+                blue: this.settings.blue,
+                brightBlack: this.settings.brightBlack,
+                brightBlue: this.settings.brightBlue,
+                brightCyan: this.settings.brightCyan,
+                brightGreen: this.settings.brightGreen,
+                brightMagenta: this.settings.brightMagenta,
+                brightRed: this.settings.brightRed,
+                brightWhite: this.settings.brightWhite,
+                brightYellow: this.settings.brightYellow,
+                cyan: this.settings.cyan,
+                green: this.settings.green,
+                magenta: this.settings.magenta,
+                red: this.settings.red,
+                white: this.settings.white,
+                yellow: this.settings.yellow
+            }
+        });
     }
     
     get settingsObj() {

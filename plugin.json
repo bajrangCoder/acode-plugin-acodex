@@ -2,7 +2,7 @@
   "id": "bajrangcoder.acodex",
   "name": "AcodeX",
   "main": "dist/main.js",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "readme": "readme.md",
   "icon": "icon.png",
   "files": ["xterm.css"],

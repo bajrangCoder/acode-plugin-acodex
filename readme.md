@@ -11,16 +11,26 @@
     <summary>
         Updates 🤩🤩
     </summary>
+    <br/>
     <details>
         <summary>
-            <code><strong>v1.0.5</strong></code>
+            <code><strong>v1.0.6</strong></code>
+        </summary>
+        <ul>
+            <li>Added Arrow button instead of input field on terminal header to use feature of `v1.0.5`</li>
+            <li>Now if you will close the app without closing terminal, then when you open app again the terminal will be start automatically from where you have closed app.</li>
+        </ul>
+    </details>
+    <details>
+        <summary>
+            <kbd><strong>v1.0.5</strong></kbd>
         </summary>
         <ul>
             <li>
                 Now you can get previous command(history of command) same as Termux feature:
                 <ul>
-                    <li>For previous command -> ⇑</li>
-                    <li>For next command -> ⇓</li>
+                    <li>For previous command -> <kbd>⇑</kbd></li>
+                    <li>For next command -> <kbd>⇓</kbd></li>
                 </ul>
             </li>
         </ul>
@@ -36,10 +46,10 @@
             <li>
                 Supported Keys
                 <ul>
-                    <li>Enter key</li>
-                    <li>Space key</li>
-                    <li>Ctrl+C key</li>
-                    <li>Delete/Backspace key</li>
+                    <li><kbd>Enter key</kbd></li>
+                    <li><kbd>Space key</kbd></li>
+                    <li><kbd>Ctrl+C key</kbd></li>
+                    <li><kbd>Delete/Backspace key</kbd></li>
                     <li>Others treated as normal printable keys</li>
                 </ul>
             </li>
@@ -90,6 +100,7 @@
 - **Terminal panel**: The terminal panel can be moved around, resized, minimized, and maximized based on the developer's preferences
 - **User-friendly interface**: _AcodeX_ offers a simple and intuitive interface, making it easy to use for all levels of developers.
 - **Customisable**: You can customise AcodeX terminal according to your preference 
+- **Session**
 
 ## Known Issues
 
@@ -134,12 +145,6 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
  - [xtermjs](https://xtermjs.org/)
  - [node-pty](https://github.com/microsoft/node-pty)
 
-
-
-## How it works?
-
-**AcodeX** runs a *Node.js* script in **Termux**, which connects with the plugin via a *WebSocket* and communicates with each other to work. 
-**Termux** is an Android terminal emulator and Linux environment app, which enables users to access the terminal directly from their Android devices.
 
 ## Authors
 

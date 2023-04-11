@@ -1,6 +1,6 @@
 {
   "name": "acode-plugin-acodex",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Terminal support for Acode",
   "main": "dist/main.js",
   "repository": "https://github.com/bajrangCoder/acode-plugin-terminal.git",
