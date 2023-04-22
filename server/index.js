@@ -22,13 +22,13 @@ server.on("connection", function (connection) {
             shell.kill("SIGTERM");
             connection.close();
             return;
-        }else {
-            shell.write(command+"\r");
         }
+        shell.write(command+"\r");
     });
     shell.on("data", function (data) {
         connection.send(data);
     });
+
     shell.on("exit", function () {
         connection.close();
     });
