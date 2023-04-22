@@ -12,7 +12,7 @@
     "acodeX-server": "index.js"
   },
   "dependencies": {
-    "node-pty": "^0.10.1",
-    "ws": "^8.12.1"
+    "ws": "^8.12.1",
+    "node-pty": "^0.10.1"
   }
 }

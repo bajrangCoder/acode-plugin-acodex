@@ -212,6 +212,10 @@ class AcodeX {
                 this.checkTerminalFolder();
                 this._checkForWSMessage(this.ws,this.$terminal,this.$serializeAddon,port)
                 this._actionForOnTerminalData(this.$terminal);
+                this.$terminal.onResize((size) => {
+                    const { cols, rows } = size;
+                    this.ws.send(JSON.stringify({cols, rows}));
+                })
                 this.$fitAddon.fit();
             }
         } catch(err){

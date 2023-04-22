@@ -16,57 +16,27 @@ server.on("connection", function (connection) {
         cwd: process.env.HOME,
         env: process.env,
     });
-
     connection.on("message", function (message) {
-        const command = typeof message === "string" ? message.trim() : message.toString("utf8").trim();
-        if (command === "exit") {
-            shell.kill("SIGTERM");
-            connection.close();
-            return;
-        }else if (command === "acode ." || command === "acode . ") {
-            shell.write('pwd\r');
-            shell.onData((data) => {
-                console.log(data.trim())
-            })
-        }/* else if (command.startsWith("open ")) {
-            const filenames = command.slice(5).split(' ').filter(filename => filename.trim() !== '');
-            if (filenames.length === 0) {
-                connection.send(`Error: No filename provided`);
-            } else {
-                let error = false;
-                let paths = '';
-                filenames.forEach((filename) => {
-                    const filepath = shell.process.cwd() + '/' + filename;
-                    try {
-                        const stats = fs.statSync(filepath);
-                        if (stats.isFile()) {
-                            paths += `${filepath}\n`;
-                        } else if (stats.isDirectory()) {
-                            error = true;
-                            connection.send(`Error: ${filepath} is a directory, not a file`);
-                        }
-                    } catch (e) {
-                        error = true;
-                        connection.send(`Error: File or directory not found: ${filepath}`);
-                    }
-                });
-                if (!error) {
-                    connection.send(`File paths:\n${paths}`);
-                }
+        const data = JSON.parse(message);
+        if (data.cols && data.rows) {
+          shell.resize(data.cols, data.rows);
+        } else {
+            const command = typeof message === "string" ? message.trim() : message.toString("utf8").trim();
+            if (command === "exit") {
+                shell.kill("SIGTERM");
+                connection.close();
+                return;
+            }else {
+                shell.write(command+"\r");
             }
-        }*/ else {
-            shell.write(command+"\r");
         }
     });
-
     shell.on("data", function (data) {
         connection.send(data);
     });
-
     shell.on("exit", function () {
         connection.close();
     });
-    
 });
 
 
