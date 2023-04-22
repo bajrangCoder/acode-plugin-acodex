@@ -3,7 +3,7 @@
 function install_packages {
     # check for packages and install if not found
     if ! [ -x "$(command -v unzip)" ]; then
-      echo "\e[1;36m[*] Installing unzip\e[0m"
+      echo -e "\e[1;36m[*] Installing unzip\e[0m"
       pkg install unzip -y
     fi
     
@@ -28,7 +28,7 @@ function install_packages {
 
 # check if directory exists
 if [ -d "$HOME/.acodeX-server" ]; then
-	echo -e "\e[31m[!] `acodeX-server` Installation already exists. \e[0m"
+	echo -e "\e[31m[!] acodeX-server Installation already exists. \e[0m"
 	exit 1
 else
     install_packages
