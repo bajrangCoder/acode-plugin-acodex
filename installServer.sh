@@ -27,7 +27,7 @@ if ! [ -x "$(command -v build-essential)" ]; then
 fi
 
 # check if directory exists
-if [ -d "~/.acodeX-server" ]; then
+if [ -d ~/.acodeX-server ]; then
 	echo -e "\e[31m[!] acodeX-server Installation exists already. \e[0m"
 	exit 1
 else
