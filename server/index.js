@@ -17,18 +17,13 @@ server.on("connection", function (connection) {
         env: process.env,
     });
     connection.on("message", function (message) {
-        const data = JSON.parse(message);
-        if (data.cols && data.rows) {
-          shell.resize(data.cols, data.rows);
-        } else {
-            const command = typeof message === "string" ? message.trim() : message.toString("utf8").trim();
-            if (command === "exit") {
-                shell.kill("SIGTERM");
-                connection.close();
-                return;
-            }else {
-                shell.write(command+"\r");
-            }
+        const command = typeof message === "string" ? message.trim() : message.toString("utf8").trim();
+        if (command === "exit") {
+            shell.kill("SIGTERM");
+            connection.close();
+            return;
+        }else {
+            shell.write(command+"\r");
         }
     });
     shell.on("data", function (data) {
