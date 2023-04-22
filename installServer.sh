@@ -29,18 +29,18 @@ fi
 # check if directory exists
 if [ -d "~/.acodeX-server" ]; then
 	echo -e "\e[31m[!] acodeX-server Installation exists already. \e[0m"
-        exit 1
+	exit 1
 else
 	echo -e "\e[1;36m[*] Installing acodeX-server... \e[0m"
 	mkdir .acodeX-server
     curl -L -o acodeXServer.zip https://github.com/bajrangCoder/acode-plugin-acodex/raw/main/server/acodeXServer.zip
     unzip acodeXServer.zip -d ~/.acodeX-server
     rm -rf acodeXServer.zip
+    cd ~/.acodeX-server
+    echo -e "\e[1;36m[*] Installing Dependencies... \e[0m"
+    npm install
+    npm link .
+    cd ~/
+    chmod +x /data/data/com.termux/files/usr/bin/acodeX-server
+    echo -e '\e[1;32m`acodeX-server` installed successfully. Run `acodeX-server` to start the server. \e[0m'
 fi
-cd ~/.acodeX-server
-echo -e "\e[1;36m[*] Installing Dependencies... \e[0m"
-npm install
-npm link .
-cd ~/
-chmod +x /data/data/com.termux/files/usr/bin/acodeX-server
-echo -e '\e[1;32m`acodeX-server` installed successfully. Run `acodeX-server` to start the server. \e[0m'
