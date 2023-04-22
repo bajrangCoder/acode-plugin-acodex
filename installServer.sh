@@ -27,16 +27,16 @@ if ! [ -x "$(command -v build-essential)" ]; then
 fi
 
 # check if directory exists
-if [ -d ~/.acodeX-server ]; then
+if [ -d "$HOME/.acodeX-server" ]; then
 	echo -e "\e[31m[!] acodeX-server Installation exists already. \e[0m"
 	exit 1
 else
 	echo -e "\e[1;36m[*] Installing acodeX-server... \e[0m"
-	mkdir .acodeX-server
+	mkdir "$HOME/.acodeX-server"
     curl -L -o acodeXServer.zip https://github.com/bajrangCoder/acode-plugin-acodex/raw/main/server/acodeXServer.zip
-    unzip acodeXServer.zip -d ~/.acodeX-server
+    unzip acodeXServer.zip -d "$HOME/.acodeX-server"
     rm -rf acodeXServer.zip
-    cd ~/.acodeX-server
+    cd "$HOME/.acodeX-server"
     echo -e "\e[1;36m[*] Installing Dependencies... \e[0m"
     npm install
     npm link .
