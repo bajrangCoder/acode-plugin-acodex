@@ -6,11 +6,6 @@ if ! [ -x "$(command -v unzip)" ]; then
   pkg install unzip -y
 fi
 
-if ! [ -x "$(command -v npm)" ]; then
-  echo '\e[31m[!] Error: npm is not installed.\e[0m' >&2
-  exit 1
-fi
-
 if ! [ -x "$(command -v node)" ]; then
   echo -e "\e[1;36m[*] Installing Nodejs\e[0m"
   pkg install nodejs -y
@@ -34,6 +29,7 @@ fi
 # check if directory exists
 if [ -d "~/.acodeX-server" ]; then
 	echo -e "\e[31m[!] acodeX-server Installation exists already. \e[0m"
+        exit 1
 else
 	echo -e "\e[1;36m[*] Installing acodeX-server... \e[0m"
 	mkdir .acodeX-server
