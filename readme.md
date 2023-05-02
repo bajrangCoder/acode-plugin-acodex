@@ -14,10 +14,18 @@
     <br/>
     <details>
         <summary>
+            <code><strong>v1.0.7</strong></code>
+        </summary>
+        <ul>
+            <li>Added a button on terminal header for opening terminal in opened file directory.</li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.0.6</strong></code>
         </summary>
         <ul>
-            <li>Added Arrow button instead of input field on terminal header to use feature of `v1.0.5`</li>
+            <li>Added Arrow button instead of input field on terminal header to use feature of <code>v1.0.5</code></li>
             <li>Now if you will close the app without closing terminal, then when you open app again the terminal will be start automatically from where you have closed app.</li>
         </ul>
     </details>

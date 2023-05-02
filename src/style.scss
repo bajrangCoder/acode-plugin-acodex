@@ -48,6 +48,16 @@
             display: flex;
             justify-content: space-between;
             align-content: center;
+            .cd-btn{
+                font-size: 18px;
+                height: 27px;
+                width: 27px;
+                border-radius: 10%;
+                background: var(--link-text-color);
+                border: none;
+                font-weight: 400;
+                margin-right: 8px;
+            }
             .hide-terminal-btn{
                 font-size: 22px;
                 height: 30px;

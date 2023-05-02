@@ -134,6 +134,10 @@ class AcodeX {
             const $controlBtn = tag("div",{
                 className: "control-btn"
             });
+            this.$cdBtn = tag("button",{
+              className: "cd-btn",
+              textContent: "cd"
+            });
             this.$hideTermBtn = tag("button",{
                 className: "hide-terminal-btn",
                 textContent: "⇓"
@@ -143,7 +147,7 @@ class AcodeX {
                 textContent: "✗"
             });
             $arrowBtns.append(...[this.$upArrowBtn,this.$downArrowBtn]);
-            $controlBtn.append(...[this.$hideTermBtn,this.$closeTermBtn]);
+            $controlBtn.append(...[this.$cdBtn,this.$hideTermBtn,this.$closeTermBtn]);
             this.$terminalHeader.append(...[this.$terminalTitle,$arrowBtns,$controlBtn]);
             this.$terminalContent = tag("div",{
                 className: "terminal-content",
@@ -169,7 +173,7 @@ class AcodeX {
             this.$closeTermBtn.addEventListener('click',this.closeTerminal.bind(this));
             this.$hideTermBtn.addEventListener('click',this.minimise.bind(this));
             this.$showTermBtn.addEventListener('click',this.maxmise.bind(this));
-            
+            this.$cdBtn.addEventListener('click',this._cdToActiveDir.bind(this));
             this.$upArrowBtn.addEventListener('click',this.upArrowKeyWorker.bind(this));
             this.$downArrowBtn.addEventListener('click',this.downArrowKeyWorker.bind(this));
             
@@ -483,6 +487,27 @@ class AcodeX {
             this.$fitAddon.fit();
             this.$showTermBtn.classList.add('hide')
         }
+    }
+    
+    _convertPath(path){
+        if (path.startsWith("content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome::/data/data/com.termux/files/home/")) {
+            return "$HOME/" + path.substr("content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome::/data/data/com.termux/files/home/".length).split('/').slice(0, -1).join('/') + '/';
+        } else if (path.startsWith("file:///storage/emulated/0/")) {
+            return "/sdcard" + path.substr("file:///storage/emulated/0".length).replace(/\.[^/.]+$/, "").split('/').slice(0, -1).join('/') + '/';
+        } else {
+            return false;
+        }
+    }
+    
+    async _cdToActiveDir(){
+        const { activeFile } = editorManager;
+        const realPath = this._convertPath(activeFile.location);
+        if(!realPath){
+            window.toast("unsupported path type.",3000);
+            return;
+        }
+        this._sendData(`cd ${realPath}`);
+        this._sendData(`clear`);
     }
     
     async upArrowKeyWorker(){
