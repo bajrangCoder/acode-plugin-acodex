@@ -182,11 +182,17 @@ class AcodeX {
             window.addEventListener('mouseup', this.stopDragging.bind(this));
             window.addEventListener('touchend', this.stopDragging.bind(this));
 
-            const fs = fsOperation(TERMINAL_STORE_PATH+"/session1.json");
+            const fs = fsOperation(TERMINAL_STORE_PATH);
             if(await fs.exists()){
-                let terminalFileData = await fs.readFile('utf8');
-                let terminalState = JSON.parse(terminalFileData);
-                this.openPreviousTerminal(terminalState.wsPort,terminalState.terminalContainerHeight,terminalState.terminalContentHeight,terminalState.terminalData);
+                const sessionFile = await fs.lsDir();
+                if(!sessionFile){
+                    await fs.delete();
+                    return;
+                } else {
+                    let terminalFileData = await fs.readFile('utf8');
+                    let terminalState = JSON.parse(terminalFileData);
+                    this.openPreviousTerminal(terminalState.wsPort,terminalState.terminalContainerHeight,terminalState.terminalContentHeight,terminalState.terminalData);
+                }
             }
         }catch(err){
             alert("Warning","Please Restart the app to use AcodeX")
@@ -261,6 +267,7 @@ class AcodeX {
                 "terminalContentHeight": this.$terminalContent.offsetHeight+"px",
                 "terminalData": terminalState
             }
+            //this.checkTerminalFolder();
             const fs = fsOperation(TERMINAL_STORE_PATH+"/session1.json");
             if(!await fs.exists()){
                 await fsOperation(TERMINAL_STORE_PATH).createFile('session1.json', terminalCont);
@@ -506,8 +513,8 @@ class AcodeX {
             window.toast("unsupported path type.",3000);
             return;
         }
-        this._sendData(`cd ${realPath}`);
-        this._sendData(`clear`);
+        this._sendData(`cd "${realPath}"`);
+        //this._sendData(`clear`);
     }
     
     async upArrowKeyWorker(){
