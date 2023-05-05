@@ -185,13 +185,12 @@ class AcodeX {
             const fs = fsOperation(TERMINAL_STORE_PATH);
             if(await fs.exists()){
                 const sessionFile = await fs.lsDir();
-                if(!sessionFile){
-                    await fs.delete();
-                    return;
-                } else {
-                    let terminalFileData = await fs.readFile('utf8');
+                if(sessionFile != []){
+                    let terminalFileData = await fsOperation(TERMINAL_STORE_PATH+"/session1.json").readFile('utf8');
                     let terminalState = JSON.parse(terminalFileData);
                     this.openPreviousTerminal(terminalState.wsPort,terminalState.terminalContainerHeight,terminalState.terminalContentHeight,terminalState.terminalData);
+                } else {
+                    await fsOperation(TERMINAL_STORE_PATH).delete();
                 }
             }
         }catch(err){

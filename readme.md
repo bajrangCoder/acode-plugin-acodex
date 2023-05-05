@@ -14,6 +14,14 @@
     <br/>
     <details>
         <summary>
+            <code><strong>v1.0.9</strong></code>
+        </summary>
+        <ul>
+            <li>fixed bugs</li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.0.8</strong></code>
         </summary>
         <ul>
@@ -39,7 +47,7 @@
     </details>
     <details>
         <summary>
-            <kbd><strong>v1.0.5</strong></kbd>
+            <code><strong>v1.0.5</strong></code>
         </summary>
         <ul>
             <li>
