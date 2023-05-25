@@ -16,6 +16,8 @@ const appSettings = acode.require('settings');
 const helpers = acode.require('helpers');
 const fsOperation = acode.require('fsOperation');
 
+const { clipboard } = cordova.plugins;
+
 // constants
 const TERMINAL_STORE_PATH = window.DATA_STORAGE+"terminals";
 
@@ -23,12 +25,15 @@ class AcodeX {
     isDragging = false;
     startY;
     startHeight;
+    isTerminalMinimized = false;
+    previousTerminalHeight;
+    command = '';
     // default settings for terminal
     CURSOR_BLINK = true;
     CURSOR_STYLE1 = "block";
     CURSOR_STYLE2 = "underline";
     CURSOR_STYLE3 = "bar";
-    FONT_SIZE = 18;
+    FONT_SIZE = 10;
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
     FONT_FAMILY = "Fira Code, monospace";
@@ -152,7 +157,18 @@ class AcodeX {
             this.$terminalContent = tag("div",{
                 className: "terminal-content",
             });
-            this.$terminalContainer.append(...[this.$terminalHeader,this.$terminalContent]);
+            <div id="custom-context-menu" class="custom-context-menu">
+                <div id="paste-option">Paste</div>
+            </div>
+            this.$customContextMenu = tag("div",{
+                className: "custom-context-menu",
+                child: tag("div",{
+                    id: "paste-option",
+                    textContent: "Paste"
+                })
+            })
+            this.$terminalContent.append(this.$customContextMenu)
+            this.$terminalContainer.append(this.$terminalHeader,this.$terminalContent);
             // show terminal button
             this.$showTermBtn = tag("button",{
                 className: "show-terminal-btn",
@@ -176,11 +192,22 @@ class AcodeX {
             this.$cdBtn.addEventListener('click',this._cdToActiveDir.bind(this));
             this.$upArrowBtn.addEventListener('click',this.upArrowKeyWorker.bind(this));
             this.$downArrowBtn.addEventListener('click',this.downArrowKeyWorker.bind(this));
+            document.getElementById("paste-option").addEventListener('click',this._handlePaste.bind(this));
             
             window.addEventListener('mousemove', this.drag.bind(this));
             window.addEventListener('touchmove', this.drag.bind(this));
             window.addEventListener('mouseup', this.stopDragging.bind(this));
             window.addEventListener('touchend', this.stopDragging.bind(this));
+            this.$terminalContent.addEventListener("contextmenu", (event) => {
+                event.preventDefault();
+                const { clientX, clientY } = event;
+                this.$customContextMenu.style.display = "block";
+                this.$customContextMenu.style.left = `${clientX}px`;
+                this.$customContextMenu.style.top = `${clientY}px`;
+            });
+            this.$terminalContent.addEventListener("click", () => {
+                this.$customContextMenu.style.display = "none";
+            });
 
             const fs = fsOperation(TERMINAL_STORE_PATH);
             if(await fs.exists()){
@@ -188,7 +215,7 @@ class AcodeX {
                 if(sessionFile != []){
                     let terminalFileData = await fsOperation(TERMINAL_STORE_PATH+"/session1.json").readFile('utf8');
                     let terminalState = JSON.parse(terminalFileData);
-                    this.openPreviousTerminal(terminalState.wsPort,terminalState.terminalContainerHeight,terminalState.terminalContentHeight,terminalState.terminalData);
+                    this.openPreviousTerminal(terminalState.wsPort,terminalState.terminalContainerHeight,terminalState.terminalData);
                 } else {
                     await fsOperation(TERMINAL_STORE_PATH).delete();
                 }
@@ -198,7 +225,7 @@ class AcodeX {
         }
     }
     
-    async openNewTerminal(termContainerHeight="270px",termContentHeight="230px"){
+    async openNewTerminal(termContainerHeight=270){
         /*
         open a new terminal in app
         */
@@ -206,8 +233,8 @@ class AcodeX {
             const port = await prompt("Port","8767","number",{required: true,});
             if (port) {
                 this.$terminalContainer.classList.remove('hide');
-                this.$terminalContainer.style.height = termContainerHeight;
-                this.$terminalContent.style.height = termContentHeight;
+                this.$terminalContainer.style.height = termContainerHeight+"px";
+                this._updateTerminalHeight.bind(this);
                 // initialise xtermjs Terminal class
                 this.$terminal = this.terminalObj;
                 this.$fitAddon = new FitAddon();
@@ -228,12 +255,12 @@ class AcodeX {
         }
     }
     
-    async openPreviousTerminal(port,terminalContainerHeight,terminalContentHeight,previousTermState){
+    async openPreviousTerminal(port,terminalContainerHeight,previousTermState){
         try{
             if (port) {
                 this.$terminalContainer.classList.remove('hide');
-                this.$terminalContainer.style.height = terminalContainerHeight;
-                this.$terminalContent.style.height = terminalContentHeight;
+                this.$terminalContainer.style.height = terminalContainerHeight+"px";
+                this._updateTerminalHeight.bind(this);
                 // initialise xtermjs Terminal class
                 this.$terminal = this.terminalObj;
                 this.$fitAddon = new FitAddon();
@@ -255,15 +282,20 @@ class AcodeX {
         }
     }
     
-    async _checkForWSMessage($ws,$terminal,$serializeAddon,port){
+    _updateTerminalHeight() {
+        //const mainContainerHeight = window.innerHeight;
+        const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
+        this.$terminalContent.style.height = `calc(100% - ${terminalHeaderHeight}px)`;
+    }
+    
+    async _checkForWSMessage($ws, $terminal, $serializeAddon, port) {
         $ws.onmessage = async (ev) => {
             let data = ev.data;
             $terminal.write(typeof data === 'string' ? data : new Uint8Array(data));
             let terminalState = $serializeAddon.serialize();
             let terminalCont = {
                 "wsPort": port,
-                "terminalContainerHeight": this.$terminalContainer.offsetHeight+"px",
-                "terminalContentHeight": this.$terminalContent.offsetHeight+"px",
+                "terminalContainerHeight": this.$terminalContainer.offsetHeight,
                 "terminalData": terminalState
             }
             //this.checkTerminalFolder();
@@ -277,6 +309,7 @@ class AcodeX {
         }
     }
 
+
     async checkTerminalFolder(){
         if (!await fsOperation(TERMINAL_STORE_PATH).exists()) {
             await fsOperation(window.DATA_STORAGE).createDirectory('terminals');
@@ -287,7 +320,13 @@ class AcodeX {
         let cmdHistory = JSON.parse(localStorage.getItem("cmdHistory")) || [];
         let currentInputIndex = cmdHistory.length;
         
-        let command = '';
+        $terminal.onKey((e) => {
+          const printable = !e.domEvent.altKey && !e.domEvent.altGraphKey && !e.domEvent.ctrlKey && !e.domEvent.metaKey;
+          if (printable) {
+            return;
+          }
+        });
+        
         $terminal.onData((data) => {
             switch (data) {
                 case '\u0003': // Ctrl+C
@@ -295,48 +334,56 @@ class AcodeX {
                     this._sendData(data);
                     break;
                 case '\r': // Enter
-                    this._runCommand(this.$terminal, command);
-                    cmdHistory.push(command);
+                    this._runCommand(this.$terminal, this.command);
+                    if(this.command.length > 0){
+                        cmdHistory.push(this.command);
+                    }
                     if (cmdHistory.length > 50) {
                         cmdHistory.shift();
                     }
                     currentInputIndex = cmdHistory.length;
                     localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
-                    command = '';
+                    this.command = '';
                     break;
                 case '\u007F': // Backspace (DEL)
                     // Do not delete the prompt
                     if ($terminal._core.buffer.x > 4) {
                         $terminal.write('\b \b');
-                        if (command.length > 0) {
-                            command = command.substr(0, command.length - 1);
+                        if (this.command.length > 0) {
+                            this.command = this.command.substr(0, this.command.length - 1);
                         }
                     }
                     break;
                 case '\u001B[A':
                     if (currentInputIndex > 0) { // Only go back in history if we're not at the beginning
                         currentInputIndex--;
-                        this._clearInput($terminal,command);
+                        this._clearInput($terminal,this.command);
                         $terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the previous one
-                        command = cmdHistory[currentInputIndex];
+                        this.command = cmdHistory[currentInputIndex];
                     }
                     break;
                 case "\u001b[B": // If user pressed the down arrow key
                     if (currentInputIndex < cmdHistory.length) { // Only go forward in history if we're not at the end
                         currentInputIndex++;
                         if (currentInputIndex === cmdHistory.length) { // If we're at the end, clear the input
-                            this._clearInput($terminal,command);
-                            command = '';
+                            this._clearInput($terminal,this.command);
+                            this.command = '';
                         } else {
-                            this._clearInput($terminal,command);
-                            command = cmdHistory[currentInputIndex];
+                            this._clearInput($terminal,this.command);
+                            this.command = cmdHistory[currentInputIndex];
                             $terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the next one
                         }
                     }
                     break;
+                case "\x16":
+                    clipboard.paste((text) => {
+                        this.command += text;
+                        $terminal.write(text);
+                    });
+                    break;
                 default:
                     if (data >= String.fromCharCode(0x20) && data <= String.fromCharCode(0x7E) || data >= '\u00a0') {
-                        command += data;
+                        this.command += data;
                         $terminal.write(data);
                     }
             }
@@ -344,12 +391,20 @@ class AcodeX {
         $terminal.onBinary((data) => { return this._sendBinary(data); });
     }
     
+    _handlePaste(){
+        clipboard.paste((text) => {
+            this.command += text;
+            this.$terminal.write(text);
+        });
+    }
+    
     _clearInput(term, cmd) {
         /*
-        clear the input area of terminal
+        Clear the input area of the terminal
         */
-        let inputLengh = cmd.length;
-        for (let i = 0; i < inputLengh; i++) {
+        let inputLength = cmd.length;
+        let sanetisedCmd = cmd.replace(/\s+$/, ""); // remove ending white space
+        for (let i = 0; i < sanetisedCmd.length; i++) {
             term.write('\b \b');
         }
     }
@@ -358,11 +413,8 @@ class AcodeX {
         /*
         run guven `cmd` in terminal
         */
-        if (cmd.length > 0) {
-            this._clearInput(term, cmd);
-            this._sendData(cmd);
-            return;
-        }
+        this._clearInput(term, cmd);
+        this._sendData(cmd);
     }
     
     _sendData(data) {
@@ -457,7 +509,7 @@ class AcodeX {
             return;
         }
         this.$terminalContainer.style.height = newHeight + 'px';
-        this.$terminalContent.style.height = (newHeight - 50)+'px';
+        this._updateTerminalHeight.bind(this);
         this.$fitAddon.fit();
     }
     
@@ -470,11 +522,10 @@ class AcodeX {
         hide terminal and active the show terminal button
         */
         try{
-            let contHeight = window.getComputedStyle(this.$terminalContainer).height;
-            if(contHeight != '0px'){
+            if(!this.isTerminalMinimized){
+                this.previousTerminalHeight = window.getComputedStyle(this.$terminalContainer).height;
                 this.$terminalContainer.style.height = 0;
-                this.$terminalContent.style.height = 0;
-                this.$fitAddon.fit();
+                this.isTerminalMinimized = true;
                 this.$showTermBtn.classList.remove('hide')
             }
         }catch(err){
@@ -486,12 +537,10 @@ class AcodeX {
         /*
         show terminal and hide the show terminal button
         */
-        let contHeight = window.getComputedStyle(this.$terminalContainer).height;
-        if (contHeight === '0px') {
-            this.$terminalContainer.style.height = '270px';
-            this.$terminalContent.style.height = '230px';
-            this.$fitAddon.fit();
-            this.$showTermBtn.classList.add('hide')
+        if (this.isTerminalMinimized) {
+            this.$terminalContainer.style.height = this.previousTerminalHeight;
+            this.$showTermBtn.classList.add('hide');
+            this.isTerminalMinimized = false;
         }
     }
     
@@ -553,7 +602,6 @@ class AcodeX {
     get terminalObj(){
         return new Terminal({
             allowProposedApi: true,
-            scrollOnUserInput: true,
             cursorBlink: this.settings.cursorBlink,
             cursorStyle: this.settings.cursorStyle,
             scrollBack: this.settings.scrollBack,

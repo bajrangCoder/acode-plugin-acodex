@@ -3,7 +3,9 @@
 
 **AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
-> Note: Please you should set terminal height according to your screen , for smooth functioning.
+After `v1.1.0`, you will not regret after installing.
+
+> Note: When you start a new terminal make sure to adjust terminal panel according to your screen. If its height is good for you then also just drag it , then it will run smoothly.
 
 **Support this project with your small contribution - <a href='https://github.com/sponsors/bajrangCoder'>Click Me 💗</a>**
 
@@ -12,6 +14,19 @@
         Updates 🤩🤩
     </summary>
     <br/>
+    <details>
+        <summary>
+            <code><strong>v1.1.0</strong></code>
+        </summary>
+        <ul>
+            <li>Fixed Android keyboard issue, now you can use any keyboard you want</li>
+            <li>Fixed paste functionality issue</li>
+            <li>Fixed terminal unwanted behaviour</li>
+            <li>Many internal changes to improve performance</li>
+            <li>improved styling</li>
+            <li>Note: almost every encountered bugs are fixed</li>
+        </ul>
+    </details>
     <details>
         <summary>
             <code><strong>v1.0.9</strong></code>
@@ -126,16 +141,6 @@
 - **Customisable**: You can customise AcodeX terminal according to your preference 
 - **Session**
 
-## Known Issues
-
-When there is a lot of data on the terminal or your terminal panel height is too small, the cursor may be hidden behind the bottom app bar. While this issue only occurs in some cases, it can be frustrating for users.
-
-To fix this issue, users can simply drag the terminal panel slightly to bring the cursor back into view. This is a temporary workaround and will be fixed in a future release of the plugin.
-
-Alternatively, users can enter the command `clear` in the terminal and then tap once to fix the issue. This will clear the terminal screen and bring the cursor back into view.
-
-We apologize for any inconvenience caused by this issue and appreciate your patience as we work to address it.
-
 ## Prerequisites
 
 To use **AcodeX**, you need to have the **Termux app** installed on your Android device. However, you do not need to switch between apps to use the terminal, as **AcodeX** offers a convenient way to access the terminal directly within the **Acode app** with the help of **Termux**
@@ -161,6 +166,7 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 - Use the `⇓` button to hide the terminal while coding, and the `⇑` button to show it. 
 - You can also **drag** the terminal panel around by clicking and dragging through the **terminal title area**. 
 - The `✗` is for closing the terminal.
+- `cd` - button on terminal header is for navigating to opened files(in editor) directory .
 
 ## Acknowledgements
 
