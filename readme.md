@@ -16,6 +16,17 @@ After `v1.1.0`, you will not regret after installing.
     <br/>
     <details>
         <summary>
+            <code><strong>v1.1.1</strong></code>
+        </summary>
+        <ul>
+            <li>changed icons</li>
+            <li>improved context menu</li>
+            <li>fixed bugs</li>
+            <li>removed arrow button from terminal header, instead of this use acode arrow buttons</li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.1.0</strong></code>
         </summary>
         <ul>
@@ -143,7 +154,7 @@ After `v1.1.0`, you will not regret after installing.
 
 ## Prerequisites
 
-To use **AcodeX**, you need to have the **Termux app** installed on your Android device. However, you do not need to switch between apps to use the terminal, as **AcodeX** offers a convenient way to access the terminal directly within the **Acode app** with the help of **Termux**
+To use **AcodeX**, you need to have the [Termux app](https://termux.dev/en/) installed on your Android device. However, you do not need to switch between apps to use the terminal, as **AcodeX** offers a convenient way to access the terminal directly within the **Acode app** with the help of **Termux**
 
 ## Installation
 
@@ -156,6 +167,8 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
     
 ## How to use?
 
+**New updated tutorial is comming soon**
+
 <video src="https://user-images.githubusercontent.com/71929976/220828170-158cc64d-ed9b-4d48-b7b6-5d7a530b2d18.mp4" height="270" width="340" controls>
 </video>
 <br>
@@ -163,10 +176,10 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 - First Start Server on Termux via : `acodeX-server`
 - To use **AcodeX**, press `Ctrl+K` or search for `"Open Terminal"` in the command palette. 
 - Then enter the port number, and the terminal will start running. 
-- Use the `⇓` button to hide the terminal while coding, and the `⇑` button to show it. 
+- Use the small down arrow button to hide the terminal while coding, and the terminal button to show it. 
 - You can also **drag** the terminal panel around by clicking and dragging through the **terminal title area**. 
 - The `✗` is for closing the terminal.
-- `cd` - button on terminal header is for navigating to opened files(in editor) directory .
+- folder icon - button on terminal header is for navigating to opened files(in editor) directory .
 
 ## Acknowledgements
 
@@ -174,6 +187,7 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 
  - [xtermjs](https://xtermjs.org/)
  - [node-pty](https://github.com/microsoft/node-pty)
+ - [Termux](https://termux.dev/en/)
 
 
 ## Authors

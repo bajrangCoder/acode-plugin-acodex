@@ -28,8 +28,10 @@ class AcodeX {
     isTerminalMinimized = false;
     previousTerminalHeight;
     command = '';
+    TERM_MAX_LINES = 20;
     // default settings for terminal
     CURSOR_BLINK = true;
+    SHOW_ARROW_BTN = false;
     CURSOR_STYLE1 = "block";
     CURSOR_STYLE2 = "underline";
     CURSOR_STYLE3 = "bar";
@@ -63,6 +65,7 @@ class AcodeX {
         if (!appSettings.value[plugin.id]) {
           appSettings.value[plugin.id] = {
             cursorBlink: this.CURSOR_BLINK,
+            showArrowBtn: this.SHOW_ARROW_BTN,
             cursorStyle: this.CURSOR_STYLE1,
             fontSize: this.FONT_SIZE,
             scrollBack: this.SCROLLBACK,
@@ -125,41 +128,26 @@ class AcodeX {
             this.$terminalTitle = tag("h3",{
                 textContent: "AcodeX"
             });
-            const $arrowBtns = tag("div",{
-                className: "arrowBtns"
-            });
-            this.$upArrowBtn = tag("button",{
-                className: "upArrowBtn",
-                textContent: "↑"
-            });
-            this.$downArrowBtn = tag("button",{
-                className: "downArrowBtn",
-                textContent: "↓"
-            });
             const $controlBtn = tag("div",{
                 className: "control-btn"
             });
             this.$cdBtn = tag("button",{
               className: "cd-btn",
-              textContent: "cd"
             });
+            this.$cdBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14V3.5zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5V6zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7H1.633z"/></svg>`;
             this.$hideTermBtn = tag("button",{
                 className: "hide-terminal-btn",
-                textContent: "⇓"
             });
+            this.$hideTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M22.95 28.95 16.6 22.6q-.7-.7-.325-1.625.375-.925 1.375-.925h12.7q1 0 1.375.925T31.4 22.6l-6.35 6.35q-.25.25-.5.35-.25.1-.55.1-.3 0-.55-.1-.25-.1-.5-.35Z"/></svg>`;
             this.$closeTermBtn = tag("button",{
                 className: "close-terminal-btn",
-                textContent: "✗"
             });
-            $arrowBtns.append(...[this.$upArrowBtn,this.$downArrowBtn]);
+            this.$closeTermBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>`;
             $controlBtn.append(...[this.$cdBtn,this.$hideTermBtn,this.$closeTermBtn]);
-            this.$terminalHeader.append(...[this.$terminalTitle,$arrowBtns,$controlBtn]);
+            this.$terminalHeader.append(...[this.$terminalTitle,$controlBtn]);
             this.$terminalContent = tag("div",{
                 className: "terminal-content",
             });
-            <div id="custom-context-menu" class="custom-context-menu">
-                <div id="paste-option">Paste</div>
-            </div>
             this.$customContextMenu = tag("div",{
                 className: "custom-context-menu",
                 child: tag("div",{
@@ -172,8 +160,8 @@ class AcodeX {
             // show terminal button
             this.$showTermBtn = tag("button",{
                 className: "show-terminal-btn",
-                textContent: "⇑"
             });
+            this.$showTermBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-terminal" viewBox="0 0 16 16"><path d="M6 9a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 9zM3.854 4.146a.5.5 0 1 0-.708.708L4.793 6.5 3.146 8.146a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2z"/><path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/></svg>`;
             // append Terminal panel to app main
             app.get("main").append(...[this.$terminalContainer,this.$showTermBtn]);
             
@@ -182,6 +170,7 @@ class AcodeX {
             
             this.$showTermBtn.classList.add("hide");
             this.$terminalContainer.classList.add("hide");
+            
             // add event listnner to all buttons and terminal panel header
             this.$terminalHeader.addEventListener('mousedown', this.startDragging.bind(this));
             this.$terminalHeader.addEventListener('touchstart', this.startDragging.bind(this));
@@ -190,25 +179,27 @@ class AcodeX {
             this.$hideTermBtn.addEventListener('click',this.minimise.bind(this));
             this.$showTermBtn.addEventListener('click',this.maxmise.bind(this));
             this.$cdBtn.addEventListener('click',this._cdToActiveDir.bind(this));
-            this.$upArrowBtn.addEventListener('click',this.upArrowKeyWorker.bind(this));
-            this.$downArrowBtn.addEventListener('click',this.downArrowKeyWorker.bind(this));
             document.getElementById("paste-option").addEventListener('click',this._handlePaste.bind(this));
             
             window.addEventListener('mousemove', this.drag.bind(this));
             window.addEventListener('touchmove', this.drag.bind(this));
             window.addEventListener('mouseup', this.stopDragging.bind(this));
             window.addEventListener('touchend', this.stopDragging.bind(this));
+            
             this.$terminalContent.addEventListener("contextmenu", (event) => {
                 event.preventDefault();
                 const { clientX, clientY } = event;
+                const { left, top } = event.currentTarget.getBoundingClientRect();
+                const offsetX = clientX - left;
+                const offsetY = clientY - top;
                 this.$customContextMenu.style.display = "block";
-                this.$customContextMenu.style.left = `${clientX}px`;
-                this.$customContextMenu.style.top = `${clientY}px`;
+                this.$customContextMenu.style.left = `${offsetX}px`;
+                this.$customContextMenu.style.top = `${offsetY}px`;
             });
             this.$terminalContent.addEventListener("click", () => {
                 this.$customContextMenu.style.display = "none";
             });
-
+                
             const fs = fsOperation(TERMINAL_STORE_PATH);
             if(await fs.exists()){
                 const sessionFile = await fs.lsDir();
@@ -292,20 +283,23 @@ class AcodeX {
         $ws.onmessage = async (ev) => {
             let data = ev.data;
             $terminal.write(typeof data === 'string' ? data : new Uint8Array(data));
+            const currentLines = $terminal.getRows();
+            const linesToRemove = currentLines - this.TERM_MAX_LINES;
+            if (linesToRemove > 0) {
+                $terminal.scrollLines(-linesToRemove);
+            }
             let terminalState = $serializeAddon.serialize();
             let terminalCont = {
                 "wsPort": port,
                 "terminalContainerHeight": this.$terminalContainer.offsetHeight,
                 "terminalData": terminalState
             }
-            //this.checkTerminalFolder();
             const fs = fsOperation(TERMINAL_STORE_PATH+"/session1.json");
             if(!await fs.exists()){
                 await fsOperation(TERMINAL_STORE_PATH).createFile('session1.json', terminalCont);
             }else{
                 await fs.writeFile(terminalCont);
             }
-            //window.alert(terminalState)
         }
     }
 
@@ -467,6 +461,7 @@ class AcodeX {
         this.$terminalContainer.classList.add('hide');
         this.$showTermBtn.classList.add('hide');
         await fsOperation(TERMINAL_STORE_PATH).delete();
+        this.command = "";
     }
     
     startDragging(e) {
@@ -565,26 +560,6 @@ class AcodeX {
         //this._sendData(`clear`);
     }
     
-    async upArrowKeyWorker(){
-        /*
-        up arrow key worker function
-        */
-        if(!this.$terminal) return;
-        const event = new KeyboardEvent('keydown', { keyCode: 38 });
-        this.$terminal.textarea.dispatchEvent(event);
-        this.$terminal.focus();
-    }
-    
-    async downArrowKeyWorker(){
-        /*
-        down arrow key worker function
-        */
-        if(!this.$terminal) return;
-        const event = new KeyboardEvent('keydown', { keyCode: 40 });
-        this.$terminal.textarea.dispatchEvent(event);
-        this.$terminal.focus();
-    }
-    
     async destroy() {
         editorManager.editor.commands.removeCommand("terminal:open_terminal");
         editorManager.editor.commands.removeCommand("terminal:close_terminal");
@@ -601,8 +576,7 @@ class AcodeX {
     
     get terminalObj(){
         return new Terminal({
-            allowProposedApi: true,
-            cursorBlink: this.settings.cursorBlink,
+            allowProposedApi: true,            cursorBlink: this.settings.cursorBlink,
             cursorStyle: this.settings.cursorStyle,
             scrollBack: this.settings.scrollBack,
             scrollSensitivity: this.settings.scrollSensitivity,

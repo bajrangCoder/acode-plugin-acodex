@@ -21,46 +21,23 @@
         h3{
             margin: 0;
         }
-        .arrowBtns{
-            display: flex;
-            justify-content: space-between;
-            align-content: center;
-            .upArrowBtn{
-                font-size: 17px;
-                height: 27px;
-                width: 27px;
-                border-radius: 10px;
-                background: var(--active-icon-color);
-                border: none;
-                color: var(--primary-text-color);
-                margin-right: 5px;
-            }
-            .downArrowBtn{
-                font-size: 17px;
-                height: 27px;
-                width: 27px;
-                border-radius: 10px;
-                background: var(--active-icon-color);
-                border: none;
-                color: var(--primary-text-color);
-            }
-        }
         .control-btn{
             display: flex;
             justify-content: space-between;
             align-content: center;
             .cd-btn{
-                font-size: 18px;
-                height: 27px;
-                width: 27px;
-                border-radius: 10%;
+                font-size: 20px;
+                font-weight: 700;
+                height: 30px;
+                width: 30px;
+                border-radius: 50%;
                 background: var(--link-text-color);
                 border: none;
-                font-weight: 400;
                 margin-right: 8px;
+                color: var(--primary-text-color);
             }
             .hide-terminal-btn{
-                font-size: 22px;
+                font-size: 20px;
                 height: 30px;
                 width: 30px;
                 border-radius: 50%;
@@ -71,9 +48,10 @@
                 margin-right: 8px;
             }
             .close-terminal-btn{
-                font-size: 17px;
-                height: 27px;
-                width: 27px;
+                font-size: 20px;
+                font-weight: 700;
+                height: 30px;
+                width: 30px;
                 border-radius: 50%;
                 background: var(--error-text-color);
                 border: none;
@@ -86,6 +64,7 @@
         overflow-y: auto;
         box-sizing: border-box;
         max-height: 80vh;
+        background: inherit;
         .custom-context-menu {
             position: absolute;
             z-index: 109;
