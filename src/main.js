@@ -25,6 +25,8 @@ class AcodeX {
     isDragging = false;
     startY;
     startHeight;
+    isFlotBtnDragging = false
+    distanceTraveledByFlotBtn = 0;
     isTerminalMinimized = false;
     previousTerminalHeight;
     command = '';
@@ -138,11 +140,11 @@ class AcodeX {
             this.$hideTermBtn = tag("button",{
                 className: "hide-terminal-btn",
             });
-            this.$hideTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M22.95 28.95 16.6 22.6q-.7-.7-.325-1.625.375-.925 1.375-.925h12.7q1 0 1.375.925T31.4 22.6l-6.35 6.35q-.25.25-.5.35-.25.1-.55.1-.3 0-.55-.1-.25-.1-.5-.35Z"/></svg>`;
+            this.$hideTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M15.5 25.5q-.65 0-1.075-.425Q14 24.65 14 24q0-.65.425-1.075.425-.425 1.075-.425h17q.65 0 1.075.425Q34 23.35 34 24q0 .65-.425 1.075-.425.425-1.075.425Z"/></svg>`;
             this.$closeTermBtn = tag("button",{
                 className: "close-terminal-btn",
             });
-            this.$closeTermBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>`;
+            this.$closeTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 26.1 13.5 36.6q-.45.45-1.05.45-.6 0-1.05-.45-.45-.45-.45-1.05 0-.6.45-1.05L21.9 24 11.4 13.5q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.9l10.5-10.5q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05L26.1 24l10.5 10.5q.45.45.45 1.05 0 .6-.45 1.05-.45.45-1.05.45-.6 0-1.05-.45Z"/></svg>`;
             $controlBtn.append(...[this.$cdBtn,this.$hideTermBtn,this.$closeTermBtn]);
             this.$terminalHeader.append(...[this.$terminalTitle,$controlBtn]);
             this.$terminalContent = tag("div",{
@@ -168,16 +170,15 @@ class AcodeX {
             this.$showTermBtn.classList.add("hide");
             this.$terminalContainer.classList.add("hide");
             
-            this.$showTermBtn.classList.add("hide");
-            this.$terminalContainer.classList.add("hide");
-            
             // add event listnner to all buttons and terminal panel header
             this.$terminalHeader.addEventListener('mousedown', this.startDragging.bind(this));
             this.$terminalHeader.addEventListener('touchstart', this.startDragging.bind(this));
             
+            this.$showTermBtn.addEventListener('mousedown',this.startDraggingFlotingBtn.bind(this));
+            this.$showTermBtn.addEventListener('touchstart',this.startDraggingFlotingBtn.bind(this));
+            
             this.$closeTermBtn.addEventListener('click',this.closeTerminal.bind(this));
             this.$hideTermBtn.addEventListener('click',this.minimise.bind(this));
-            this.$showTermBtn.addEventListener('click',this.maxmise.bind(this));
             this.$cdBtn.addEventListener('click',this._cdToActiveDir.bind(this));
             document.getElementById("paste-option").addEventListener('click',this._handlePaste.bind(this));
             
@@ -464,6 +465,70 @@ class AcodeX {
         this.command = "";
     }
     
+    startDraggingFlotingBtn(event){
+        try{
+            event.preventDefault();
+            this.isFlotBtnDragging = true;
+            const button = this.$showTermBtn;
+            const buttonWidth = button.offsetWidth;
+            const buttonHeight = button.offsetHeight;
+            let initialX, initialY;
+            
+            if (event.type === 'mousedown') {
+                initialX = event.clientX;
+                initialY = event.clientY;
+                document.addEventListener('mousemove', dragButton);
+                document.addEventListener('mouseup', stopDragging);
+            } else if (event.type === 'touchstart') {
+                initialX = event.touches[0].clientX;
+                initialY = event.touches[0].clientY;
+                document.addEventListener('touchmove', dragButton);
+                document.addEventListener('touchend', stopDragging);
+            }
+            function dragButton(event) {
+                if(!this.isFlotBtnDragging) return;
+                let currentX, currentY;
+            
+                if (event.type === 'mousemove') {
+                  currentX = event.clientX;
+                  currentY = event.clientY;
+                } else if (event.type === 'touchmove') {
+                  currentX = event.touches[0].clientX;
+                  currentY = event.touches[0].clientY;
+                }
+            
+                let newX = initialX - currentX;
+                let newY = initialY - currentY;
+            
+                initialX = currentX;
+                initialY = currentY;
+                let buttonTop = button.offsetTop - newY;
+                let buttonLeft = button.offsetLeft - newX;
+            
+                let maxX = window.innerWidth - buttonWidth;
+                let maxY = window.innerHeight - buttonHeight;
+            
+                button.style.top = Math.max(0, Math.min(maxY, buttonTop)) + 'px';
+                button.style.left = Math.max(0, Math.min(maxX, buttonLeft)) + 'px';
+                this.distanceTraveledByFlotBtn += Math.abs(newX) + Math.abs(newY);
+            }
+    
+            function stopDragging() {
+                this.isFlotBtnDragging = false;
+                document.removeEventListener('mousemove', dragButton);
+                document.removeEventListener('mouseup', stopDragging);
+                document.removeEventListener('touchmove', dragButton);
+                document.removeEventListener('touchend', stopDragging);
+                if(this.distanceTraveledByFlotBtn < appSettings.get("touchMoveThreshold")){
+                    this.maxmise.bind(this);
+                }
+                this.distanceTraveledByFlotBtn = 0;
+            }
+        } catch(err){
+            window.alert(err)
+        }
+    }
+    
     startDragging(e) {
         if (e.type === 'touchstart') {
             this.startY = e.touches[0].clientY;
@@ -476,9 +541,7 @@ class AcodeX {
     }
     
     drag(e) {
-        if (!this.isDragging) {
-            return;
-        }
+        if (!this.isDragging) return;
         
         e.preventDefault();
         
@@ -540,10 +603,21 @@ class AcodeX {
     }
     
     _convertPath(path){
-        if (path.startsWith("content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome::/data/data/com.termux/files/home/")) {
-            return "$HOME/" + path.substr("content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome::/data/data/com.termux/files/home/".length).split('/').slice(0, -1).join('/') + '/';
+        if (path.startsWith("content://com.termux.documents/tree")) {
+            let termuxPath = path.split("::")[1]
+                .substring(0, path.split("::")[1].lastIndexOf("/"))
+                .replace(/^\/data\/data\/com\.termux\/files\/home/, "$HOME");
+            return termuxPath;
         } else if (path.startsWith("file:///storage/emulated/0/")) {
-            return "/sdcard" + path.substr("file:///storage/emulated/0".length).replace(/\.[^/.]+$/, "").split('/').slice(0, -1).join('/') + '/';
+            let sdcardPath = "/sdcard" + path.substr("file:///storage/emulated/0".length)
+                .replace(/\.[^/.]+$/, "")
+                .split('/')
+                .slice(0, -1)
+                .join('/') + '/';
+            return sdcardPath;
+        } else if (path.startsWith("content://com.android.externalstorage.documents/tree/primary")) {
+            let androidPath = "/sdcard/" + path.split("::primary:")[1].substring(0, path.split("::primary:")[1].lastIndexOf("/"));
+            return androidPath;
         } else {
             return false;
         }
@@ -551,13 +625,12 @@ class AcodeX {
     
     async _cdToActiveDir(){
         const { activeFile } = editorManager;
-        const realPath = this._convertPath(activeFile.location);
+        const realPath = this._convertPath(activeFile.uri);
         if(!realPath){
             window.toast("unsupported path type.",3000);
             return;
         }
         this._sendData(`cd "${realPath}"`);
-        //this._sendData(`clear`);
     }
     
     async destroy() {

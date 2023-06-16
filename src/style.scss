@@ -14,7 +14,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px;
+        height: 28px;
+        padding: 5px;
         cursor: move;
         background: var(--primary-color);
         box-shadow: 0 1px 6px var(--box-shadow-color);
@@ -23,39 +24,53 @@
         }
         .control-btn{
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-content: center;
+            margin: 0;
+            box-sizing: border-box;
+            height: 100%;
             .cd-btn{
-                font-size: 20px;
+                font-size: 25px;
                 font-weight: 700;
-                height: 30px;
+                height: 100%;
                 width: 30px;
-                border-radius: 50%;
-                background: var(--link-text-color);
+                border-radius: 10px;
+                background: transparent;
                 border: none;
                 margin-right: 8px;
                 color: var(--primary-text-color);
+                transition: all 0.3s ease-in-out;
+                &:active{
+                    background: var(--active-icon-color);
+                }
             }
             .hide-terminal-btn{
-                font-size: 20px;
-                height: 30px;
+                font-size: 22px;
+                height: 100%;
                 width: 30px;
-                border-radius: 50%;
-                background: var(--active-icon-color);
+                border-radius: 10px;
+                background: transparent;
                 border: none;
-                font-weight: 700;
                 color: var(--primary-text-color);
                 margin-right: 8px;
+                transition: all 0.3s ease-in-out;
+                &:active{
+                    background: var(--active-icon-color);
+                }
             }
             .close-terminal-btn{
-                font-size: 20px;
+                font-size: 19px;
                 font-weight: 700;
-                height: 30px;
+                height: 100%;
                 width: 30px;
-                border-radius: 50%;
-                background: var(--error-text-color);
+                border-radius: 10px;
+                background: transparent;
                 border: none;
                 color: var(--primary-text-color);
+                transition: all 0.3s ease-in-out;
+                &:active{
+                    background: var(--error-text-color);
+                }
             }
         }
     }
@@ -78,19 +93,20 @@
     }
 }
 .show-terminal-btn{
-    font-size: 22px;
-    height: 30px;
-    width: 30px;
+    font-size: 1.5rem;
+    height: 50px;
+    width: 50px;
     font-weight: 700;
     background: var(--button-background-color);
     border: none;
     color: var(--primary-text-color);
-    position: absolute;
-    bottom: 0;
+    position: fixed;
+    bottom: 10px;
     left: 29px;
-    z-index: 107;
-    border-start-start-radius: 30%;
-    border-start-end-radius: 30%;
+    z-index: 110;
+    border-radius: 50%;
+    box-shadow: -5px 5px 20px 0px var(--box-shadow-color);
+
 }
 .hide{
     display: none;
