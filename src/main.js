@@ -25,12 +25,11 @@ class AcodeX {
     isDragging = false;
     startY;
     startHeight;
-    isFlotBtnDragging = false
+    isFlotBtnDragging = false;
     distanceTraveledByFlotBtn = 0;
     isTerminalMinimized = false;
     previousTerminalHeight;
     command = '';
-    TERM_MAX_LINES = 20;
     // default settings for terminal
     CURSOR_BLINK = true;
     SHOW_ARROW_BTN = false;
@@ -40,7 +39,6 @@ class AcodeX {
     FONT_SIZE = 10;
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
-    FONT_FAMILY = "Fira Code, monospace";
     // Terminal Theme Color
     BACKGROUND_COLOR = "#1c2431";
     FOREGROUND_COLOR = "#cccccc";
@@ -72,7 +70,6 @@ class AcodeX {
             fontSize: this.FONT_SIZE,
             scrollBack: this.SCROLLBACK,
             scrollSensitivity: this.SCROLL_SENSITIVITY,
-            fontFamily: this.FONT_FAMILY,
             backgroundColor: this.BACKGROUND_COLOR,
             foregroundColor: this.FOREGROUND_COLOR,
             selectionBackground: this.SELECTIONBACKGROUND,
@@ -213,6 +210,7 @@ class AcodeX {
                 }
             }
         }catch(err){
+            window.alert(err)
             alert("Warning","Please Restart the app to use AcodeX")
         }
     }
@@ -468,65 +466,70 @@ class AcodeX {
     startDraggingFlotingBtn(event){
         try{
             event.preventDefault();
-            this.isFlotBtnDragging = true;
-            const button = this.$showTermBtn;
-            const buttonWidth = button.offsetWidth;
-            const buttonHeight = button.offsetHeight;
+            //this.isFlotBtnDragging = true;
+            
             let initialX, initialY;
             
             if (event.type === 'mousedown') {
                 initialX = event.clientX;
                 initialY = event.clientY;
-                document.addEventListener('mousemove', dragButton);
-                document.addEventListener('mouseup', stopDragging);
+                document.addEventListener('mousemove', this.dragFlotButton.bind(this));
+                document.addEventListener('mouseup', this.stopDraggingFlotBtn.bind(this));
             } else if (event.type === 'touchstart') {
                 initialX = event.touches[0].clientX;
                 initialY = event.touches[0].clientY;
-                document.addEventListener('touchmove', dragButton);
-                document.addEventListener('touchend', stopDragging);
-            }
-            function dragButton(event) {
-                if(!this.isFlotBtnDragging) return;
-                let currentX, currentY;
-            
-                if (event.type === 'mousemove') {
-                  currentX = event.clientX;
-                  currentY = event.clientY;
-                } else if (event.type === 'touchmove') {
-                  currentX = event.touches[0].clientX;
-                  currentY = event.touches[0].clientY;
-                }
-            
-                let newX = initialX - currentX;
-                let newY = initialY - currentY;
-            
-                initialX = currentX;
-                initialY = currentY;
-                let buttonTop = button.offsetTop - newY;
-                let buttonLeft = button.offsetLeft - newX;
-            
-                let maxX = window.innerWidth - buttonWidth;
-                let maxY = window.innerHeight - buttonHeight;
-            
-                button.style.top = Math.max(0, Math.min(maxY, buttonTop)) + 'px';
-                button.style.left = Math.max(0, Math.min(maxX, buttonLeft)) + 'px';
-                this.distanceTraveledByFlotBtn += Math.abs(newX) + Math.abs(newY);
-            }
-    
-            function stopDragging() {
-                this.isFlotBtnDragging = false;
-                document.removeEventListener('mousemove', dragButton);
-                document.removeEventListener('mouseup', stopDragging);
-                document.removeEventListener('touchmove', dragButton);
-                document.removeEventListener('touchend', stopDragging);
-                if(this.distanceTraveledByFlotBtn < appSettings.get("touchMoveThreshold")){
-                    this.maxmise.bind(this);
-                }
-                this.distanceTraveledByFlotBtn = 0;
+                document.addEventListener('touchmove', this.dragFlotButton.bind(this));
+                document.addEventListener('touchend', this.stopDraggingFlotBtn.bind(this));
             }
         } catch(err){
             window.alert(err)
         }
+    }
+    
+    dragFlotButton(event){
+        //if(!this.isFlotBtnDragging) return;
+        let currentX, currentY;
+            
+        if (event.type === 'mousemove') {
+          currentX = event.clientX;
+          currentY = event.clientY;
+        } else if (event.type === 'touchmove') {
+          currentX = event.touches[0].clientX;
+          currentY = event.touches[0].clientY;
+        }
+    
+        let newX = initialX - currentX;
+        let newY = initialY - currentY;
+    
+        initialX = currentX;
+        initialY = currentY;
+        let buttonTop = this.$showTermBtn.offsetTop - newY;
+        let buttonLeft = this.$showTermBtn.offsetLeft - newX;
+    
+        let maxX = window.innerWidth - this.$showTermBtn.offsetWidth;
+        let maxY = window.innerHeight - this.$showTermBtn.offsetHeight;
+    
+        this.$showTermBtn.style.top = Math.max(0, Math.min(maxY, buttonTop)) + 'px';
+        this.$showTermBtn.style.left = Math.max(0, Math.min(maxX, buttonLeft)) + 'px';
+        this.distanceTraveledByFlotBtn += Math.abs(newX) + Math.abs(newY);
+    }
+    
+    stopDraggingFlotBtn(){
+        //this.isFlotBtnDragging = false;
+        document.removeEventListener('mousemove', this.dragFlotButton());
+        document.removeEventListener('mouseup', this.stopDraggingFlotBtn());
+        document.removeEventListener('touchmove', this.dragFlotButton());
+        document.removeEventListener('touchend', this.stopDraggingFlotBtn());
+        if(this.distanceTraveledByFlotBtn < appSettings.get("touchMoveThreshold")){
+            window.alert("hi")
+            window.alert(this.isTerminalMinimized)
+            if (this.isTerminalMinimized) {
+                this.$terminalContainer.style.height = this.previousTerminalHeight;
+                this.$showTermBtn.classList.add('hide');
+                this.isTerminalMinimized = false;
+            }
+        }
+        this.distanceTraveledByFlotBtn = 0;
     }
     
     startDragging(e) {
@@ -649,12 +652,12 @@ class AcodeX {
     
     get terminalObj(){
         return new Terminal({
-            allowProposedApi: true,            cursorBlink: this.settings.cursorBlink,
+            allowProposedApi: true,
+            cursorBlink: this.settings.cursorBlink,
             cursorStyle: this.settings.cursorStyle,
             scrollBack: this.settings.scrollBack,
             scrollSensitivity: this.settings.scrollSensitivity,
             fontSize: this.settings.fontSize,
-            fontFamily: this.settings.fontFamily,
             theme: {
                 background: this.settings.backgroundColor,
                 foreground: this.settings.foregroundColor,
@@ -738,20 +741,6 @@ class AcodeX {
                     promptOption: [
                         {
                             match: /^[0-9]+$/,
-                            required: true
-                        }
-                    ]
-                },
-                {
-                    index: 5,
-                    key: 'fontFamily',
-                    text: 'Font Family',
-                    value: this.settings.fontFamily,
-                    info: "The font family used to render text.",
-                    prompt: "Font Family",
-                    promptType: "text",
-                    promptOption: [
-                        {
                             required: true
                         }
                     ]

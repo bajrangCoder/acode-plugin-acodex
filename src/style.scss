@@ -30,8 +30,6 @@
             box-sizing: border-box;
             height: 100%;
             .cd-btn{
-                font-size: 25px;
-                font-weight: 700;
                 height: 100%;
                 width: 30px;
                 border-radius: 10px;
@@ -93,20 +91,23 @@
     }
 }
 .show-terminal-btn{
-    font-size: 1.5rem;
     height: 50px;
     width: 50px;
-    font-weight: 700;
     background: var(--button-background-color);
     border: none;
+    outline: none;
     color: var(--primary-text-color);
-    position: fixed;
-    bottom: 10px;
+    position: absolute;
+    bottom: 88px;
     left: 29px;
-    z-index: 110;
+    z-index: 115;
     border-radius: 50%;
+    place-items: center;
     box-shadow: -5px 5px 20px 0px var(--box-shadow-color);
-
+    svg{
+        height: 27px;
+        width: 27px;
+    }
 }
 .hide{
     display: none;
