@@ -3,7 +3,7 @@
 
 **AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
-After `v1.1.0`, you will not regret after installing.
+After `v1.1.0`, you will not regret after installing. I know before it was hard.
 
 > Note: When you start a new terminal make sure to adjust terminal panel according to your screen. If its height is good for you then also just drag it , then it will run smoothly.
 
@@ -14,6 +14,18 @@ After `v1.1.0`, you will not regret after installing.
         Updates 🤩🤩
     </summary>
     <br/>
+    <details>
+        <summary>
+            <code><strong>v1.1.2</strong></code>
+        </summary>
+        <ul>
+            <li>little bit change in layout and icon</li>
+            <li>maximise terminal button is now draggable and you can drag it and keep it wherever you want</li>
+            <li>fixed bugs related to folder icon</li>
+            <li>removed changing of font family of terminal</li>
+            <li>some minor changes</li>
+        </ul>
+    </details>
     <details>
         <summary>
             <code><strong>v1.1.1</strong></code>
@@ -176,7 +188,7 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 - First Start Server on Termux via : `acodeX-server`
 - To use **AcodeX**, press `Ctrl+K` or search for `"Open Terminal"` in the command palette. 
 - Then enter the port number, and the terminal will start running. 
-- Use the small down arrow button to hide the terminal while coding, and the terminal button to show it. 
+- Use the minus icon button to hide the terminal while coding, and the terminal button to show it. 
 - You can also **drag** the terminal panel around by clicking and dragging through the **terminal title area**. 
 - The `✗` is for closing the terminal.
 - folder icon - button on terminal header is for navigating to opened files(in editor) directory .
