@@ -16,7 +16,7 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
     <br/>
     <details>
         <summary>
-            <code><strong>v1.1.2</strong></code>
+            <code><strong>v1.1.4</strong></code>
         </summary>
         <ul>
             <li>little bit change in layout and icon</li>

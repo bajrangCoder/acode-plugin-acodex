@@ -644,6 +644,7 @@ class AcodeX {
             scrollBack: this.settings.scrollBack,
             scrollSensitivity: this.settings.scrollSensitivity,
             fontSize: this.settings.fontSize,
+            fontFamily: '"Cascadia Code", Menlo, monospace',
             theme: {
                 background: this.settings.backgroundColor,
                 foreground: this.settings.foregroundColor,
