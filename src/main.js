@@ -25,6 +25,7 @@ class AcodeX {
     isDragging = false;
     startY;
     startHeight;
+    // constants for dragable show terminal button
     isFlotBtnDragging = false;
     btnStartPosX;
     btnStartPosY;
@@ -177,14 +178,15 @@ class AcodeX {
             this.$cdBtn.addEventListener('click', this._cdToActiveDir.bind(this));
             document.getElementById("paste-option").addEventListener('click', this._handlePaste.bind(this));
             
+            // add event listener for show terminal button 
             this.$showTermBtn.addEventListener("mousedown", this.startDraggingFlotingBtn.bind(this));
             document.addEventListener("mousemove", this.dragFlotButton.bind(this));
             document.addEventListener("mouseup", this.stopDraggingFlotBtn.bind(this));
-            
             this.$showTermBtn.addEventListener("touchstart", this.startDraggingFlotingBtn.bind(this));
             document.addEventListener("touchmove", this.dragFlotButton.bind(this));
             document.addEventListener("touchend", this.stopDraggingFlotBtn.bind(this));
             this.$showTermBtn.addEventListener("click", this.maxmise.bind(this));
+            
             window.addEventListener('mousemove', this.drag.bind(this));
             window.addEventListener('touchmove', this.drag.bind(this));
             window.addEventListener('mouseup', this.stopDragging.bind(this));
@@ -287,11 +289,6 @@ class AcodeX {
         $ws.onmessage = async (ev) => {
             let data = ev.data;
             $terminal.write(typeof data === 'string' ? data : new Uint8Array(data));
-            const currentLines = $terminal.getRows();
-            const linesToRemove = currentLines - this.TERM_MAX_LINES;
-            if(linesToRemove > 0) {
-                $terminal.scrollLines(-linesToRemove);
-            }
             let terminalState = $serializeAddon.serialize();
             let terminalCont = {
                 "wsPort": port,
@@ -469,6 +466,7 @@ class AcodeX {
     }
 
     startDraggingFlotingBtn(e) {
+        
         try {
             this.isFlotBtnDragging = true;
             if (e.type === "touchstart") {
