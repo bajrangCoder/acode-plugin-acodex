@@ -16,6 +16,12 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
     <br/>
     <details>
         <summary>
+            <code><strong>v1.1.5</strong></code>
+        </summary>
+        <p>Nothing fancy just a simple bugs 😑</p>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.1.4</strong></code>
         </summary>
         <ul>

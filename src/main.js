@@ -61,7 +61,26 @@ class AcodeX {
     RED = "#da6771";
     WHITE = "#efefef";
     YELLOW = "#fff099";
-
+    // New theme
+    /*BACKGROUND_COLOR = "#1e2127";
+    FOREGROUND_COLOR = "#c0c5ce";
+    SELECTIONBACKGROUND = "#2c313c";
+    BLACK = "#1e2127";
+    BLUE = "#61afef";
+    BRIGHT_BLACK = "#565c64";
+    BRIGHT_BLUE = "#61afef";
+    BRIGHT_CYAN = "#56b6c2";
+    BRIGHT_GREEN = "#98c379";
+    BRIGHT_MAGENTA = "#c678dd";
+    BRIGHT_RED = "#e06c75";
+    BRIGHT_WHITE = "#c0c5ce";
+    BRIGHT_YELLOW = "#e5c07b";
+    CYAN = "#56b6c2";
+    GREEN = "#98c379";
+    MAGENTA = "#c678dd";
+    RED = "#e06c75";
+    WHITE = "#c0c5ce";
+    YELLOW = "#e5c07b";*/
 
     constructor() {
         if(!appSettings.value[plugin.id]) {
@@ -164,7 +183,7 @@ class AcodeX {
             });
             this.$showTermBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-terminal" viewBox="0 0 16 16"><path d="M6 9a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 9zM3.854 4.146a.5.5 0 1 0-.708.708L4.793 6.5 3.146 8.146a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2z"/><path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/></svg>`;
             // append Terminal panel to app main
-            app.get("main").append(...[this.$terminalContainer, this.$showTermBtn]);
+            app.get("main").append(this.$terminalContainer,this.$showTermBtn);
 
             this.$showTermBtn.classList.add("hide");
             this.$terminalContainer.classList.add("hide");
@@ -284,7 +303,7 @@ class AcodeX {
         const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
         this.$terminalContent.style.height = `calc(100% - ${terminalHeaderHeight}px)`;
     }
-
+    
     async _checkForWSMessage($ws, $terminal, $serializeAddon, port) {
         $ws.onmessage = async (ev) => {
             let data = ev.data;
@@ -470,11 +489,11 @@ class AcodeX {
         try {
             this.isFlotBtnDragging = true;
             if (e.type === "touchstart") {
-                this.btnStartPosX = e.touches[0].clientX - this.$showTermBtn.offsetLeft;
-                this.btnStartPosY = e.touches[0].clientY - this.$showTermBtn.offsetTop;
+                this.btnStartPosX = event.touches[0].clientX;
+                this.btnStartPosY = event.touches[0].clientY;
             } else {
-                this.btnStartPosX = e.clientX - this.$showTermBtn.offsetLeft;
-                this.btnStartPosY = e.clientY - this.$showTermBtn.offsetTop;
+                this.btnStartPosX = event.clientX;
+                this.btnStartPosY = event.clientY;
             }
         } catch(err) {
             window.alert(err)
@@ -485,26 +504,28 @@ class AcodeX {
         try {
             if (!this.isFlotBtnDragging) return;
             e.preventDefault();
+            let currentX, currentY;
             if (e.type === "touchmove") {
-                this.$showTermBtn.style.left = e.touches[0].clientX - this.btnStartPosX + "px";
-                this.$showTermBtn.style.top = e.touches[0].clientY - this.btnStartPosY + "px";
+                currentX = e.touches[0].clientX;
+                currentY = e.touches[0].clientY;
             } else {
-                this.$showTermBtn.style.left = e.clientX - this.btnStartPosX + "px";
-                this.$showTermBtn.style.top = e.clientY - this.btnStartPosY + "px";
+                currentX = e.clientX;
+                currentY = e.clientY;
             }
-            // Check if the button is going outside the screen
-            let rect = this.$showTermBtn.getBoundingClientRect();
-            let windowWidth = window.innerWidth;
-            let windowHeight = window.innerHeight;
+            let newX = this.btnStartPosX - currentX;
+            let newY = this.btnStartPosY - currentY;
             
-            if (
-                rect.left < 0 ||
-                rect.right > windowWidth ||
-                rect.top < 0 ||
-                rect.bottom > windowHeight
-            ) {
-                this.stopDraggingFlotBtn.bind(this);
-            }
+            this.btnStartPosX = currentX;
+            this.btnStartPosY = currentY;
+            
+            let buttonTop = this.$showTermBtn.offsetTop - newY;
+            let buttonLeft = this.$showTermBtn.offsetLeft - newX;
+            
+            let maxX = window.innerWidth - this.$showTermBtn.offsetWidth;
+            let maxY = window.innerHeight - this.$showTermBtn.offsetHeight;
+            
+            this.$showTermBtn.style.top = Math.max(0, Math.min(maxY, buttonTop)) + "px";
+            this.$showTermBtn.style.left = Math.max(0, Math.min(maxX, buttonLeft)) + "px";
         } catch(err) {
             window.alert(err)
         }

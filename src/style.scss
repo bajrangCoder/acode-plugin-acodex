@@ -92,22 +92,22 @@
     }
 }
 .show-terminal-btn{
-    height: 50px;
-    width: 50px;
+    height: 35px;
+    width: 35px;
     background: var(--button-background-color);
     border: none;
     outline: none;
     color: var(--primary-text-color);
-    position: absolute;
-    bottom: 88px;
+    position: fixed;
+    bottom: 70px;
     left: 29px;
     z-index: 115;
     border-radius: 50%;
     place-items: center;
     box-shadow: -5px 5px 20px 0px var(--box-shadow-color);
     svg{
-        height: 27px;
-        width: 27px;
+        height: 17px;
+        width: 17px;
     }
 }
 .hide{
