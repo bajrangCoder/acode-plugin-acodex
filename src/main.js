@@ -225,9 +225,8 @@ class AcodeX {
                 this.$customContextMenu.style.display = "none";
             });
 
-            const fs = fsOperation(TERMINAL_STORE_PATH);
-            if(await fs.exists()) {
-                const sessionFile = await fs.lsDir();
+            if(await fsOperation(TERMINAL_STORE_PATH).exists()) {
+                const sessionFile = await fsOperation(TERMINAL_STORE_PATH).lsDir();
                 if(sessionFile != []) {
                     let terminalFileData = await fsOperation(TERMINAL_STORE_PATH + "/session1.json").readFile('utf8');
                     let terminalState = JSON.parse(terminalFileData);
@@ -251,6 +250,10 @@ class AcodeX {
                 this.$terminalContainer.classList.remove('hide');
                 this.$terminalContainer.style.height = termContainerHeight + "px";
                 this._updateTerminalHeight.bind(this);
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
                 // initialise xtermjs Terminal class
                 this.$terminal = this.terminalObj;
                 this.$fitAddon = new FitAddon();
@@ -259,6 +262,7 @@ class AcodeX {
                 this.$terminal.loadAddon(this.$serializeAddon);
                 this.$terminal.loadAddon(new WebglAddon());
                 this.$terminal.open(this.$terminalContent);
+                this._checkForKeyboardMode(this.$terminal);
                 this.ws = new WebSocket(`ws://localhost:${port}/`);
                 this.ws.binaryType = 'arraybuffer';
                 this.checkTerminalFolder();
@@ -285,6 +289,7 @@ class AcodeX {
                 this.$terminal.loadAddon(this.$serializeAddon);
                 this.$terminal.loadAddon(new WebglAddon());
                 this.$terminal.open(this.$terminalContent);
+                this._checkForKeyboardMode(this.$terminal);
                 this.$terminal.write(previousTermState);
                 this.ws = new WebSocket(`ws://localhost:${port}/`);
                 this.ws.binaryType = 'arraybuffer';
@@ -296,6 +301,16 @@ class AcodeX {
         } catch(err) {
             window.alert(err);
         }
+    }
+    
+    _checkForKeyboardMode($terminal){
+        $terminal.textarea.addEventListener("focus", () => {
+            // disable keyboard suggestion
+            system.setInputType("NO_SUGGESTIONS_AGGRESSIVE");
+        });
+        $terminal.textarea.addEventListener("blur", () => {
+            system.setInputType(appSettings.get("keyboardMode"))
+        });
     }
 
     _updateTerminalHeight() {
@@ -322,7 +337,6 @@ class AcodeX {
             }
         }
     }
-
 
     async checkTerminalFolder() {
         if(!await fsOperation(TERMINAL_STORE_PATH).exists()) {
@@ -477,23 +491,28 @@ class AcodeX {
         */
         let confirmation = await confirm("Warning", "Are you sure ?");
         if(!confirmation) return;
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
         this.$terminalContent.innerHTML = '';
-        this.$terminalContainer.classList.add('hide');
-        this.$showTermBtn.classList.add('hide');
+        if(!this.$terminalContainer.classList.contains("hide")) this.$terminalContainer.classList.add('hide');
+        if(!this.$showTermBtn.classList.contains("hide")) this.$showTermBtn.classList.add('hide');
         await fsOperation(TERMINAL_STORE_PATH).delete();
         this.command = "";
+        this.isTerminalMinimized = false;
+        this.$terminalContainer.style.height = this.previousTerminalHeight;
     }
 
     startDraggingFlotingBtn(e) {
-        
         try {
             this.isFlotBtnDragging = true;
             if (e.type === "touchstart") {
-                this.btnStartPosX = event.touches[0].clientX;
-                this.btnStartPosY = event.touches[0].clientY;
+                this.btnStartPosX = e.touches[0].clientX;
+                this.btnStartPosY = e.touches[0].clientY;
             } else {
-                this.btnStartPosX = event.clientX;
-                this.btnStartPosY = event.clientY;
+                this.btnStartPosX = e.clientX;
+                this.btnStartPosY = e.clientY;
             }
         } catch(err) {
             window.alert(err)
@@ -514,20 +533,20 @@ class AcodeX {
             }
             let newX = this.btnStartPosX - currentX;
             let newY = this.btnStartPosY - currentY;
-            
+        
             this.btnStartPosX = currentX;
             this.btnStartPosY = currentY;
-            
-            let buttonTop = this.$showTermBtn.offsetTop - newY;
+        
+            let buttonBottom = window.innerHeight - (this.$showTermBtn.offsetTop + this.$showTermBtn.offsetHeight) + newY;
             let buttonLeft = this.$showTermBtn.offsetLeft - newX;
-            
+        
             let maxX = window.innerWidth - this.$showTermBtn.offsetWidth;
             let maxY = window.innerHeight - this.$showTermBtn.offsetHeight;
-            
-            this.$showTermBtn.style.top = Math.max(0, Math.min(maxY, buttonTop)) + "px";
+        
+            this.$showTermBtn.style.bottom = Math.max(0, Math.min(maxY, buttonBottom)) + "px";
             this.$showTermBtn.style.left = Math.max(0, Math.min(maxX, buttonLeft)) + "px";
-        } catch(err) {
-            window.alert(err)
+        } catch (err) {
+            window.alert(err);
         }
     }
 
@@ -648,6 +667,10 @@ class AcodeX {
         editorManager.editor.commands.removeCommand("terminal:close_terminal");
         this.$terminalContainer.remove();
         this.$showTermBtn.remove();
+        document.removeEventListener("mousemove", this.dragFlotButton.bind(this));
+        document.removeEventListener("mouseup", this.stopDraggingFlotBtn.bind(this));
+        document.removeEventListener("touchmove", this.dragFlotButton.bind(this));
+        document.removeEventListener("touchend", this.stopDraggingFlotBtn.bind(this));
         window.removeEventListener('mousemove', this.drag);
         window.removeEventListener('touchmove', this.drag);
         window.removeEventListener('mouseup', this.stopDragging);

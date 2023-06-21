@@ -16,6 +16,16 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
     <br/>
     <details>
         <summary>
+            <code><strong>v1.1.6</strong></code>
+        </summary>
+        <ul>
+            <li>terminal issue fixed</li>
+            <li>floating button improved, now it will be not hidden by keyboard</li>
+            <li>internal changes</li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.1.5</strong></code>
         </summary>
         <p>Nothing fancy just a simple bugs 😑</p>
