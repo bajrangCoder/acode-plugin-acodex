@@ -5,6 +5,8 @@
 
 After `v1.1.0`, you will not regret after installing. I know before it was hard.
 
+**Brand New Tutorial: [Click me](https://youtu.be/sXlIhrbpjyw)**
+
 > Note: When you start a new terminal make sure to adjust terminal panel according to your screen. If its height is good for you then also just drag it , then it will run smoothly.
 
 **Support this project with your small contribution - <a href='https://github.com/sponsors/bajrangCoder'>Click Me 💗</a>**
@@ -14,6 +16,14 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
         Updates 🤩🤩
     </summary>
     <br/>
+    <details>
+        <summary>
+            <code><strong>v1.1.7</strong></code>
+        </summary>
+        <ul>
+            <li>brand new tutorial link added in the resme of the plugin</li>
+        </ul>
+    </details>
     <details>
         <summary>
             <code><strong>v1.1.6</strong></code>
@@ -195,11 +205,7 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
     
 ## How to use?
 
-**New updated tutorial is comming soon**
-
-<video src="https://user-images.githubusercontent.com/71929976/220828170-158cc64d-ed9b-4d48-b7b6-5d7a530b2d18.mp4" height="270" width="340" controls>
-</video>
-<br>
+**New updated tutorial link: [https://youtu.be/sXlIhrbpjyw](https://youtu.be/sXlIhrbpjyw)**
 
 - First Start Server on Termux via : `acodeX-server`
 - To use **AcodeX**, press `Ctrl+K` or search for `"Open Terminal"` in the command palette. 
