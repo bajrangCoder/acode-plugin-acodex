@@ -6,9 +6,9 @@
     z-index: 107;
     display: flex;
     flex-direction: column;
+    box-shadow: 0px -10px 15px -6px var(--box-shadow-color);
     background-color: var(--popup-background-color);
     border-top: 1px solid var(--popup-border-color);
-    box-shadow: 0 -2px 6px var(--box-shadow-color);
     overflow: hidden;
     .terminal-header{
         display: flex;
@@ -106,7 +106,7 @@
     border-radius: 50%;
     place-items: center;
     touch-action: none;
-    box-shadow: -5px 5px 20px 0px var(--box-shadow-color);
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
     svg{
         height: 17px;
         width: 17px;

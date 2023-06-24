@@ -18,10 +18,20 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
     <br/>
     <details>
         <summary>
+            <code><strong>v1.1.8</strong></code>
+        </summary>
+        <ul>
+            <li>improved accessibility</li>
+            <li>floating button and terminal panel issue fixed</li>
+            <li>minor twicks</li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.1.7</strong></code>
         </summary>
         <ul>
-            <li>brand new tutorial link added in the resme of the plugin</li>
+            <li>brand new tutorial link added in the readme of the plugin</li>
         </ul>
     </details>
     <details>
@@ -188,7 +198,9 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
 - **Terminal panel**: The terminal panel can be moved around, resized, minimized, and maximized based on the developer's preferences
 - **User-friendly interface**: _AcodeX_ offers a simple and intuitive interface, making it easy to use for all levels of developers.
 - **Customisable**: You can customise AcodeX terminal according to your preference 
-- **Session**
+- **Session**: It will automatically open from where you had closed the app.
+- **Easy Directory Changing**: You can open any folder with a button click.
+- **Use Previous commands**: it will remember your previously used command , you can get them by using arrow button.
 
 ## Prerequisites
 
@@ -208,12 +220,18 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 **New updated tutorial link: [https://youtu.be/sXlIhrbpjyw](https://youtu.be/sXlIhrbpjyw)**
 
 - First Start Server on Termux via : `acodeX-server`
-- To use **AcodeX**, press `Ctrl+K` or search for `"Open Terminal"` in the command palette. 
-- Then enter the port number, and the terminal will start running. 
+- To use **AcodeX**, press `Ctrl+K` or search for `"Open Terminal"` in the command palette(Press `ctrl-shift-p` to open command palette). 
+- Then enter the port number, and the terminal will start. 
 - Use the minus icon button to hide the terminal while coding, and the terminal button to show it. 
-- You can also **drag** the terminal panel around by clicking and dragging through the **terminal title area**. 
+- You can also **drag** the terminal panel around by clicking and dragging through the **terminal header area**. 
 - The `✗` is for closing the terminal.
 - folder icon - button on terminal header is for navigating to opened files(in editor) directory .
+
+## Limitations
+
+- You can't use right/left arrow in terminal(this will added in future updates)
+- You can't use arrow button except the prompt area.
+- You can't copy text from terminal
 
 ## Acknowledgements
 

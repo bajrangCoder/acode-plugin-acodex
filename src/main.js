@@ -210,6 +210,23 @@ class AcodeX {
             window.addEventListener('touchmove', this.drag.bind(this));
             window.addEventListener('mouseup', this.stopDragging.bind(this));
             window.addEventListener('touchend', this.stopDragging.bind(this));
+            window.addEventListener('resize', () => {
+                if(!this.$terminalContainer.classList.contains('hide') || this.$terminalContainer.style.height != "0px"){
+                    const totalHeaderHeight = document.querySelector("#root header").offsetHeight + document.querySelector("#root ul").offsetHeight;
+                    const totalFooterHeight = document.querySelector("#quick-tools").offsetHeight;
+                    const screenHeight = window.innerHeight - (totalHeaderHeight + totalFooterHeight);
+                    
+                    const currentHeight = parseInt(this.$terminalContainer.style.height);
+                    const adjustedHeight = Math.min(currentHeight, screenHeight);
+                    this.$terminalContainer.style.height = adjustedHeight + 'px';
+                }
+                if(!this.$showTermBtn.classList.contains('hide')){
+                    let totalHeaderHeight = document.querySelector("#root header").offsetHeight + document.querySelector("#root ul").offsetHeight;
+                    let maxY = (window.innerHeight - totalHeaderHeight) - this.$showTermBtn.offsetHeight;
+                    const currentY = parseInt(this.$showTermBtn.style.bottom);
+                    this.$showTermBtn.style.bottom = Math.max(0, Math.min(maxY, currentY)) + "px";
+                }
+            });
 
             this.$terminalContent.addEventListener("contextmenu", (event) => {
                 event.preventDefault();
@@ -507,6 +524,7 @@ class AcodeX {
     startDraggingFlotingBtn(e) {
         try {
             this.isFlotBtnDragging = true;
+            this.$showTermBtn.style.border = "2px solid #fff";
             if (e.type === "touchstart") {
                 this.btnStartPosX = e.touches[0].clientX;
                 this.btnStartPosY = e.touches[0].clientY;
@@ -539,9 +557,9 @@ class AcodeX {
         
             let buttonBottom = window.innerHeight - (this.$showTermBtn.offsetTop + this.$showTermBtn.offsetHeight) + newY;
             let buttonLeft = this.$showTermBtn.offsetLeft - newX;
-        
+            let totalHeaderHeight = document.querySelector("#root header").offsetHeight + document.querySelector("#root ul").offsetHeight;
             let maxX = window.innerWidth - this.$showTermBtn.offsetWidth;
-            let maxY = window.innerHeight - this.$showTermBtn.offsetHeight;
+            let maxY = (window.innerHeight - totalHeaderHeight) - this.$showTermBtn.offsetHeight;
         
             this.$showTermBtn.style.bottom = Math.max(0, Math.min(maxY, buttonBottom)) + "px";
             this.$showTermBtn.style.left = Math.max(0, Math.min(maxX, buttonLeft)) + "px";
@@ -553,6 +571,7 @@ class AcodeX {
     stopDraggingFlotBtn() {
         try {
             this.isFlotBtnDragging = false;
+            this.$showTermBtn.style.border = "none";
         } catch(err) {
             window.alert(err)
         }
@@ -567,6 +586,7 @@ class AcodeX {
         }
         this.startHeight = this.$terminalContainer.clientHeight;
         this.isDragging = true;
+        this.$terminalContainer.style.borderTop = "2px solid var(--link-text-color)";
     }
 
     drag(e) {
@@ -580,21 +600,16 @@ class AcodeX {
         } else {
             currentY = e.clientY;
         }
-
-        // Calculate the difference between the current and initial touch/mouse position
         const diffY = currentY - this.startY;
 
-        // Get the new height of the panel container
         let newHeight = this.startHeight - diffY;
-
-        // Restrict the height of the panel container to the screen height
-        const screenHeight = window.innerHeight;
-        newHeight = Math.min(newHeight, screenHeight);
-
-        // Set the new height of the panel container
-        if(newHeight <= 100) {
-            return;
-        }
+        
+        const totalHeaderHeight = document.querySelector("#root header").offsetHeight + document.querySelector("#root ul").offsetHeight;
+        const totalFooterHeight = document.querySelector("#quick-tools").offsetHeight;
+        const maximumHeight = window.innerHeight - (totalHeaderHeight + totalFooterHeight);
+        const minimumHeight = 100;
+        newHeight = Math.max(minimumHeight, Math.min(newHeight,maximumHeight));
+        
         this.$terminalContainer.style.height = newHeight + 'px';
         this._updateTerminalHeight.bind(this);
         this.$fitAddon.fit();
@@ -602,6 +617,7 @@ class AcodeX {
 
     stopDragging(e) {
         this.isDragging = false;
+        this.$terminalContainer.style.borderTop = "1px solid var(--popup-border-color)";
     }
 
     minimise() {
