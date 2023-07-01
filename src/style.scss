@@ -31,6 +31,23 @@
             margin: 0;
             box-sizing: border-box;
             height: 100%;
+            .format-pycode-btn{
+                height: 100%;
+                width: 30px;
+                border-radius: 10px;
+                background: transparent;
+                border: none;
+                margin-right: 8px;
+                color: var(--primary-text-color);
+                transition: all 0.3s ease-in-out;
+                &:active{
+                    background: var(--active-icon-color);
+                }
+                svg{
+                    height: 14px;
+                    width: 14px;
+                }
+            }
             .cd-btn{
                 height: 100%;
                 width: 30px;
