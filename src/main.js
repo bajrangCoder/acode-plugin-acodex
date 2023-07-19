@@ -151,10 +151,6 @@ class AcodeX {
             const $controlBtn = tag("div", {
                 className: "control-btn"
             });
-            this.$formatPyCode = tag("button", {
-                className: "format-pycode-btn",
-            });
-            this.$formatPyCode.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6zM286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3zM167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4zm-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3z"/></svg>`;
             this.$cdBtn = tag("button", {
                 className: "cd-btn",
             });
@@ -167,7 +163,7 @@ class AcodeX {
                 className: "close-terminal-btn",
             });
             this.$closeTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 26.1 13.5 36.6q-.45.45-1.05.45-.6 0-1.05-.45-.45-.45-.45-1.05 0-.6.45-1.05L21.9 24 11.4 13.5q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.9l10.5-10.5q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05L26.1 24l10.5 10.5q.45.45.45 1.05 0 .6-.45 1.05-.45.45-1.05.45-.6 0-1.05-.45Z"/></svg>`;
-            $controlBtn.append(...[this.$formatPyCode,this.$cdBtn, this.$hideTermBtn, this.$closeTermBtn]);
+            $controlBtn.append(...[this.$cdBtn, this.$hideTermBtn, this.$closeTermBtn]);
             this.$terminalHeader.append(...[this.$terminalTitle, $controlBtn]);
             this.$terminalContent = tag("div", {
                 className: "terminal-content",
@@ -199,7 +195,6 @@ class AcodeX {
             this.$closeTermBtn.addEventListener('click', this.closeTerminal.bind(this));
             this.$hideTermBtn.addEventListener('click', this.minimise.bind(this));
             this.$cdBtn.addEventListener('click', this._cdToActiveDir.bind(this));
-            this.$formatPyCode.addEventListener('click', this._formatPythonCode.bind(this));
             document.getElementById("paste-option").addEventListener('click', this._handlePaste.bind(this));
             
             // add event listener for show terminal button 
@@ -215,6 +210,7 @@ class AcodeX {
             window.addEventListener('touchmove', this.drag.bind(this));
             window.addEventListener('mouseup', this.stopDragging.bind(this));
             window.addEventListener('touchend', this.stopDragging.bind(this));
+            // to adjust size of terminal or floating button when Keyboard is opened
             window.addEventListener('resize', () => {
                 if(!this.$terminalContainer.classList.contains('hide') || this.$terminalContainer.style.height != "0px"){
                     const totalHeaderHeight = document.querySelector("#root header").offsetHeight + document.querySelector("#root ul").offsetHeight;
@@ -233,6 +229,7 @@ class AcodeX {
                 }
             });
 
+            // added custom context menu
             this.$terminalContent.addEventListener("contextmenu", (event) => {
                 event.preventDefault();
                 const { clientX, clientY } = event;
@@ -246,16 +243,12 @@ class AcodeX {
             this.$terminalContent.addEventListener("click", () => {
                 this.$customContextMenu.style.display = "none";
             });
-
+            
+            // checks previous Terminal state
             if(await fsOperation(TERMINAL_STORE_PATH).exists()) {
                 const sessionFile = await fsOperation(TERMINAL_STORE_PATH).lsDir();
-                if(sessionFile != []) {
-                    let terminalFileData = await fsOperation(TERMINAL_STORE_PATH + "/session1.json").readFile('utf8');
-                    let terminalState = JSON.parse(terminalFileData);
-                    this.openPreviousTerminal(terminalState.wsPort, terminalState.terminalContainerHeight, terminalState.terminalData);
-                } else {
-                    await fsOperation(TERMINAL_STORE_PATH).delete();
-                }
+                let terminalFileData = await fsOperation(TERMINAL_STORE_PATH + "/session1.txt").readFile('utf8') || "";
+                this.openPreviousTerminal(localStorage.getItem("AcodeX_Port") || 8767, localStorage.getItem("AcodeX_Terminal_Cont_Height") || 270, terminalFileData);
             }
         } catch(err) {
             alert("Warning", "Please Restart the app to use AcodeX")
@@ -271,6 +264,8 @@ class AcodeX {
             if(port) {
                 this.$terminalContainer.classList.remove('hide');
                 this.$terminalContainer.style.height = termContainerHeight + "px";
+                localStorage.setItem("AcodeX_Terminal_Cont_Height",270);
+                localStorage.setItem("AcodeX_Terminal_Is_Minimised",this.isTerminalMinimized);
                 this._updateTerminalHeight.bind(this);
                 if (this.ws) {
                     this.ws.close();
@@ -287,7 +282,8 @@ class AcodeX {
                 this._checkForKeyboardMode(this.$terminal);
                 this.ws = new WebSocket(`ws://localhost:${port}/`);
                 this.ws.binaryType = 'arraybuffer';
-                this.checkTerminalFolder();
+                localStorage.setItem("AcodeX_Port",port);
+                this.checkTerminalFileAndFolder();
                 this._checkForWSMessage(this.ws, this.$terminal, this.$serializeAddon, port)
                 this._actionForOnTerminalData(this.$terminal);
                 this.$fitAddon.fit();
@@ -315,9 +311,17 @@ class AcodeX {
                 this.$terminal.write(previousTermState);
                 this.ws = new WebSocket(`ws://localhost:${port}/`);
                 this.ws.binaryType = 'arraybuffer';
-                this.checkTerminalFolder();
+                this.checkTerminalFileAndFolder();
                 this._checkForWSMessage(this.ws, this.$terminal, this.$serializeAddon, port)
                 this._actionForOnTerminalData(this.$terminal);
+                if(localStorage.getItem("AcodeX_Terminal_Is_Minimised") === "true"){
+                    this.previousTerminalHeight = window.getComputedStyle(this.$terminalContainer).height;
+                    localStorage.setItem("AcodeX_Terminal_Cont_Height", this.$terminalContainer.offsetHeight);
+                    this.isTerminalMinimized = true
+                    this.$terminalContainer.style.height = 0;
+                    localStorage.setItem("AcodeX_Terminal_Is_Minimised", this.isTerminalMinimized)
+                    this.$showTermBtn.classList.remove('hide')
+                }
                 this.$fitAddon.fit();
             }
         } catch(err) {
@@ -336,9 +340,9 @@ class AcodeX {
     }
 
     _updateTerminalHeight() {
-        //const mainContainerHeight = window.innerHeight;
         const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
         this.$terminalContent.style.height = `calc(100% - ${terminalHeaderHeight}px)`;
+        localStorage.setItem("AcodeX_Terminal_Cont_Height",this.$terminalContainer.offsetHeight);
     }
     
     async _checkForWSMessage($ws, $terminal, $serializeAddon, port) {
@@ -346,23 +350,19 @@ class AcodeX {
             let data = ev.data;
             $terminal.write(typeof data === 'string' ? data : new Uint8Array(data));
             let terminalState = $serializeAddon.serialize();
-            let terminalCont = {
-                "wsPort": port,
-                "terminalContainerHeight": this.$terminalContainer.offsetHeight,
-                "terminalData": terminalState
-            }
-            const fs = fsOperation(TERMINAL_STORE_PATH + "/session1.json");
-            if(!await fs.exists()) {
-                await fsOperation(TERMINAL_STORE_PATH).createFile('session1.json', terminalCont);
-            } else {
-                await fs.writeFile(terminalCont);
+            if(await fsOperation(TERMINAL_STORE_PATH + "/session1.txt").exists()){
+                const fs = fsOperation(TERMINAL_STORE_PATH + "/session1.txt");
+                await fs.writeFile(terminalState);
             }
         }
     }
 
-    async checkTerminalFolder() {
+    async checkTerminalFileAndFolder() {
         if(!await fsOperation(TERMINAL_STORE_PATH).exists()) {
             await fsOperation(window.DATA_STORAGE).createDirectory('terminals');
+        }
+        if (!await fsOperation(TERMINAL_STORE_PATH + "/session1.txt").exists()) {
+            await fsOperation(TERMINAL_STORE_PATH).createFile('session1.txt', "");
         }
     }
 
@@ -371,9 +371,17 @@ class AcodeX {
         let currentInputIndex = cmdHistory.length;
 
         $terminal.onKey((e) => {
-            const printable = !e.domEvent.altKey && !e.domEvent.altGraphKey && !e.domEvent.ctrlKey && !e.domEvent.metaKey;
-            if(printable) {
-                return;
+            const isCtrlShiftC = e.domEvent.ctrlKey && e.domEvent.keyCode === 80;
+
+            if (isCtrlShiftC) {
+                // Ctrl + P was pressed in the terminal
+                const content = $terminal.getSelection();
+                if(!content) return;
+                clipboard.copy(content)
+                window.toast("Copied to clipboard",1000)
+            } else {
+                const printable = !e.domEvent.altKey && !e.domEvent.altGraphKey && !e.domEvent.metaKey;
+                if (printable) return;
             }
         });
 
@@ -430,6 +438,9 @@ class AcodeX {
                         this.command += text;
                         $terminal.write(text);
                     });
+                    break;
+                case "\u0009": // Ctrl+I
+                    $terminal.clear()
                     break;
                 default:
                     if(data >= String.fromCharCode(0x20) && data <= String.fromCharCode(0x7E) || data >= '\u00a0') {
@@ -523,7 +534,9 @@ class AcodeX {
         await fsOperation(TERMINAL_STORE_PATH).delete();
         this.command = "";
         this.isTerminalMinimized = false;
+        localStorage.setItem("AcodeX_Terminal_Is_Minimised",this.isTerminalMinimized)
         this.$terminalContainer.style.height = this.previousTerminalHeight;
+        localStorage.setItem("AcodeX_Terminal_Cont_Height",this.$terminalContainer.offsetHeight);
     }
 
     startDraggingFlotingBtn(e) {
@@ -616,6 +629,7 @@ class AcodeX {
         newHeight = Math.max(minimumHeight, Math.min(newHeight,maximumHeight));
         
         this.$terminalContainer.style.height = newHeight + 'px';
+        localStorage.setItem("AcodeX_Terminal_Cont_Height",newHeight)
         this._updateTerminalHeight.bind(this);
         this.$fitAddon.fit();
     }
@@ -632,8 +646,10 @@ class AcodeX {
         try {
             if(!this.isTerminalMinimized) {
                 this.previousTerminalHeight = window.getComputedStyle(this.$terminalContainer).height;
+                localStorage.setItem("AcodeX_Terminal_Cont_Height", this.$terminalContainer.offsetHeight);
                 this.$terminalContainer.style.height = 0;
                 this.isTerminalMinimized = true;
+                localStorage.setItem("AcodeX_Terminal_Is_Minimised", this.isTerminalMinimized)
                 this.$showTermBtn.classList.remove('hide')
             }
         } catch(err) {
@@ -646,9 +662,14 @@ class AcodeX {
         show terminal and hide the show terminal button
         */
         if(this.isTerminalMinimized) {
-            this.$terminalContainer.style.height = this.previousTerminalHeight;
+            this.$terminalContainer.style.height = localStorage.getItem("AcodeX_Terminal_Cont_Height") + "px";
+            this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
+            this.$fitAddon.fit();
+            localStorage.setItem("AcodeX_Terminal_Cont_Height", this.$terminalContainer.offsetHeight);
             this.$showTermBtn.classList.add('hide');
             this.isTerminalMinimized = false;
+            localStorage.setItem("AcodeX_Terminal_Is_Minimised", this.isTerminalMinimized);
+            this._updateTerminalHeight.bind(this);
         }
     }
 
@@ -683,18 +704,9 @@ class AcodeX {
         this._sendData(`cd "${realPath}"`);
     }
     
-    async _formatPythonCode() {
-        const { activeFile } = editorManager;
-        
-        const realPath = this._convertPath(activeFile.uri);
-        if(!realPath) {
-            window.toast("unsupported path type.", 3000);
-            return;
-        }
-        this._sendData(`black "${realPath}"`);
-    }
-
     async destroy() {
+        this.$style.remove();
+        this.xtermCss.remove();
         editorManager.editor.commands.removeCommand("terminal:open_terminal");
         editorManager.editor.commands.removeCommand("terminal:close_terminal");
         this.$terminalContainer.remove();
@@ -710,6 +722,9 @@ class AcodeX {
         if(await fsOperation(TERMINAL_STORE_PATH).exists()) {
             await fsOperation(TERMINAL_STORE_PATH).delete();
         }
+        localStorage.removeItem("AcodeX_Terminal_Is_Minimised");
+        localStorage.removeItem("AcodeX_Port");
+        localStorage.removeItem("AcodeX_Terminal_Cont_Height");
     }
 
     get terminalObj() {
@@ -813,266 +828,133 @@ class AcodeX {
                     key: 'backgroundColor',
                     text: 'Background Color',
                     value: this.settings.backgroundColor,
-                    prompt: 'Background Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.backgroundColor
                 },
                 {
                     index: 7,
                     key: 'foregroundColor',
                     text: 'Foreground Color',
                     value: this.settings.foregroundColor,
-                    prompt: 'Foreground Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.backgroundColor
                 },
                 {
                     index: 8,
                     key: 'selectionBackground',
                     text: 'Selection Background Color',
                     value: this.settings.selectionBackground,
-                    prompt: 'Selection Background Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.selectionBackground
                 },
                 {
                     index: 9,
                     key: 'black',
                     text: 'Black Color',
                     value: this.settings.black,
-                    prompt: 'Black Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.black
                 },
                 {
                     index: 10,
                     key: 'blue',
                     text: 'Blue Color',
                     value: this.settings.blue,
-                    prompt: 'Blue Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.blue
                 },
                 {
                     index: 11,
                     key: 'brightBlack',
                     text: 'Bright Black Color',
                     value: this.settings.brightBlack,
-                    prompt: 'Bright Black Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.brightBlack
                 },
                 {
                     index: 12,
                     key: 'brightBlue',
                     text: 'Bright Blue Color',
                     value: this.settings.brightBlue,
-                    prompt: 'Bright Blue Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.brightBlue
                 },
                 {
                     index: 13,
                     key: 'brightCyan',
                     text: 'Bright Cyan Color',
                     value: this.settings.brightCyan,
-                    prompt: 'Bright Cyan Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.brightCyan
                 },
                 {
                     index: 14,
                     key: 'brightGreen',
                     text: 'Bright Green Color',
                     value: this.settings.brightGreen,
-                    prompt: 'Bright Green Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.brightGreen
                 },
                 {
                     index: 15,
                     key: 'brightMagenta',
                     text: 'Bright Magenta Color',
                     value: this.settings.brightMagenta,
-                    prompt: 'Bright Magenta Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.brightMagenta
                 },
                 {
                     index: 16,
                     key: 'brightRed',
                     text: 'Bright Red Color',
                     value: this.settings.brightRed,
-                    prompt: 'Bright Red Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.brightRed
                 },
                 {
                     index: 17,
                     key: 'brightWhite',
                     text: 'Bright White Color',
                     value: this.settings.brightWhite,
-                    prompt: 'Bright White Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.brightWhite
                 },
                 {
                     index: 18,
                     key: 'brightYellow',
                     text: 'Bright Yellow Color',
                     value: this.settings.brightYellow,
-                    prompt: 'Bright Yellow Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.brightYellow
                 },
                 {
                     index: 19,
                     key: 'cyan',
                     text: 'Cyan Color',
                     value: this.settings.cyan,
-                    prompt: 'Cyan Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.cyan
                 },
                 {
                     index: 20,
                     key: 'green',
                     text: 'Green Color',
                     value: this.settings.green,
-                    prompt: 'Green Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.green
                 },
                 {
                     index: 21,
                     key: 'magenta',
                     text: 'Magenta Color',
                     value: this.settings.magenta,
-                    prompt: 'Magenta Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.magenta
                 },
                 {
                     index: 22,
                     key: 'red',
                     text: 'Red Color',
                     value: this.settings.red,
-                    prompt: 'Red Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.red
                 },
                 {
                     index: 23,
                     key: 'white',
                     text: 'White Color',
                     value: this.settings.white,
-                    prompt: 'White Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.white
                 },
                 {
                     index: 24,
                     key: 'yellow',
                     text: 'Yellow Color',
                     value: this.settings.yellow,
-                    prompt: 'Yellow Color',
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^#([0-9A-Fa-f]{3}){1,2}$/,
-                            required: true
-                        }
-                    ]
+                    color: this.settings.yellow
                 },
             ],
             cb: (key, value) => {
@@ -1092,12 +974,12 @@ if(window.acode) {
     const acodePlugin = new AcodeX();
     acode.setPluginInit(
         plugin.id,
-        (baseUrl, $page, { cacheFileUrl, cacheFile }) => {
+        async (baseUrl, $page, { cacheFileUrl, cacheFile }) => {
             if(!baseUrl.endsWith("/")) {
                 baseUrl += "/";
             }
             acodePlugin.baseUrl = baseUrl;
-            acodePlugin.init($page, cacheFile, cacheFileUrl);
+            await acodePlugin.init($page, cacheFile, cacheFileUrl);
         }, acodePlugin.settingsObj
     );
     acode.setPluginUnmount(plugin.id, () => {

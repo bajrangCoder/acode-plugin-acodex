@@ -18,6 +18,23 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
     <br/>
     <details>
         <summary>
+            <code><strong>v1.2.0</strong></code>
+        </summary>
+        <ul>
+            <li>fixed issue related to saving state</li>
+            <li>added color picker in plugin setting for themeing</li>
+            <li>now it will remember your terminal state for better experience</li>
+            <li>
+            added to shortcut:
+                <ul>
+                    <li><kbd>Ctrl+I</kbd> - to clear the terminal</li>
+                    <li><kbd>Ctrl+P</kbd> - to copy text from the terminal</li>
+                </ul>
+            </li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.1.8</strong></code>
         </summary>
         <ul>
@@ -231,7 +248,6 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 
 - You can't use right/left arrow in terminal(this will added in future updates)
 - You can't use arrow button except the prompt area.
-- You can't copy text from terminal
 
 ## Acknowledgements
 

@@ -2,10 +2,11 @@
   "id": "bajrangcoder.acodex",
   "name": "AcodeX",
   "main": "dist/main.js",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "readme": "readme.md",
   "icon": "icon.png",
   "files": ["xterm.css"],
+  "minVersionCode": 290,
   "author": {
     "name": "Raunak Raj",
     "email": "bajrangcoders@gmail.com",
