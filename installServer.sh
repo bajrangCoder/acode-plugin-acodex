@@ -5,6 +5,10 @@ function install_packages {
       echo -e "\e[1;36m[*] Installing Nodejs\e[0m"
       pkg install nodejs -y
     fi
+    if ! [ -x "$(command -v python)" ]; then
+      echo -e "\e[1;36m[*] Installing Python\e[0m"
+      pkg install python -y
+    fi
 }
 
 install_packages
