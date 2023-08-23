@@ -28,6 +28,7 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
             <li>now you can also use left & right arrow to navigate 🧭</li>
             <li>fixed prompt bug 🐞</li>
             <li>some minor improvements and changes 🤫</li>
+            <li>Added new AcodeX own logo, now no more copied logo 😅</li>
             <li>
             added these shortcut(Read <strong>Supported key shortcut</strong> section of readme for more ☺️): <kbd>Ctrt+f</kbd>, <kbd>Right Arrow</kbd>, <kbd>Alt+f</kbd>, <kbd>Ctrl+Right arrow</kbd>, <kbd>Ctrl+b</kbd>, <kbd>Left arrow</kbd>, <kbd>Alt+b</kbd>, <kbd>Ctrl+Left arrow</kbd>, <kbd>Ctrl+a</kbd>, <kbd>Ctrl+e</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>Tab</kbd>, 
             </li>
