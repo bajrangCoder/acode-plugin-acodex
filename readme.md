@@ -18,6 +18,23 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
     <br/>
     <details>
         <summary>
+            <code><strong>v2.0.0</strong></code>
+        </summary>
+        <ul>
+            <li>exposed terminal api 🔌</li>
+            <li>improved Terminal and updated xtermjs library 🔼</li>
+            <li>now the web link in the terminal will be hyper linked onclicking it, it will open link in browser 🔗</li>
+            <li>added low budget Autocompletion 😂 , i.e tab autocompletion</li>
+            <li>now you can also use left & right arrow to navigate 🧭</li>
+            <li>fixed prompt bug 🐞</li>
+            <li>some minor improvements and changes 🤫</li>
+            <li>
+            added these shortcut(Read <strong>Supported key shortcut</strong> section of readme for more ☺️): <kbd>Ctrt+f</kbd>, <kbd>Right Arrow</kbd>, <kbd>Alt+f</kbd>, <kbd>Ctrl+Right arrow</kbd>, <kbd>Ctrl+b</kbd>, <kbd>Left arrow</kbd>, <kbd>Alt+b</kbd>, <kbd>Ctrl+Left arrow</kbd>, <kbd>Ctrl+a</kbd>, <kbd>Ctrl+e</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>Tab</kbd>, 
+            </li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v1.2.0</strong></code>
         </summary>
         <ul>
@@ -25,7 +42,7 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
             <li>added color picker in plugin setting for themeing</li>
             <li>now it will remember your terminal state for better experience</li>
             <li>
-            added to shortcut:
+            added two shortcut:
                 <ul>
                     <li><kbd>Ctrl+I</kbd> - to clear the terminal</li>
                     <li><kbd>Ctrl+P</kbd> - to copy text from the terminal</li>
@@ -219,6 +236,39 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
 - **Easy Directory Changing**: You can open any folder with a button click.
 - **Use Previous commands**: it will remember your previously used command , you can get them by using arrow button.
 
+### Api Docs
+
+**AcodeX Plugin** provides an API to run commands in a terminal through another plugin. This functionality is available when the user has **opened the terminal** (either minimized or opened).
+
+**Usage:**
+
+To use the AcodeX API, follow these steps:
+1. Import the **`acodex`** module from the `acode` library.
+2. Use the **`execute`** method to run a command in the terminal.
+
+```js
+const terminalExecutor = acode.require("acodex");
+// run Command
+terminalExecutor.execute("ls");
+```
+
+### Supported key shortcuts
+
+The following key shortcuts are supported within the terminal:
+
+- <kbd>Backspace</kbd>: remove one character in left direction
+- <kbd>Delete</kbd>: remove one character in right direction
+- <kbd>Ctrl+C</kbd>: to intrupt the running process
+- <kbd>Up Arrow (↑)</kbd>: Navigate through past command history (upwards)
+- <kbd>Down Arrow (↓)</kbd>: Navigate through past command history (downwards)
+- <kbd>Ctrl+F</kbd> or <kbd>Right Arrow (→)</kbd>: Move cursor one character to the right
+- <kbd>Alt+F</kbd> or <kbd>Ctrl + Right Arrow (→)</kbd>: Move cursor one word to the right
+- <kbd>Ctrl+B</kbd> or <kbd>Left Arrow (←)</kbd>: Move cursor one character to the left
+- <kbd>Alt+B</kbd> or <kbd>Ctrl + Left Arrow (←)</kbd>: Move cursor one word to the left
+- <kbd>Ctrl+A</kbd> or <kbd>Home</kbd>: Move cursor to the beginning of the line
+- <kbd>Ctrl+E</kbd> or <kbd>End</kbd>: Move cursor to the end of the line
+- <kbd>Tab</kbd>: Perform autocompletion or give tab
+
 ## Prerequisites
 
 To use **AcodeX**, you need to have the [Termux app](https://termux.dev/en/) installed on your Android device. However, you do not need to switch between apps to use the terminal, as **AcodeX** offers a convenient way to access the terminal directly within the **Acode app** with the help of **Termux**
@@ -246,7 +296,7 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 
 ## Limitations
 
-- You can't use right/left arrow in terminal(this will added in future updates)
+- you can't backspace if the command wraped in the new line
 - You can't use arrow button except the prompt area.
 
 ## Acknowledgements
