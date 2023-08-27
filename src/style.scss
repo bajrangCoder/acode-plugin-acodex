@@ -2,7 +2,7 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 100%;
+    width: 100vw;
     z-index: 107;
     display: flex;
     flex-direction: column;
@@ -10,6 +10,7 @@
     background-color: var(--popup-background-color);
     border-top: 1px solid var(--popup-border-color);
     overflow: hidden;
+    box-sizing: border-box;
     .terminal-header{
         display: flex;
         justify-content: space-between;
@@ -80,16 +81,7 @@
         box-sizing: border-box;
         max-height: 80vh;
         background: inherit;
-        .custom-context-menu {
-            position: absolute;
-            z-index: 109;
-            display: none;
-            background-color: var(--popup-background-color);
-            border: 1px solid var(--popup-border-color);
-            padding: 8px 15px;
-            border-radius: 8px;
-            box-shadow: 0 0 6px var(--box-shadow-color);
-        }
+        width: 100vw;
     }
 }
 .show-terminal-btn{

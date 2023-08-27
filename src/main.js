@@ -11,6 +11,7 @@ import { WebglAddon } from "xterm-addon-webgl";
 import { SerializeAddon } from "xterm-addon-serialize";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { Unicode11Addon } from "xterm-addon-unicode11";
+import { AttachAddon } from 'xterm-addon-attach';
 
 // acode commopents & api
 const alert = acode.require("alert");
@@ -19,13 +20,12 @@ const prompt = acode.require("prompt");
 const appSettings = acode.require("settings");
 const helpers = acode.require("helpers");
 const fsOperation = acode.require("fsOperation");
+const toInternalUrl = acode.require('toInternalUrl');
 
 const { clipboard } = cordova.plugins;
 
-// constants
-const TERMINAL_STORE_PATH = window.DATA_STORAGE + "terminals";
-
 class AcodeX {
+    // constants for dragable Terminal panel
     isDragging = false;
     startY;
     startHeight;
@@ -33,11 +33,14 @@ class AcodeX {
     isFlotBtnDragging = false;
     btnStartPosX;
     btnStartPosY;
+    // terminal constant
     isTerminalMinimized = false;
+    isTerminalOpened = false;
     previousTerminalHeight;
-    command = "";
-    cursorPosition = 0;
-    activeLSPConnections = {};
+    pid;
+    terminal = null;
+    socket = null;
+    //activeLSPConnections = {};
     // default settings for terminal
     //LSP = false;
     CURSOR_BLINK = true;
@@ -46,6 +49,7 @@ class AcodeX {
     CURSOR_STYLE2 = "underline";
     CURSOR_STYLE3 = "bar";
     FONT_SIZE = 10;
+    FONT_FAMILY = "'Cascadia Code', Menlo, monospace";
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
     // Terminal Theme Color
@@ -79,6 +83,8 @@ class AcodeX {
                 showArrowBtn: this.SHOW_ARROW_BTN,
                 cursorStyle: this.CURSOR_STYLE1,
                 fontSize: this.FONT_SIZE,
+                fontFamily: this.FONT_FAMILY,
+                customFontStyleSheet: '',
                 scrollBack: this.SCROLLBACK,
                 scrollSensitivity: this.SCROLL_SENSITIVITY,
                 backgroundColor: this.BACKGROUND_COLOR,
@@ -104,6 +110,10 @@ class AcodeX {
                 yellow: this.YELLOW,
             };
             appSettings.update(false);
+        } else {
+            appSettings.value[plugin.id].fontFamily ??= this.FONT_FAMILY;
+            appSettings.value[plugin.id].customFontStyleSheet ??= "";
+            appSettings.update(false);
         }
     }
 
@@ -116,13 +126,14 @@ class AcodeX {
             this.$style = tag("style", {
                 textContent: style,
             });
+            this._loadCustomFontStyleSheet();
             document.head.append(this.xtermCss, this.$style);
             // add command in command Pallete for opening and closing terminal
             editorManager.editor.commands.addCommand({
                 name: "acodex:open_terminal",
                 description: "Open Terminal",
                 bindKey: { win: "Ctrl-K" },
-                exec: this.openNewTerminal.bind(this),
+                exec: () => { this.createTerminal(270,null) },
             });
             editorManager.editor.commands.addCommand({
                 name: "acodex:close_terminal",
@@ -169,14 +180,6 @@ class AcodeX {
             this.$terminalContent = tag("div", {
                 className: "terminal-content",
             });
-            this.$customContextMenu = tag("div", {
-                className: "custom-context-menu",
-                child: tag("div", {
-                    id: "paste-option",
-                    textContent: "Paste",
-                }),
-            });
-            this.$terminalContent.append(this.$customContextMenu);
             this.$terminalContainer.append(
                 this.$terminalHeader,
                 this.$terminalContent
@@ -214,10 +217,7 @@ class AcodeX {
                 "click",
                 this._cdToActiveDir.bind(this)
             );
-            document
-                .getElementById("paste-option")
-                .addEventListener("click", this._handlePaste.bind(this));
-
+            
             // add event listener for show terminal button
             this.$showTermBtn.addEventListener(
                 "mousedown",
@@ -290,37 +290,9 @@ class AcodeX {
                         Math.max(0, Math.min(maxY, currentY)) + "px";
                 }
             });
-
-            // added custom context menu
-            this.$terminalContent.addEventListener("contextmenu", (event) => {
-                event.preventDefault();
-                const { clientX, clientY } = event;
-                const { left, top } =
-                    event.currentTarget.getBoundingClientRect();
-                const offsetX = clientX - left;
-                const offsetY = clientY - top;
-                this.$customContextMenu.style.display = "block";
-                this.$customContextMenu.style.left = `${offsetX}px`;
-                this.$customContextMenu.style.top = `${offsetY}px`;
-            });
-            this.$terminalContent.addEventListener("click", () => {
-                this.$customContextMenu.style.display = "none";
-            });
-
-            // checks previous Terminal state
-            if (await fsOperation(TERMINAL_STORE_PATH).exists()) {
-                const sessionFile = await fsOperation(
-                    TERMINAL_STORE_PATH
-                ).lsDir();
-                let terminalFileData =
-                    (await fsOperation(
-                        TERMINAL_STORE_PATH + "/session1.txt"
-                    ).readFile("utf8")) || "";
-                this.openPreviousTerminal(
-                    localStorage.getItem("AcodeX_Port") || 8767,
-                    localStorage.getItem("AcodeX_Terminal_Cont_Height") || 270,
-                    terminalFileData
-                );
+            
+            if(localStorage.getItem("AcodeX_Is_Opened") === "true"){
+                this.createTerminal(localStorage.getItem("AcodeX_Terminal_Cont_Height") || 270, localStorage.getItem("AcodeX_Port") || 8767)
             }
 
             // if (this.settings.lsp) {
@@ -331,22 +303,53 @@ class AcodeX {
             //         this.startLSPServer(editorManager.editor);
             //     });
             // }
-
+            
+            // acodex terminal api
             acode.define("acodex", {
                 execute: (cmd) => {
+                    /*
+                    {cmd}: command to run in terminal
+                    */
                     try {
-                        this._sendData(cmd);
+                        if(!this.isTerminalOpened) return;
+                        this.socket.send(cmd+"\r");
                     } catch (error) {
                         throw Error(error);
                     }
                 },
+                isMinimized: () => {
+                    return this.isTerminalMinimized;
+                },
+                isTerminalOpened: () => {
+                    return this.isTerminalOpened;
+                },
+                maximiseTerminal: () => {
+                    if(this.isTerminalOpened && this.isTerminalMinimized){
+                        this.maxmise();
+                    }
+                },
+                openTerminal: (termContainerHeight = 270, port = null) => {
+                    if(!this.isTerminalOpened){
+                        this.createTerminal(termContainerHeight, port);
+                    }
+                },
+                closeTerminal: () => {
+                    if(this.isTerminalOpened){
+                        this.closeTerminal();
+                    }
+                },
+                convertAcodeUriToTermReadable: (path) => {
+                    return this._convertPath(path);
+                }
             });
+            
         } catch (err) {
             console.log(err);
             alert("Warning", "Please Restart the app to use AcodeX");
         }
     }
-
+    
+    /* LSP Stuffs */
     /*startLSPServer(editor) {
         const fileType = this.getFileType(editor);
 
@@ -411,16 +414,53 @@ class AcodeX {
         };
     }*/
 
-    async openNewTerminal(termContainerHeight = 270) {
-        /*
-        open a new terminal in app
-        */
-        try {
-            const port = await prompt("Port", "8767", "number", {
-                required: true,
+    async createTerminal(termContainerHeight, portFromParm){
+        const port = portFromParm || await prompt("Port", "8767", "number", {
+            required: true,
+        });
+        if (port) {
+            this.$terminalContainer.classList.remove("hide");
+            this.$terminal = this.terminalObj;
+            this.$fitAddon = new FitAddon();
+            this.$serializeAddon = new SerializeAddon();
+            this.$webglAddon = new WebglAddon();
+            this.$unicode11Addon = new Unicode11Addon();
+            this.$webLinkAddon = new WebLinksAddon();
+            this.$terminal.loadAddon(this.$fitAddon);
+            this.$terminal.loadAddon(this.$serializeAddon);
+            this.$terminal.loadAddon(this.$unicode11Addon);
+            this.$terminal.loadAddon(this.$webLinkAddon);
+            
+            this.$terminal.onResize((size) => {
+                if(!this.pid) return;
+                const cols = size.cols;
+                const rows = size.rows;
+                const url = 'http://localhost:' + port + '/terminals/' + this.pid + '/size?cols=' + cols + '&rows=' + rows;
+                
+                fetch(url, { method: 'POST' });
             });
-            if (port) {
-                this.$terminalContainer.classList.remove("hide");
+            
+            this.$fitAddon.fit();
+            if(this.$webglAddon){
+                try {
+                    this.$terminal.loadAddon(this.$webglAddon);
+                    this.$terminal.open(this.$terminalContent);
+                } catch (e) {
+                    window.toast('error during loading webgl addon: '+ e, 4000);
+                    this.$webglAddon.dispose();
+                    this.$webglAddon = undefined;
+                }
+            }
+            if (!this.$terminal.element) {
+                // webgl loading failed for some reason, attach with DOM renderer
+                this.$terminal.open(this.$terminalContent);
+            }
+            this.$terminal.focus()
+            // fit is called within a setTimeout, cols and rows need this.
+            setTimeout(async () => {
+                // Set terminal size again to set the specific dimensions on the demo
+                
+                this.isTerminalOpened = true;
                 this.$terminalContainer.style.height =
                     termContainerHeight + "px";
                 localStorage.setItem("AcodeX_Terminal_Cont_Height", 270);
@@ -428,75 +468,37 @@ class AcodeX {
                     "AcodeX_Terminal_Is_Minimised",
                     this.isTerminalMinimized
                 );
-                this._updateTerminalHeight.bind(this);
-                if (this.ws) {
-                    this.ws.close();
-                    this.ws = null;
-                }
-                // initialise xtermjs Terminal class
-                this.$terminal = this.terminalObj;
-                this.$fitAddon = new FitAddon();
-                this.$serializeAddon = new SerializeAddon();
-                this.$terminal.loadAddon(this.$fitAddon);
-                this.$terminal.loadAddon(this.$serializeAddon);
-                this.$terminal.loadAddon(new WebglAddon());
-                this.$terminal.loadAddon(new Unicode11Addon());
-                this.$terminal.loadAddon(new WebLinksAddon());
-                this.$terminal.open(this.$terminalContent);
-                this.$terminal.unicode.activeVersion = "11";
-                this._checkForKeyboardMode(this.$terminal);
-                this.ws = new WebSocket(`ws://localhost:${port}/`);
-                this.ws.binaryType = "arraybuffer";
-                localStorage.setItem("AcodeX_Port", port);
-                this.checkTerminalFileAndFolder();
-                this._checkForWSMessage(
-                    this.ws,
-                    this.$terminal,
-                    this.$serializeAddon,
-                    port
+                localStorage.setItem(
+                    "AcodeX_Is_Opened",
+                    this.isTerminalOpened
                 );
-                this._actionForOnTerminalData(this.$terminal);
-                this.$fitAddon.fit();
-            }
-        } catch (err) {
-            window.alert(err);
+                this._updateTerminalHeight.bind(this);
+                
+                const res = await fetch('http://localhost:'+port+'/terminals?cols=' + this.$terminal.cols + '&rows=' + this.$terminal.rows, { method: 'POST' });
+                const processId = await res.text();
+                this.pid = processId;
+                
+                this.socket = new WebSocket(`ws://localhost:${port}/terminals/${this.pid}`);
+                this.socket.onopen = this.openNewTerminal();
+                this.socket.onclose = () => {
+                    window.toast("Disconnected from AcodeX server",3000)
+                };
+                this.socket.onerror = (error) => {
+                    acode.alert("AcodeX Error", error);
+                };
+            }, 0);
         }
     }
 
-    async openPreviousTerminal(
-        port,
-        terminalContainerHeight,
-        previousTermState
-    ) {
+    async openNewTerminal() {
+        /*
+        open a new terminal in app
+        */
         try {
-            if (port) {
-                this.$terminalContainer.classList.remove("hide");
-                this.$terminalContainer.style.height =
-                    terminalContainerHeight + "px";
-                this._updateTerminalHeight.bind(this);
-                // initialise xtermjs Terminal class
-                this.$terminal = this.terminalObj;
-                this.$fitAddon = new FitAddon();
-                this.$serializeAddon = new SerializeAddon();
-                this.$terminal.loadAddon(this.$fitAddon);
-                this.$terminal.loadAddon(this.$serializeAddon);
-                this.$terminal.loadAddon(new WebglAddon());
-                this.$terminal.loadAddon(new Unicode11Addon());
-                this.$terminal.loadAddon(new WebLinksAddon());
-                this.$terminal.open(this.$terminalContent);
+                this.$fitAddon.fit()
+                this.$attachAddon = new AttachAddon(this.socket);
+                this.$terminal.loadAddon(this.$attachAddon);
                 this.$terminal.unicode.activeVersion = "11";
-                this._checkForKeyboardMode(this.$terminal);
-                this.$terminal.write(previousTermState);
-                this.ws = new WebSocket(`ws://localhost:${port}/`);
-                this.ws.binaryType = "arraybuffer";
-                this.checkTerminalFileAndFolder();
-                this._checkForWSMessage(
-                    this.ws,
-                    this.$terminal,
-                    this.$serializeAddon,
-                    port
-                );
-                this._actionForOnTerminalData(this.$terminal);
                 if (
                     localStorage.getItem("AcodeX_Terminal_Is_Minimised") ===
                     "true"
@@ -516,23 +518,27 @@ class AcodeX {
                     );
                     this.$showTermBtn.classList.remove("hide");
                 }
-                this.$fitAddon.fit();
-            }
         } catch (err) {
             window.alert(err);
         }
     }
-
-    _checkForKeyboardMode($terminal) {
-        $terminal.textarea.addEventListener("focus", () => {
-            // disable keyboard suggestion
-            system.setInputType("NO_SUGGESTIONS_AGGRESSIVE");
-        });
-        $terminal.textarea.addEventListener("blur", () => {
-            system.setInputType(appSettings.get("keyboardMode"));
-        });
+    
+    _loadCustomFontStyleSheet(){
+        if(this.settings.customFontStyleSheet != ""){
+            if(!document.querySelector("#customFontAcodeXStyleSheet")){
+                const fontStyleSheet = tag("link", {
+                    href: this.settings.customFontStyleSheet,
+                    rel: "stylesheet",
+                    id: "customFontAcodeXStyleSheet"
+                });
+                document.head.append(fontStyleSheet);
+            } else {
+                document.querySelector("#customFontAcodeXStyleSheet").href=this.settings.customFontStyleSheet;
+            }
+        }
     }
 
+    
     _updateTerminalHeight() {
         const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
         this.$terminalContent.style.height = `calc(100% - ${terminalHeaderHeight}px)`;
@@ -540,351 +546,50 @@ class AcodeX {
             "AcodeX_Terminal_Cont_Height",
             this.$terminalContainer.offsetHeight
         );
+        this.$fitAddon.fit()
     }
 
-    async _checkForWSMessage($ws, $terminal, $serializeAddon, port) {
-        $ws.onmessage = async (ev) => {
-            let data = ev.data;
-            $terminal.write(
-                typeof data === "string" ? data : new Uint8Array(data)
-            );
-            let terminalState = $serializeAddon.serialize();
-            if (
-                await fsOperation(
-                    TERMINAL_STORE_PATH + "/session1.txt"
-                ).exists()
-            ) {
-                const fs = fsOperation(TERMINAL_STORE_PATH + "/session1.txt");
-                await fs.writeFile(terminalState);
-            }
-        };
-    }
-
-    async checkTerminalFileAndFolder() {
-        if (!(await fsOperation(TERMINAL_STORE_PATH).exists())) {
-            await fsOperation(window.DATA_STORAGE).createDirectory("terminals");
-        }
-        if (
-            !(await fsOperation(TERMINAL_STORE_PATH + "/session1.txt").exists())
-        ) {
-            await fsOperation(TERMINAL_STORE_PATH).createFile(
-                "session1.txt",
-                ""
-            );
-        }
-    }
     
-    insertAtCursor(input) {
-        this.command = this.command.slice(0, this.cursorPosition) + input + this.command.slice(this.cursorPosition);
-        this.cursorPosition += input.length;
-        this.$terminal.write(input);
-        // After inserting characters, re-print the remaining part of the command
-        const remainingCommand = this.command.slice(this.cursorPosition);
-        this.$terminal.write(remainingCommand);
-        // Move cursor back to the correct position
-        for (let i = 0; i < remainingCommand.length; i++) {
-            this.$terminal.write('\b');
-        }
-    }
-    
-    async _actionForOnTerminalData($terminal) {
-        let cmdHistory = JSON.parse(localStorage.getItem("cmdHistory")) || [];
-        let currentInputIndex = cmdHistory.length;
-
-        $terminal.onKey((e) => {
-            const isCtrlP =
-                e.domEvent.ctrlKey && e.domEvent.keyCode === 80;
-
-            if (isCtrlP) {
-                // Ctrl + P was pressed in the terminal
-                const content = $terminal.getSelection();
-                if (!content) return;
-                clipboard.copy(content);
-                window.toast("Copied to clipboard", 1000);
-            } else {
-                const printable =
-                    !e.domEvent.altKey &&
-                    !e.domEvent.altGraphKey &&
-                    !e.domEvent.metaKey;
-                if (printable) return;
-            }
-        });
-
-        $terminal.onData((data) => {
-            switch (data) {
-                case "\x03": // Ctrl+C
-                    $terminal.write("^C");
-                    this._sendData(data);
-                    break;
-                case "\r": // Enter
-                    this._runCommand(this.$terminal, this.command);
-                    if (this.command.length > 0) {
-                        cmdHistory.push(this.command);
-                    }
-                    if (cmdHistory.length > 50) {
-                        cmdHistory.shift();
-                    }
-                    currentInputIndex = cmdHistory.length;
-                    localStorage.setItem(
-                        "cmdHistory",
-                        JSON.stringify(cmdHistory)
-                    );
-                    this.command = "";
-                    this.cursorPosition = this.command.length;
-                    break;
-                case "\x09": // tab
-                    this.performTabAutocompletion(cmdHistory, $terminal);
-                    break;
-                case '\x08': // shift+backspace
-                case "\u007F": // Backspace (DEL)
-                    // Do not delete the prompt
-                    if (this.cursorPosition > 0) {
-                        this.command = this.command.slice(0, this.cursorPosition - 1) + this.command.slice(this.cursorPosition);
-                        this.cursorPosition--;
-                        $terminal.write("\b\x1b[P");                        
-                    }
-                    break;
-                case "\u001B[A": // up
-                    if (currentInputIndex > 0) {
-                        // Only go back in history if we're not at the beginning
-                        currentInputIndex--;
-                        this._clearInput($terminal, this.command);
-                        $terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the previous one
-                        this.command = cmdHistory[currentInputIndex];
-                        this.cursorPosition = this.command.length;
-                    }
-                    break;
-                case "\u001b[B": // If user pressed the down arrow key
-                    if (currentInputIndex < cmdHistory.length) {
-                        // Only go forward in history if we're not at the end
-                        currentInputIndex++;
-                        if (currentInputIndex === cmdHistory.length) {
-                            // If we're at the end, clear the input
-                            this._clearInput($terminal, this.command);
-                            this.command = "";
-                            this.cursorPosition = this.command.length;
-                        } else {
-                            this._clearInput($terminal, this.command);
-                            $terminal.write(cmdHistory[currentInputIndex]); // Clear the current input and print the next one
-                            this.command = cmdHistory[currentInputIndex];
-                            this.cursorPosition = this.command.length;
-                        }
-                    }
-                    break;
-                case "\x16":
-                    clipboard.paste((text) => {
-                        this.command += pastedText;
-                        $terminal.write(pastedText);
-                        this.cursorPosition = this.command.length
-                    });
-                    break;
-                case "\u0009": // Ctrl+I
-                    $terminal.clear();
-                    break;
-                case '\x02': // ctrl+b
-                case "\x1b[D": // Left arrow key
-                    this.moveTermCursorLeft();
-                    break;
-                case '\x06': // ctrl+f
-                case "\x1b[C": // Right arrow key
-                    this.moveTermCursorRight();
-                    break;
-                case '\x01': // ctrl+a
-                case "\x1b[H": // Home 
-                    while (this.cursorPosition > 0) {
-                        this.moveTermCursorLeft();
-                    }
-                    break;
-                case '\x05': // ctrl+e
-                case "\x1b[F": //End 
-                    while (this.cursorPosition < this.command.length) {
-                        this.moveTermCursorRight();
-                    }
-                    break;
-                case '\x1bb': // alt+b
-                case '\x1b[1;5D': //ctrl+ left
-                    // Move cursor to the beginning of the current word
-                    while (this.cursorPosition > 0 && this.command[this.cursorPosition - 1] === ' ') {
-                        this.moveTermCursorLeft();
-                    }
-                    while (this.cursorPosition > 0 && this.command[this.cursorPosition - 1] !== ' ') {
-                        this.moveTermCursorLeft();
-                    }
-                    break;
-                case '\x1bf': // alt+f
-                case '\x1b[1;5C': // ctrl + right
-                    // Move cursor to the end of the current word
-                    while (this.cursorPosition < this.command.length && this.command[this.cursorPosition] === ' ') {
-                        this.moveTermCursorRight();
-                    }
-                    while (this.cursorPosition < this.command.length && this.command[this.cursorPosition] !== ' ') {
-                        this.moveTermCursorRight();
-                    }
-                    break;
-                case "\x1b[3~": // delete
-                    if (this.cursorPosition < this.command.length) {
-                        // Delete character under the cursor and update cursor position
-                        this.command = this.command.slice(0, this.cursorPosition) + this.command.slice(this.cursorPosition + 1);
-                        $terminal.write('\x1b[P');
-                    }
-                    break;
-                default:
-                    this.insertAtCursor(data);
-            }
-        });
-        $terminal.onBinary((data) => {
-            return this._sendBinary(data);
-        });
-    }
-    
-    moveTermCursorLeft(){
-        if (this.cursorPosition > 0) {
-            this.$terminal.write('\x1b[D');
-            this.cursorPosition--;
-        }
-    }
-    
-    moveTermCursorRight(){
-        if (this.cursorPosition < this.command.length) {
-            this.$terminal.write('\x1b[C');
-            this.cursorPosition++;
-        }
-    }
-
-    performTabAutocompletion(cmdHistory, $terminal) {
-        // Get all possible completions matching the input
-        const completions = [];
-        for (const cmd of cmdHistory) {
-            if (cmd.startsWith(this.command)) {
-                completions.push(cmd);
-            }
-        }
-
-        // Return early if there are no completions
-        if (completions.length === 0) {
-            $terminal.write("\x09");
-            return;
-        }
-
-        // Get the shortest possible completion fragment from completions
-        let completion = completions[completions.length - 1];
-        for (let i = 1; i < completions.length; i++) {
-            completion = this._getCommonStart(completions[i], completion);
-        }
-
-        // Write the completion, excluding the prefix that already exists
-        const autocompletedPart = completion.substring(this.command.length);
-        this.command += autocompletedPart;
-        $terminal.write(autocompletedPart);
-        this.cursorPosition = this.command.length;
-    }
-    
-    _getCommonStart(a,b){
-        let i = 0;
-        while (i < a.length && i < b.length && a[i] === b[i]) {
-            i++;
-        }
-        return a.substring(0, i);
-    }
-
-    _handlePaste() {
-        clipboard.paste((text) => {
-            this.command += text;
-            this.$terminal.write(text);
-        });
-    }
-
-    _clearInput(term, cmd) {
-        /*
-        Clear the input area of the terminal
-        */
-        let sanetiseCmd = cmd.replace(/\s+$/, "");
-        const remainingLength = sanetiseCmd.length - this.cursorPosition;
-
-        // Move the cursor to the end of the command
-        for (let i = 0; i < remainingLength; i++) {
-            term.write('\x1b[C');
-        }
-        for (let i = 0; i < sanetiseCmd.length; i++) {
-            term.write("\b\x1b[P");
-        }
-    }
-
-    _runCommand(term, cmd) {
-        /*
-        run guven `cmd` in terminal
-        */
-        this._clearInput(term, cmd);
-        this._sendData(cmd);
-    }
-
-    _sendData(data) {
-        /*
-        send command to backend via websocket
-        */
-        if (!this._checkOpenSocket()) {
-            return;
-        }
-        this.ws.send(data);
-    }
-
-    _sendBinary(data) {
-        /*
-        send binary data to backend via websocket
-        */
-        if (!this._checkOpenSocket()) {
-            return;
-        }
-        let buffer = new Uint8Array(data.length);
-        for (let i = 0; i < data.length; ++i) {
-            buffer[i] = data.charCodeAt(i) & 255;
-        }
-        this.ws.send(buffer);
-    }
-
-    _checkOpenSocket() {
-        switch (this.ws.readyState) {
-            case WebSocket.OPEN:
-                return true;
-            case WebSocket.CONNECTING:
-                throw new Error("script was loaded before socket was open");
-            case WebSocket.CLOSING:
-                console.warn("socket is closing");
-                return false;
-            case WebSocket.CLOSED:
-                throw new Error("socket is closed");
-            default:
-                throw new Error("Unexpected socket state");
-        }
-    }
-
     async closeTerminal() {
         /*
         remove terminal from  app
         */
         let confirmation = await confirm("Warning", "Are you sure ?");
         if (!confirmation) return;
-        if (this.ws) {
-            this.ws.close();
-            this.ws = null;
+        if(this.$terminal){
+            this.socket.close();
+            this.$terminal.dispose();
+            this.$terminal = null;
+            this.socket = null;
+            this.pid = "";
+            this.$attachAddon = undefined;
+            this.$fitAddon = undefined;
+            this.$serializeAddon = undefined;
+            this.$unicode11Addon = undefined;
+            this.$webLinkAddon = undefined;
+            this.$webglAddon = undefined;
         }
         this.$terminalContent.innerHTML = "";
         if (!this.$terminalContainer.classList.contains("hide"))
             this.$terminalContainer.classList.add("hide");
         if (!this.$showTermBtn.classList.contains("hide"))
             this.$showTermBtn.classList.add("hide");
-        await fsOperation(TERMINAL_STORE_PATH).delete();
-        this.command = "";
         this.isTerminalMinimized = false;
+        this.isTerminalOpened = false;
         localStorage.setItem(
             "AcodeX_Terminal_Is_Minimised",
             this.isTerminalMinimized
+        );
+        localStorage.setItem(
+            "AcodeX_Is_Opened",
+            this.isTerminalOpened
         );
         this.$terminalContainer.style.height = this.previousTerminalHeight;
         localStorage.setItem(
             "AcodeX_Terminal_Cont_Height",
             this.$terminalContainer.offsetHeight
         );
+        localStorage.removeItem("AcodeX_Term_ID");
     }
 
     startDraggingFlotingBtn(e) {
@@ -1048,7 +753,7 @@ class AcodeX {
                 "AcodeX_Terminal_Is_Minimised",
                 this.isTerminalMinimized
             );
-            this._updateTerminalHeight.bind(this);
+            this._updateTerminalHeight();
         }
     }
 
@@ -1093,7 +798,7 @@ class AcodeX {
             window.toast("unsupported path type.", 3000);
             return;
         }
-        this._sendData(`cd "${realPath}"`);
+        this.socket.send(`cd "${realPath}"\r`);
     }
 
     async destroy() {
@@ -1124,23 +829,30 @@ class AcodeX {
         window.removeEventListener("touchmove", this.drag);
         window.removeEventListener("mouseup", this.stopDragging);
         window.removeEventListener("touchend", this.stopDragging);
-        if (await fsOperation(TERMINAL_STORE_PATH).exists()) {
-            await fsOperation(TERMINAL_STORE_PATH).delete();
-        }
+        
         localStorage.removeItem("AcodeX_Terminal_Is_Minimised");
         localStorage.removeItem("AcodeX_Port");
         localStorage.removeItem("AcodeX_Terminal_Cont_Height");
+        localStorage.removeItem("AcodeX_Is_Opened");
+    }
+    
+    async setCustomFontFile() {
+        const { url } = await acode.fileBrowser('file', 'select custom font stylesheet(from internal storage only)');
+        const newUrl = await toInternalUrl(url);
+        this.settings.customFontStyleSheet = newUrl;
+        appSettings.update();
     }
 
     get terminalObj() {
         return new Terminal({
             allowProposedApi: true,
+            scrollOnUserInput: true,
             cursorBlink: this.settings.cursorBlink,
             cursorStyle: this.settings.cursorStyle,
             scrollBack: this.settings.scrollBack,
             scrollSensitivity: this.settings.scrollSensitivity,
             fontSize: this.settings.fontSize,
-            fontFamily: '"Cascadia Code", Menlo, monospace',
+            fontFamily: this.settings.fontFamily,
             theme: {
                 background: this.settings.backgroundColor,
                 foreground: this.settings.foregroundColor,
@@ -1170,12 +882,18 @@ class AcodeX {
     get settingsObj() {
         return {
             list: [
-/*                {
+                /*                {
                     key: "lsp",
                     text: "Want LSP",
                     info: "Whether the lsp should work or not.",
                     checkbox: !!this.settings.lsp,
                 },*/
+                {
+                    key: "customFontStyleSheet",
+                    text: "Custom Font Stylesheet file",
+                    info: "Select css file in which you have to define about your custom font.",
+                    value: this.settings.customFontStyleSheet,
+                },
                 {
                     index: 0,
                     key: "cursorBlink",
@@ -1209,6 +927,14 @@ class AcodeX {
                             required: true,
                         },
                     ],
+                },
+                {
+                    key: "fontFamily",
+                    text: "Font Family",
+                    value: this.settings.fontFamily,
+                    info: "The font family used to render text.",
+                    prompt: "Font Family",
+                    promptType: "text",
                 },
                 {
                     index: 3,
@@ -1387,8 +1113,12 @@ class AcodeX {
                 },
             ],
             cb: (key, value) => {
-                this.settings[key] = value;
-                appSettings.update();
+                if(key === "customFontStyleSheet"){
+                    this.setCustomFontFile();
+                } else {
+                    this.settings[key] = value;
+                    appSettings.update();
+                }
             },
         };
     }

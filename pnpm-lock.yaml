@@ -21,6 +21,9 @@ dependencies:
   xterm:
     specifier: ^5.2.1
     version: 5.2.1
+  xterm-addon-attach:
+    specifier: ^0.8.0
+    version: 0.8.0(xterm@5.2.1)
   xterm-addon-fit:
     specifier: ^0.7.0
     version: 0.7.0(xterm@5.2.1)
@@ -4316,6 +4319,14 @@ packages:
 
   /xml@1.0.1:
     resolution: {integrity: sha512-huCv9IH9Tcf95zuYCsQraZtWnJvBtLVE0QHMOs8bWyZAFZNDcYjsPq1nEx8jKA9y+Beo9v+7OBPRisQTjinQMw==}
+    dev: false
+
+  /xterm-addon-attach@0.8.0(xterm@5.2.1):
+    resolution: {integrity: sha512-k8N5boSYn6rMJTTNCgFpiSTZ26qnYJf3v/nJJYexNO2sdAHDN3m1ivVQWVZ8CHJKKnZQw1rc44YP2NtgalWHfQ==}
+    peerDependencies:
+      xterm: ^5.0.0
+    dependencies:
+      xterm: 5.2.1
     dev: false
 
   /xterm-addon-fit@0.7.0(xterm@5.2.1):

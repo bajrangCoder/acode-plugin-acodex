@@ -1,5 +1,6 @@
 # [AcodeX - Terminal Emulator](https://github.com/bajrangCoder/acode-plugin-acodex)
-<p align="center"><img src="https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/icon.png"/></p>
+
+> First Update your acodeX-server to use `v2.1.0`, by running `npm update -g acodex-server` in termux
 
 **AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
@@ -8,6 +9,7 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
 **Brand New Tutorial: [Click me](https://youtu.be/sXlIhrbpjyw)**
 
 > Note: When you start a new terminal make sure to adjust terminal panel according to your screen. If its height is good for you then also just drag it , then it will run smoothly.
+and It will also adjust the cols and rows according to your screen in backend 
 
 **Support this project with your small contribution - <a href='https://github.com/sponsors/bajrangCoder'>Click Me 💗</a>**
 
@@ -16,6 +18,17 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
         Updates 🤩🤩
     </summary>
     <br/>
+    <details>
+        <summary>
+            <code><strong>v2.1.0</strong></code>
+        </summary>
+        <ul>
+            <li>exposed more terminal api 🔌</li>
+            <li>make sure to update acodex server , otherwise it will not going to work.</li>
+            <li>removed every limitations, now you can run vim , etc 😅</li>
+            <li>added support for loading external custom fonts</li>
+        </ul>
+    </details>
     <details>
         <summary>
             <code><strong>v2.0.0</strong></code>
@@ -235,40 +248,33 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
 - **Customisable**: You can customise AcodeX terminal according to your preference 
 - **Session**: It will automatically open from where you had closed the app.
 - **Easy Directory Changing**: You can open any folder with a button click.
-- **Use Previous commands**: it will remember your previously used command , you can get them by using arrow button.
 
 ### Api Docs
 
-**AcodeX Plugin** provides an API to run commands in a terminal through another plugin. This functionality is available when the user has **opened the terminal** (either minimized or opened).
+**AcodeX Plugin** provides an API to run commands in a terminal through another plugin.
 
 **Usage:**
 
-To use the AcodeX API, follow these steps:
+To use the AcodeX API:
 1. Import the **`acodex`** module from the `acode` library.
-2. Use the **`execute`** method to run a command in the terminal.
 
 ```js
-const terminalExecutor = acode.require("acodex");
-// run Command
-terminalExecutor.execute("ls");
+const termController = acode.require("acodex");
 ```
 
-### Supported key shortcuts
+**Methods:**
 
-The following key shortcuts are supported within the terminal:
+1. `.execute(command)` : execute given command in terminal
+2. `.isMinimized()` : returns whether Terminal is minimised or not
+3. `.isTerminalOpened()` : returns whether Terminal is opened or not 
+4. `.maximiseTerminal()` : if Terminal is minimized then this will maximise it 
+5. `.openTerminal(termContainerHeight,port)` : opens a new Terminal, both termContainerHeight and port are optional
+6. `.closeTerminal()` : close opened Terminal
+7. `.convertAcodeUriToTermReadable(path)` : convert acode file uri to actual path
 
-- <kbd>Backspace</kbd>: remove one character in left direction
-- <kbd>Delete</kbd>: remove one character in right direction
-- <kbd>Ctrl+C</kbd>: to intrupt the running process
-- <kbd>Up Arrow (↑)</kbd>: Navigate through past command history (upwards)
-- <kbd>Down Arrow (↓)</kbd>: Navigate through past command history (downwards)
-- <kbd>Ctrl+F</kbd> or <kbd>Right Arrow (→)</kbd>: Move cursor one character to the right
-- <kbd>Alt+F</kbd> or <kbd>Ctrl + Right Arrow (→)</kbd>: Move cursor one word to the right
-- <kbd>Ctrl+B</kbd> or <kbd>Left Arrow (←)</kbd>: Move cursor one character to the left
-- <kbd>Alt+B</kbd> or <kbd>Ctrl + Left Arrow (←)</kbd>: Move cursor one word to the left
-- <kbd>Ctrl+A</kbd> or <kbd>Home</kbd>: Move cursor to the beginning of the line
-- <kbd>Ctrl+E</kbd> or <kbd>End</kbd>: Move cursor to the end of the line
-- <kbd>Tab</kbd>: Perform autocompletion or give tab
+## Custom Fonts 
+
+docs coming soon.....
 
 ## Prerequisites
 
@@ -294,11 +300,6 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 - You can also **drag** the terminal panel around by clicking and dragging through the **terminal header area**. 
 - The `✗` is for closing the terminal.
 - folder icon - button on terminal header is for navigating to opened files(in editor) directory .
-
-## Limitations
-
-- you can't backspace if the command wraped in the new line
-- You can't use arrow button except the prompt area.
 
 ## Acknowledgements
 
