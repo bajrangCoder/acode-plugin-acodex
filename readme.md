@@ -27,6 +27,7 @@ and It will also adjust the cols and rows according to your screen in backend
             <li>make sure to update acodex server , otherwise it will not going to work.</li>
             <li>removed every limitations, now you can run vim , etc 😅</li>
             <li>added support for loading external custom fonts</li>
+            <li>now acodex comes with some predefined themes, you can chose it from Settings</li>
         </ul>
     </details>
     <details>
@@ -246,7 +247,6 @@ and It will also adjust the cols and rows according to your screen in backend
 - **Terminal panel**: The terminal panel can be moved around, resized, minimized, and maximized based on the developer's preferences
 - **User-friendly interface**: _AcodeX_ offers a simple and intuitive interface, making it easy to use for all levels of developers.
 - **Customisable**: You can customise AcodeX terminal according to your preference 
-- **Session**: It will automatically open from where you had closed the app.
 - **Easy Directory Changing**: You can open any folder with a button click.
 
 ### Api Docs
@@ -274,7 +274,26 @@ const termController = acode.require("acodex");
 
 ## Custom Fonts 
 
-docs coming soon.....
+Mainly custom font is provided to load font files which are required by the termux theme, you are using.
+
+For loading custom font , follow the given instructions:
+1. Download the font files 
+2. Create a `css` file(any where in the internal storage)
+3. Write css code to load font files, and use relative url of font file in css, for eg:
+
+```css
+@font-face {
+    font-family: "MesloLGS NF Regular";
+    src: url("./MesloLGS NF Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+```
+
+4. Open AcodeX Settings page and there you will find option `"Custom Font StyleSheet"`
+5. Click it and it will open file browser and from there, you just select your css file which you have created in **Step 3**
+6. And also write font name on same AcodeX Settings page , in Font Family option.
+7. Hence done :) , Now just restart terminal.
 
 ## Prerequisites
 
@@ -300,6 +319,8 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 - You can also **drag** the terminal panel around by clicking and dragging through the **terminal header area**. 
 - The `✗` is for closing the terminal.
 - folder icon - button on terminal header is for navigating to opened files(in editor) directory .
+
+> Don't change colors while using any predefined theme, only change in case of custom one.
 
 ## Acknowledgements
 

@@ -1,5 +1,6 @@
 import plugin from "../plugin.json";
 import style from "./style.scss";
+import { themes } from "./themes.js";
 
 //import { AceLanguageClient } from "ace-linters/build/ace-language-client";
 
@@ -8,10 +9,10 @@ import { Terminal } from "xterm";
 // xtermjs addons
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
-import { SerializeAddon } from "xterm-addon-serialize";
+//import { SerializeAddon } from "xterm-addon-serialize";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { Unicode11Addon } from "xterm-addon-unicode11";
-import { AttachAddon } from 'xterm-addon-attach';
+import { AttachAddon } from "xterm-addon-attach";
 
 // acode commopents & api
 const alert = acode.require("alert");
@@ -20,9 +21,9 @@ const prompt = acode.require("prompt");
 const appSettings = acode.require("settings");
 const helpers = acode.require("helpers");
 const fsOperation = acode.require("fsOperation");
-const toInternalUrl = acode.require('toInternalUrl');
+const toInternalUrl = acode.require("toInternalUrl");
 
-const { clipboard } = cordova.plugins;
+const { editor } = editorManager;
 
 class AcodeX {
     // constants for dragable Terminal panel
@@ -45,75 +46,19 @@ class AcodeX {
     //LSP = false;
     CURSOR_BLINK = true;
     SHOW_ARROW_BTN = false;
-    CURSOR_STYLE1 = "block";
-    CURSOR_STYLE2 = "underline";
-    CURSOR_STYLE3 = "bar";
+    CURSOR_STYLE = ["block","underline","bar"];
     FONT_SIZE = 10;
     FONT_FAMILY = "'Cascadia Code', Menlo, monospace";
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
-    // Terminal Theme Color
-    BACKGROUND_COLOR = "#1c2431";
-    FOREGROUND_COLOR = "#cccccc";
-    SELECTIONBACKGROUND = "#399ef440";
-    CURSOR = "#ffffff";
-    CURSOR_ACCENT = "#fff";
-    BLACK = "#666666";
-    BLUE = "#399ef4";
-    BRIGHT_BLACK = "#666666";
-    BRIGHT_BLUE = "#399ef4";
-    BRIGHT_CYAN = "#21c5c7";
-    BRIGHT_GREEN = "#4eb071";
-    BRIGHT_MAGENTA = "#b168df";
-    BRIGHT_RED = "#da6771";
-    BRIGHT_WHITE = "#efefef";
-    BRIGHT_YELLOW = "#fff099";
-    CYAN = "#21c5c7";
-    GREEN = "#4eb071";
-    MAGENTA = "#b168df";
-    RED = "#da6771";
-    WHITE = "#efefef";
-    YELLOW = "#fff099";
 
     constructor() {
         if (!appSettings.value[plugin.id]) {
-            appSettings.value[plugin.id] = {
-                //lsp: this.LSP,
-                cursorBlink: this.CURSOR_BLINK,
-                showArrowBtn: this.SHOW_ARROW_BTN,
-                cursorStyle: this.CURSOR_STYLE1,
-                fontSize: this.FONT_SIZE,
-                fontFamily: this.FONT_FAMILY,
-                customFontStyleSheet: '',
-                scrollBack: this.SCROLLBACK,
-                scrollSensitivity: this.SCROLL_SENSITIVITY,
-                backgroundColor: this.BACKGROUND_COLOR,
-                foregroundColor: this.FOREGROUND_COLOR,
-                selectionBackground: this.SELECTIONBACKGROUND,
-                cursor: this.CURSOR,
-                cursorAccent: this.CURSOR_ACCENT,
-                black: this.BLACK,
-                blue: this.BLUE,
-                brightBlack: this.BRIGHT_BLACK,
-                brightBlue: this.BRIGHT_BLUE,
-                brightCyan: this.BRIGHT_CYAN,
-                brightGreen: this.BRIGHT_GREEN,
-                brightMagenta: this.BRIGHT_MAGENTA,
-                brightRed: this.BRIGHT_RED,
-                brightWhite: this.BRIGHT_WHITE,
-                brightYellow: this.BRIGHT_YELLOW,
-                cyan: this.CYAN,
-                green: this.GREEN,
-                magenta: this.MAGENTA,
-                red: this.RED,
-                white: this.WHITE,
-                yellow: this.YELLOW,
-            };
-            appSettings.update(false);
+            this._saveSetting()
         } else {
-            appSettings.value[plugin.id].fontFamily ??= this.FONT_FAMILY;
-            appSettings.value[plugin.id].customFontStyleSheet ??= "";
+            delete appSettings.value[plugin.id];
             appSettings.update(false);
+            this._saveSetting()
         }
     }
 
@@ -133,7 +78,9 @@ class AcodeX {
                 name: "acodex:open_terminal",
                 description: "Open Terminal",
                 bindKey: { win: "Ctrl-K" },
-                exec: () => { this.createTerminal(270,null) },
+                exec: () => {
+                    this.createTerminal(270, null);
+                },
             });
             editorManager.editor.commands.addCommand({
                 name: "acodex:close_terminal",
@@ -217,7 +164,7 @@ class AcodeX {
                 "click",
                 this._cdToActiveDir.bind(this)
             );
-            
+
             // add event listener for show terminal button
             this.$showTermBtn.addEventListener(
                 "mousedown",
@@ -290,9 +237,12 @@ class AcodeX {
                         Math.max(0, Math.min(maxY, currentY)) + "px";
                 }
             });
-            
-            if(localStorage.getItem("AcodeX_Is_Opened") === "true"){
-                this.createTerminal(localStorage.getItem("AcodeX_Terminal_Cont_Height") || 270, localStorage.getItem("AcodeX_Port") || 8767)
+
+            if (localStorage.getItem("AcodeX_Is_Opened") === "true") {
+                this.createTerminal(
+                    localStorage.getItem("AcodeX_Terminal_Cont_Height") || 270,
+                    localStorage.getItem("AcodeX_Port") || 8767
+                );
             }
 
             // if (this.settings.lsp) {
@@ -303,7 +253,10 @@ class AcodeX {
             //         this.startLSPServer(editorManager.editor);
             //     });
             // }
-            
+
+            /*editor.on("changeMode", this.startLSPServer.bind(this));
+            this.startLSPServer();*/
+
             // acodex terminal api
             acode.define("acodex", {
                 execute: (cmd) => {
@@ -311,8 +264,8 @@ class AcodeX {
                     {cmd}: command to run in terminal
                     */
                     try {
-                        if(!this.isTerminalOpened) return;
-                        this.socket.send(cmd+"\r");
+                        if (!this.isTerminalOpened) return;
+                        this.socket.send(cmd + "\r");
                     } catch (error) {
                         throw Error(error);
                     }
@@ -324,33 +277,32 @@ class AcodeX {
                     return this.isTerminalOpened;
                 },
                 maximiseTerminal: () => {
-                    if(this.isTerminalOpened && this.isTerminalMinimized){
+                    if (this.isTerminalOpened && this.isTerminalMinimized) {
                         this.maxmise();
                     }
                 },
                 openTerminal: (termContainerHeight = 270, port = null) => {
-                    if(!this.isTerminalOpened){
+                    if (!this.isTerminalOpened) {
                         this.createTerminal(termContainerHeight, port);
                     }
                 },
                 closeTerminal: () => {
-                    if(this.isTerminalOpened){
+                    if (this.isTerminalOpened) {
                         this.closeTerminal();
                     }
                 },
                 convertAcodeUriToTermReadable: (path) => {
                     return this._convertPath(path);
-                }
+                },
             });
-            
         } catch (err) {
             console.log(err);
             alert("Warning", "Please Restart the app to use AcodeX");
         }
     }
-    
+
     /* LSP Stuffs */
-    /*startLSPServer(editor) {
+    /*startLSPServer() {
         const fileType = this.getFileType(editor);
 
         for (const language in this.activeLSPConnections) {
@@ -359,10 +311,11 @@ class AcodeX {
             }
         }
 
-        this.connectToLSP(fileType, editor);
+        this.connectToLSP(fileType);
     }
 
     closeLSPConnection(language) {
+        this.languageProvider.closeDocument(editor)
         const socket = this.activeLSPConnections[language];
         if (socket) {
             socket.close();
@@ -370,7 +323,7 @@ class AcodeX {
         }
     }
 
-    connectToLSP(language, editor) {
+    connectToLSP(language) {
         if (this.activeLSPConnections[language]) {
             return this.activeLSPConnections[language];
         }
@@ -402,7 +355,7 @@ class AcodeX {
         });
     }
 
-    getFileType(editor) {
+    getFileType() {
         const mode = editor.getSession().getMode().$id;
         const modeLang = mode.split("/")[2];
         return modeLang;
@@ -414,39 +367,56 @@ class AcodeX {
         };
     }*/
 
-    async createTerminal(termContainerHeight, portFromParm){
-        const port = portFromParm || await prompt("Port", "8767", "number", {
-            required: true,
-        });
+    async createTerminal(termContainerHeight, portFromParm) {
+        const port =
+            portFromParm ||
+            (await prompt("Port", "8767", "number", {
+                required: true,
+            }));
         if (port) {
             this.$terminalContainer.classList.remove("hide");
             this.$terminal = this.terminalObj;
             this.$fitAddon = new FitAddon();
-            this.$serializeAddon = new SerializeAddon();
+            //this.$serializeAddon = new SerializeAddon();
             this.$webglAddon = new WebglAddon();
             this.$unicode11Addon = new Unicode11Addon();
-            this.$webLinkAddon = new WebLinksAddon();
+            this.$webLinkAddon = new WebLinksAddon(
+                (event, uri) => {
+                    system.openInBrowser(uri);
+                }
+            );
             this.$terminal.loadAddon(this.$fitAddon);
-            this.$terminal.loadAddon(this.$serializeAddon);
+            //this.$terminal.loadAddon(this.$serializeAddon);
             this.$terminal.loadAddon(this.$unicode11Addon);
             this.$terminal.loadAddon(this.$webLinkAddon);
-            
+
             this.$terminal.onResize((size) => {
-                if(!this.pid) return;
+                if (!this.pid) return;
                 const cols = size.cols;
                 const rows = size.rows;
-                const url = 'http://localhost:' + port + '/terminals/' + this.pid + '/size?cols=' + cols + '&rows=' + rows;
-                
-                fetch(url, { method: 'POST' });
+                const url =
+                    "http://localhost:" +
+                    port +
+                    "/terminals/" +
+                    this.pid +
+                    "/size?cols=" +
+                    cols +
+                    "&rows=" +
+                    rows;
+
+                fetch(url, { method: "POST" });
             });
-            
+
             this.$fitAddon.fit();
-            if(this.$webglAddon){
+            if (this.$webglAddon) {
                 try {
                     this.$terminal.loadAddon(this.$webglAddon);
                     this.$terminal.open(this.$terminalContent);
                 } catch (e) {
-                    window.toast('error during loading webgl addon: '+ e, 4000);
+                    window.toast(
+                        "error during loading webgl addon: " + e,
+                        4000
+                    );
                     this.$webglAddon.dispose();
                     this.$webglAddon = undefined;
                 }
@@ -455,34 +425,65 @@ class AcodeX {
                 // webgl loading failed for some reason, attach with DOM renderer
                 this.$terminal.open(this.$terminalContent);
             }
-            this.$terminal.focus()
+            this.$terminal.focus();
             // fit is called within a setTimeout, cols and rows need this.
             setTimeout(async () => {
                 // Set terminal size again to set the specific dimensions on the demo
-                
+
                 this.isTerminalOpened = true;
                 this.$terminalContainer.style.height =
                     termContainerHeight + "px";
                 localStorage.setItem("AcodeX_Terminal_Cont_Height", 270);
+                if (
+                    localStorage.getItem("AcodeX_Terminal_Is_Minimised") ===
+                    "true"
+                ) {
+                    this.minimise();
+                }
                 localStorage.setItem(
                     "AcodeX_Terminal_Is_Minimised",
                     this.isTerminalMinimized
                 );
-                localStorage.setItem(
-                    "AcodeX_Is_Opened",
-                    this.isTerminalOpened
-                );
+                localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
                 this._updateTerminalHeight.bind(this);
-                
-                const res = await fetch('http://localhost:'+port+'/terminals?cols=' + this.$terminal.cols + '&rows=' + this.$terminal.rows, { method: 'POST' });
-                const processId = await res.text();
-                this.pid = processId;
-                
-                this.socket = new WebSocket(`ws://localhost:${port}/terminals/${this.pid}`);
+                try{
+                    const res = await fetch(
+                        "http://localhost:" +
+                            port +
+                            "/terminals?cols=" +
+                            this.$terminal.cols +
+                            "&rows=" +
+                            this.$terminal.rows,
+                        { method: "POST" }
+                    );
+                    const processId = await res.text();
+                    this.pid = processId;
+                } catch (err){
+                    if (!this.$terminalContainer.classList.contains("hide"))
+                        this.$terminalContainer.classList.add("hide");
+                    if (!this.$showTermBtn.classList.contains("hide"))
+                        this.$showTermBtn.classList.add("hide");
+                    this.isTerminalMinimized = false;
+                    this.isTerminalOpened = false;
+                    localStorage.setItem(
+                        "AcodeX_Terminal_Is_Minimised",
+                        this.isTerminalMinimized
+                    );
+                    localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+                    this.$terminalContainer.style.height = this.previousTerminalHeight;
+                    localStorage.setItem(
+                        "AcodeX_Terminal_Cont_Height",
+                        this.$terminalContainer.offsetHeight
+                    );
+                    window.toast("Start the acodex server in termux first!", 4000);
+                }
+                this.socket = new WebSocket(
+                    `ws://localhost:${port}/terminals/${this.pid}`
+                );
                 this.socket.onopen = this.openNewTerminal();
-                this.socket.onclose = () => {
-                    window.toast("Disconnected from AcodeX server",3000)
-                };
+                /*this.socket.onmessage = () => {
+                    console.log(this.$serializeAddon.serialize())
+                }*/
                 this.socket.onerror = (error) => {
                     acode.alert("AcodeX Error", error);
                 };
@@ -495,50 +496,67 @@ class AcodeX {
         open a new terminal in app
         */
         try {
-                this.$fitAddon.fit()
-                this.$attachAddon = new AttachAddon(this.socket);
-                this.$terminal.loadAddon(this.$attachAddon);
-                this.$terminal.unicode.activeVersion = "11";
-                if (
-                    localStorage.getItem("AcodeX_Terminal_Is_Minimised") ===
-                    "true"
-                ) {
-                    this.previousTerminalHeight = window.getComputedStyle(
-                        this.$terminalContainer
-                    ).height;
-                    localStorage.setItem(
-                        "AcodeX_Terminal_Cont_Height",
-                        this.$terminalContainer.offsetHeight
-                    );
-                    this.isTerminalMinimized = true;
-                    this.$terminalContainer.style.height = 0;
-                    localStorage.setItem(
-                        "AcodeX_Terminal_Is_Minimised",
-                        this.isTerminalMinimized
-                    );
-                    this.$showTermBtn.classList.remove("hide");
-                }
+            this.$fitAddon.fit();
+            this.$attachAddon = new AttachAddon(this.socket);
+            this.$terminal.loadAddon(this.$attachAddon);
+            this.$terminal.unicode.activeVersion = "11";
         } catch (err) {
             window.alert(err);
         }
     }
-    
-    _loadCustomFontStyleSheet(){
-        if(this.settings.customFontStyleSheet != ""){
-            if(!document.querySelector("#customFontAcodeXStyleSheet")){
+
+    _saveSetting(){
+        appSettings.value[plugin.id] = {
+            //lsp: this.LSP,
+            cursorBlink: this.CURSOR_BLINK,
+            cursorStyle: this.CURSOR_STYLE[0],
+            fontSize: this.FONT_SIZE,
+            fontFamily: this.FONT_FAMILY,
+            customFontStyleSheet: "",
+            scrollBack: this.SCROLLBACK,
+            scrollSensitivity: this.SCROLL_SENSITIVITY,
+            theme: "sapphire",
+            background: themes["sapphire"].background,
+            foreground: themes["sapphire"].foreground,
+            cursor: themes["sapphire"].cursor || "",
+            cursorAccent: themes["sapphire"].cursorAccent || "",
+            selectionBackground: themes["sapphire"].selectionBackground,
+            black: themes["sapphire"].black,
+            blue: themes["sapphire"].blue,
+            brightBlack: themes["sapphire"].brightBlack,
+            brightBlue: themes["sapphire"].brightBlue,
+            brightCyan: themes["sapphire"].brightCyan,
+            brightGreen: themes["sapphire"].brightGreen,
+            brightMagenta: themes["sapphire"].brightMagenta,
+            brightRed: themes["sapphire"].brightWhite,
+            brightWhite: themes["sapphire"].brightWhite,
+            brightYellow: themes["sapphire"].brightYellow,
+            cyan: themes["sapphire"].cyan,
+            green: themes["sapphire"].green,
+            magenta: themes["sapphire"].magenta,
+            red: themes["sapphire"].red,
+            white: themes["sapphire"].white,
+            yellow: themes["sapphire"].yellow,
+        };
+        appSettings.update(false);
+    }
+
+    _loadCustomFontStyleSheet() {
+        if (this.settings.customFontStyleSheet != "") {
+            if (!document.querySelector("#customFontAcodeXStyleSheet")) {
                 const fontStyleSheet = tag("link", {
                     href: this.settings.customFontStyleSheet,
                     rel: "stylesheet",
-                    id: "customFontAcodeXStyleSheet"
+                    id: "customFontAcodeXStyleSheet",
                 });
                 document.head.append(fontStyleSheet);
             } else {
-                document.querySelector("#customFontAcodeXStyleSheet").href=this.settings.customFontStyleSheet;
+                document.querySelector("#customFontAcodeXStyleSheet").href =
+                    this.settings.customFontStyleSheet;
             }
         }
     }
 
-    
     _updateTerminalHeight() {
         const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
         this.$terminalContent.style.height = `calc(100% - ${terminalHeaderHeight}px)`;
@@ -546,18 +564,19 @@ class AcodeX {
             "AcodeX_Terminal_Cont_Height",
             this.$terminalContainer.offsetHeight
         );
-        this.$fitAddon.fit()
+        this.$fitAddon.fit();
     }
 
-    
     async closeTerminal() {
         /*
         remove terminal from  app
         */
         let confirmation = await confirm("Warning", "Are you sure ?");
         if (!confirmation) return;
-        if(this.$terminal){
-            this.socket.close();
+        if (this.$terminal != null) {
+            if(this.socket){
+                this.socket.close();
+            }
             this.$terminal.dispose();
             this.$terminal = null;
             this.socket = null;
@@ -580,16 +599,12 @@ class AcodeX {
             "AcodeX_Terminal_Is_Minimised",
             this.isTerminalMinimized
         );
-        localStorage.setItem(
-            "AcodeX_Is_Opened",
-            this.isTerminalOpened
-        );
+        localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
         this.$terminalContainer.style.height = this.previousTerminalHeight;
         localStorage.setItem(
             "AcodeX_Terminal_Cont_Height",
             this.$terminalContainer.offsetHeight
         );
-        localStorage.removeItem("AcodeX_Term_ID");
     }
 
     startDraggingFlotingBtn(e) {
@@ -829,17 +844,47 @@ class AcodeX {
         window.removeEventListener("touchmove", this.drag);
         window.removeEventListener("mouseup", this.stopDragging);
         window.removeEventListener("touchend", this.stopDragging);
-        
+
         localStorage.removeItem("AcodeX_Terminal_Is_Minimised");
         localStorage.removeItem("AcodeX_Port");
         localStorage.removeItem("AcodeX_Terminal_Cont_Height");
         localStorage.removeItem("AcodeX_Is_Opened");
     }
-    
+
     async setCustomFontFile() {
-        const { url } = await acode.fileBrowser('file', 'select custom font stylesheet(from internal storage only)');
+        const { url } = await acode.fileBrowser(
+            "file",
+            "select custom font stylesheet(from internal storage only)"
+        );
         const newUrl = await toInternalUrl(url);
         this.settings.customFontStyleSheet = newUrl;
+        appSettings.update();
+    }
+    
+    async applyTheme(themeName){
+        const theme = themes[themeName];
+        this.settings.theme = themeName;
+        this.settings.background = theme.background;
+        this.settings.foreground = theme.foreground;
+        this.settings.cursor = theme.cursor || "";
+        this.settings.cursorAccent = theme.cursorAccent || "";
+        this.settings.selectionBackground = theme.selectionBackground;
+        this.settings.black = theme.black;
+        this.settings.blue = theme.blue;
+        this.settings.brightBlack = theme.brightBlack;
+        this.settings.brightBlue = theme.brightBlue;
+        this.settings.brightCyan = theme.brightCyan;
+        this.settings.brightGreen = theme.brightGreen;
+        this.settings.brightMagenta = theme.brightMagenta;
+        this.settings.brightRed = theme.brightRed;
+        this.settings.brightWhite = theme.brightWhite;
+        this.settings.brightYellow = theme.brightYellow;
+        this.settings.cyan = theme.cyan;
+        this.settings.green = theme.green;
+        this.settings.magenta = theme.magenta;
+        this.settings.red = theme.red;
+        this.settings.white = theme.white;
+        this.settings.yellow = theme.yellow;
         appSettings.update();
     }
 
@@ -854,8 +899,8 @@ class AcodeX {
             fontSize: this.settings.fontSize,
             fontFamily: this.settings.fontFamily,
             theme: {
-                background: this.settings.backgroundColor,
-                foreground: this.settings.foregroundColor,
+                background: this.settings.background,
+                foreground: this.settings.foreground,
                 selectionBackground: this.settings.selectionBackground,
                 cursor: this.settings.cursor,
                 cursorAccent: this.settings.cursorAccent,
@@ -882,7 +927,7 @@ class AcodeX {
     get settingsObj() {
         return {
             list: [
-                /*                {
+                /*{
                     key: "lsp",
                     text: "Want LSP",
                     info: "Whether the lsp should work or not.",
@@ -908,9 +953,9 @@ class AcodeX {
                     value: this.settings.cursorStyle,
                     info: "The style of the cursor.",
                     select: [
-                        this.CURSOR_STYLE1,
-                        this.CURSOR_STYLE2,
-                        this.CURSOR_STYLE3,
+                        this.CURSOR_STYLE[0],
+                        this.CURSOR_STYLE[1],
+                        this.CURSOR_STYLE[2],
                     ],
                 },
                 {
@@ -967,18 +1012,32 @@ class AcodeX {
                     ],
                 },
                 {
+                    index: 5,
+                    key: "theme",
+                    text: "Theme",
+                    value: this.settings.theme,
+                    info: "Theme of terminal.",
+                    select: [
+                        "xterm",
+                        "snazzy",
+                        "sapphire",
+                        "light",
+                        "custom"
+                    ],
+                },
+                {
                     index: 6,
-                    key: "backgroundColor",
+                    key: "background",
                     text: "Background Color",
-                    value: this.settings.backgroundColor,
-                    color: this.settings.backgroundColor,
+                    value: this.settings.background,
+                    color: this.settings.background,
                 },
                 {
                     index: 7,
-                    key: "foregroundColor",
+                    key: "foreground",
                     text: "Foreground Color",
-                    value: this.settings.foregroundColor,
-                    color: this.settings.backgroundColor,
+                    value: this.settings.foreground,
+                    color: this.settings.foreground,
                 },
                 {
                     index: 8,
@@ -1113,9 +1172,11 @@ class AcodeX {
                 },
             ],
             cb: (key, value) => {
-                if(key === "customFontStyleSheet"){
+                if (key === "customFontStyleSheet") {
                     this.setCustomFontFile();
-                } else {
+                } else if(key === "theme"){
+                    this.applyTheme(value);
+                }else {
                     this.settings[key] = value;
                     appSettings.update();
                 }
