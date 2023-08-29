@@ -297,6 +297,14 @@ class AcodeX {
                 convertAcodeUriToTermReadable: (path) => {
                     return this._convertPath(path);
                 },
+                addTheme: (themeNme, colorSchema) => {
+                    this.themeList.push(themeNme);
+                    themes[themeNme] = colorSchema;
+                },
+                applyTheme: (themeNme) => {
+                    this.settings.theme = themeNme;
+                    appSettings.update();
+                }
             });
         } catch (err) {
             console.log(err);

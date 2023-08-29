@@ -20,6 +20,15 @@ and It will also adjust the cols and rows according to your screen in backend
     <br/>
     <details>
         <summary>
+            <code><strong>v2.1.1</strong></code>
+        </summary>
+        <ul>
+            <li>fixed Settings issue</li>
+            <li>exposed api for creating theme for acodex by other theme plugin.</li>
+        </ul>
+    </details>
+    <details>
+        <summary>
             <code><strong>v2.1.0</strong></code>
         </summary>
         <ul>
@@ -271,6 +280,41 @@ const termController = acode.require("acodex");
 5. `.openTerminal(termContainerHeight,port)` : opens a new Terminal, both termContainerHeight and port are optional
 6. `.closeTerminal()` : close opened Terminal
 7. `.convertAcodeUriToTermReadable(path)` : convert acode file uri to actual path
+8. `.addTheme(themeNme: string, colorSchema: IXtermTheme)` : add a new theme to acodex theme list 
+9. `applyTheme(themeNme: string)` : apply the given theme to terminal
+
+**Example of addTheme & applyTheme**:
+```
+const acodex = acode.require("acodex");
+const themeNme = "Test"; // name of theme
+const colorSchema  = {
+    background: "#1c2431",
+    foreground: "#cccccc",
+    cursor: "#ffffff",
+    cursorAccent: "#fff",
+    selectionBackground: "#399ef440",
+    black: "#666666",
+    blue: "#399ef4",
+    brightBlack: "#666666",
+    brightBlue: "#399ef4",
+    brightCyan: "#21c5c7",
+    brightGreen: "#4eb071",
+    brightMagenta: "#b168df",
+    brightRed: "#da6771",
+    brightWhite: "#efefef",
+    brightYellow: "#fff099",
+    cyan: "#21c5c7",
+    green: "#4eb071",
+    magenta: "#b168df",
+    red: "#da6771",
+    white: "#efefef",
+    yellow: "#fff099",
+}
+// add theme
+acodex.addTheme(themeNme, colorSchema);
+// apply theme 
+acodex.applyTheme(themeNme);
+```
 
 ## Custom Fonts 
 
