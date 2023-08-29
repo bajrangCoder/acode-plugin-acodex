@@ -51,14 +51,17 @@ class AcodeX {
     FONT_FAMILY = "'Cascadia Code', Menlo, monospace";
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
+    themeList = ["xterm","snazzy","sapphire","light","custom"];
 
     constructor() {
         if (!appSettings.value[plugin.id]) {
             this._saveSetting()
         } else {
-            delete appSettings.value[plugin.id];
-            appSettings.update(false);
-            this._saveSetting()
+            if(!this.settings.theme){
+                delete appSettings.value[plugin.id];
+                appSettings.update(false);
+                this._saveSetting()
+            }
         }
     }
 
@@ -1017,13 +1020,7 @@ class AcodeX {
                     text: "Theme",
                     value: this.settings.theme,
                     info: "Theme of terminal.",
-                    select: [
-                        "xterm",
-                        "snazzy",
-                        "sapphire",
-                        "light",
-                        "custom"
-                    ],
+                    select: this.themeList,
                 },
                 {
                     index: 6,
