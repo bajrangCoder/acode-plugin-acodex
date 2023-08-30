@@ -282,9 +282,8 @@ const termController = acode.require("acodex");
 7. `.convertAcodeUriToTermReadable(path)` : convert acode file uri to actual path
 8. `.addTheme(themeNme: string, colorSchema: IXtermTheme)` : add a new theme to acodex theme list 
 9. `applyTheme(themeNme: string)` : apply the given theme to terminal
-
-**Example of addTheme & applyTheme**:
-```
+#### Example of addTheme & applyTheme:
+```js
 const acodex = acode.require("acodex");
 const themeNme = "Test"; // name of theme
 const colorSchema  = {
