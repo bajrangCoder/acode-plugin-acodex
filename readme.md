@@ -1,5 +1,7 @@
 # [AcodeX - Terminal Emulator](https://github.com/bajrangCoder/acode-plugin-acodex)
 
+<a href="https://www.buymeacoffee.com/bajrangCoder" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
 > First Update your acodeX-server to use `v2.1.0`, by running `npm update -g acodex-server` in termux
 
 **AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
@@ -11,7 +13,7 @@ After `v1.1.0`, you will not regret after installing. I know before it was hard.
 > Note: When you start a new terminal make sure to adjust terminal panel according to your screen. If its height is good for you then also just drag it , then it will run smoothly.
 and It will also adjust the cols and rows according to your screen in backend 
 
-**Support this project with your small contribution - <a href='https://github.com/sponsors/bajrangCoder'>Click Me 💗</a>**
+**Support this project with your small contribution - <a href='https://www.buymeacoffee.com/bajrangCoder'>Click Me 💗</a>**
 
 <details>
     <summary>
