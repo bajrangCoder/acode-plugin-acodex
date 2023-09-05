@@ -22,7 +22,7 @@
 </details>
 <br/>
 
-> For previous change logs/updates, visit: [Change Log](https://github.com/bajrangCoder/acode-plugin-acodex/ChangeLog.md)
+> For previous change logs/updates, visit: [Change Log](https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/ChangeLog.md)
 
 ## Features
 
