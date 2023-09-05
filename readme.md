@@ -1,330 +1,84 @@
-# [AcodeX - Terminal Emulator](https://github.com/bajrangCoder/acode-plugin-acodex)
+# AcodeX - Terminal Emulator
 
-<a href="https://www.buymeacoffee.com/bajrangCoder" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/bajrangCoder)
 
-> First Update your acodeX-server to use `v2.1.0`, by running `npm update -g acodex-server` in termux
+> **Note**: Before installing, update your acodeX-server to version `v2.1.0` by running the following command in Termux: `npm update -g acodex-server` (**Note:** _Only for old AcodeX user_)
 
-**AcodeX** is a plugin for the Acode app that adds `terminal support`, making coding more productive and efficient. This plugin allows developers to execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful plugin for the Acode app that enhances your coding productivity by adding terminal support. With AcodeX, you can execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
-After `v1.1.0`, you will not regret after installing. I know before it was hard.
+> **Note**: When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
 
-**Brand New Tutorial: [Click me](https://youtu.be/sXlIhrbpjyw)**
-
-> Note: When you start a new terminal make sure to adjust terminal panel according to your screen. If its height is good for you then also just drag it , then it will run smoothly.
-and It will also adjust the cols and rows according to your screen in backend 
-
-**Support this project with your small contribution - <a href='https://www.buymeacoffee.com/bajrangCoder'>Click Me 💗</a>**
+### Support this project with your small contribution - [Click Me 💗](https://www.buymeacoffee.com/bajrangCoder)
 
 <details>
     <summary>
-        Updates 🤩🤩
+        Updates v2.1.2
     </summary>
-    <br/>
-    <details>
-        <summary>
-            <code><strong>v2.1.1</strong></code>
-        </summary>
-        <ul>
-            <li>fixed Settings issue</li>
-            <li>exposed api for creating theme for acodex by other theme plugin.</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v2.1.0</strong></code>
-        </summary>
-        <ul>
-            <li>exposed more terminal api 🔌</li>
-            <li>make sure to update acodex server , otherwise it will not going to work.</li>
-            <li>removed every limitations, now you can run vim , etc 😅</li>
-            <li>added support for loading external custom fonts</li>
-            <li>now acodex comes with some predefined themes, you can chose it from Settings</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v2.0.0</strong></code>
-        </summary>
-        <ul>
-            <li>exposed terminal api 🔌</li>
-            <li>improved Terminal and updated xtermjs library 🔼</li>
-            <li>now the web link in the terminal will be hyper linked onclicking it, it will open link in browser 🔗</li>
-            <li>added low budget Autocompletion 😂 , i.e tab autocompletion</li>
-            <li>now you can also use left & right arrow to navigate 🧭</li>
-            <li>fixed prompt bug 🐞</li>
-            <li>some minor improvements and changes 🤫</li>
-            <li>Added new AcodeX own logo, now no more copied logo 😅</li>
-            <li>
-            added these shortcut(Read <strong>Supported key shortcut</strong> section of readme for more ☺️): <kbd>Ctrt+f</kbd>, <kbd>Right Arrow</kbd>, <kbd>Alt+f</kbd>, <kbd>Ctrl+Right arrow</kbd>, <kbd>Ctrl+b</kbd>, <kbd>Left arrow</kbd>, <kbd>Alt+b</kbd>, <kbd>Ctrl+Left arrow</kbd>, <kbd>Ctrl+a</kbd>, <kbd>Ctrl+e</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>Tab</kbd>, 
-            </li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.2.0</strong></code>
-        </summary>
-        <ul>
-            <li>fixed issue related to saving state</li>
-            <li>added color picker in plugin setting for themeing</li>
-            <li>now it will remember your terminal state for better experience</li>
-            <li>
-            added two shortcut:
-                <ul>
-                    <li><kbd>Ctrl+I</kbd> - to clear the terminal</li>
-                    <li><kbd>Ctrl+P</kbd> - to copy text from the terminal</li>
-                </ul>
-            </li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.1.8</strong></code>
-        </summary>
-        <ul>
-            <li>improved accessibility</li>
-            <li>floating button and terminal panel issue fixed</li>
-            <li>minor twicks</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.1.7</strong></code>
-        </summary>
-        <ul>
-            <li>brand new tutorial link added in the readme of the plugin</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.1.6</strong></code>
-        </summary>
-        <ul>
-            <li>terminal issue fixed</li>
-            <li>floating button improved, now it will be not hidden by keyboard</li>
-            <li>internal changes</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.1.5</strong></code>
-        </summary>
-        <p>Nothing fancy just a simple bugs 😑</p>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.1.4</strong></code>
-        </summary>
-        <ul>
-            <li>little bit change in layout and icon</li>
-            <li>maximise terminal button is now draggable and you can drag it and keep it wherever you want</li>
-            <li>fixed bugs related to folder icon</li>
-            <li>removed changing of font family of terminal</li>
-            <li>some minor changes</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.1.1</strong></code>
-        </summary>
-        <ul>
-            <li>changed icons</li>
-            <li>improved context menu</li>
-            <li>fixed bugs</li>
-            <li>removed arrow button from terminal header, instead of this use acode arrow buttons</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.1.0</strong></code>
-        </summary>
-        <ul>
-            <li>Fixed Android keyboard issue, now you can use any keyboard you want</li>
-            <li>Fixed paste functionality issue</li>
-            <li>Fixed terminal unwanted behaviour</li>
-            <li>Many internal changes to improve performance</li>
-            <li>improved styling</li>
-            <li>Note: almost every encountered bugs are fixed</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.9</strong></code>
-        </summary>
-        <ul>
-            <li>fixed bugs</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.8</strong></code>
-        </summary>
-        <ul>
-            <li>fixed bugs</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.7</strong></code>
-        </summary>
-        <ul>
-            <li>Added a button on terminal header for opening terminal in opened file directory.</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.6</strong></code>
-        </summary>
-        <ul>
-            <li>Added Arrow button instead of input field on terminal header to use feature of <code>v1.0.5</code></li>
-            <li>Now if you will close the app without closing terminal, then when you open app again the terminal will be start automatically from where you have closed app.</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.5</strong></code>
-        </summary>
-        <ul>
-            <li>
-                Now you can get previous command(history of command) same as Termux feature:
-                <ul>
-                    <li>For previous command -> <kbd>⇑</kbd></li>
-                    <li>For next command -> <kbd>⇓</kbd></li>
-                </ul>
-            </li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.4</strong></code>
-        </summary>
-        <ul>
-            <li>Now you can use any keyboard in terminal(recommend -> keyboard which cantains ctrl key and so on)</li>
-            <li>Some Improvement</li>
-            <li>There is little bit limitations with keys that will be fixed in next update</li>
-            <li>
-                Supported Keys
-                <ul>
-                    <li><kbd>Enter key</kbd></li>
-                    <li><kbd>Space key</kbd></li>
-                    <li><kbd>Ctrl+C key</kbd></li>
-                    <li><kbd>Delete/Backspace key</kbd></li>
-                    <li>Others treated as normal printable keys</li>
-                </ul>
-            </li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.3</strong></code>
-        </summary>
-        <ul>
-            <li>Removed deprecated Acode API for smooth functioning in latest Acode</li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.2</strong></code>
-        </summary>
-        <ul>
-            <li>Plugin Setting Ui improved</li>
-            <li>For closing the terminal use <code>Ctrl+J</code></li>
-        </ul>
-    </details>
-    <details>
-        <summary>
-            <code><strong>v1.0.1</strong></code>
-        </summary>
-        <ul>
-            <li>
-                Now you can customise terminal, by changing:
-                    <ul>
-                        <li>Font Size</li>
-                        <li>Font Family</li>
-                        <li>Cursor Style</li>
-                        <li>Cursor Blink</li>
-                        <li>Scroll back</li>
-                        <li>Scroll Sensitivity</li>
-                        <li>Theme</li>
-                    </ul>
-            </li>
-        </ul>
-    </details>
+    <ul>
+        <li>Improved readme</li>
+        <li>Fixed Settings issue</li>
+        <li>Some important internal changes</li>
+    </ul>
 </details>
+<br/>
+
+> For previous change logs/updates, visit: [Change Log](https://github.com/bajrangCoder/acode-plugin-acodex/ChangeLog.md)
 
 ## Features
 
-- **Easy to use**: _AcodeX_ offers a terminal in the form of a movable panel, which can be accessed easily by pressing `Ctrl+K` or by searching for "Open Terminal" in the command palette.
-- **Productivity**: By using _AcodeX_, developers can save time by accessing the terminal directly within _Acode_ and executing commands without switching between apps.
-- **Terminal panel**: The terminal panel can be moved around, resized, minimized, and maximized based on the developer's preferences
-- **User-friendly interface**: _AcodeX_ offers a simple and intuitive interface, making it easy to use for all levels of developers.
-- **Customisable**: You can customise AcodeX terminal according to your preference 
+- **Easy to use**: AcodeX offers a terminal in the form of a movable panel, accessible by pressing `Ctrl+K` or by searching for "Open Terminal" in the command palette.
+
+- **Productivity**: Developers can save time by accessing the terminal directly within Acode and executing commands without switching between apps.
+
+- **Terminal panel**: The terminal panel is customizable - you can move it, resize it, minimize it, and maximize it according to your preferences.
+
+- **User-friendly interface**: AcodeX offers a simple and intuitive interface suitable for all levels of developers.
+
+- **Customizable**: You can customize the AcodeX terminal to your preferences.
+
 - **Easy Directory Changing**: You can open any folder with a button click.
 
-### Api Docs
+### API Docs
 
-**AcodeX Plugin** provides an API to run commands in a terminal through another plugin.
-
-**Usage:**
-
-To use the AcodeX API:
-1. Import the **`acodex`** module from the `acode` library.
-
-```js
+```javascript
 const termController = acode.require("acodex");
 ```
 
-**Methods:**
+**Methods**:
 
-1. `.execute(command)` : execute given command in terminal
-2. `.isMinimized()` : returns whether Terminal is minimised or not
-3. `.isTerminalOpened()` : returns whether Terminal is opened or not 
-4. `.maximiseTerminal()` : if Terminal is minimized then this will maximise it 
-5. `.openTerminal(termContainerHeight,port)` : opens a new Terminal, both termContainerHeight and port are optional
-6. `.closeTerminal()` : close opened Terminal
-7. `.convertAcodeUriToTermReadable(path)` : convert acode file uri to actual path
-8. `.addTheme(themeNme: string, colorSchema: IXtermTheme)` : add a new theme to acodex theme list 
-9. `applyTheme(themeNme: string)` : apply the given theme to terminal
-#### Example of addTheme & applyTheme:
-```js
+1. `.execute(command)`: Execute the given command in the terminal.
+2. `.isMinimized()`: Check if the terminal is minimized.
+3. `.isTerminalOpened()`: Check if the terminal is opened.
+4. `.maximizeTerminal()`: Maximize the terminal if it's minimized.
+5. `.openTerminal(termContainerHeight, port)`: Open a new terminal (both `termContainerHeight` and `port` are optional).
+6. `.closeTerminal()`: Close the opened terminal.
+7. `.convertAcodeUriToTermReadable(path)`: Convert Acode file URI to an actual path.
+8. `.addTheme(themeName: string, colorSchema: IXtermTheme)`: Add a new theme to AcodeX's theme list.
+9. `.applyTheme(themeName: string)`: Apply the given theme to the terminal.
+
+Example of addTheme & applyTheme:
+
+```javascript
 const acodex = acode.require("acodex");
-const themeNme = "Test"; // name of theme
+const themeName = "Test"; // name of theme
 const colorSchema  = {
-    background: "#1c2431",
-    foreground: "#cccccc",
-    cursor: "#ffffff",
-    cursorAccent: "#fff",
-    selectionBackground: "#399ef440",
-    black: "#666666",
-    blue: "#399ef4",
-    brightBlack: "#666666",
-    brightBlue: "#399ef4",
-    brightCyan: "#21c5c7",
-    brightGreen: "#4eb071",
-    brightMagenta: "#b168df",
-    brightRed: "#da6771",
-    brightWhite: "#efefef",
-    brightYellow: "#fff099",
-    cyan: "#21c5c7",
-    green: "#4eb071",
-    magenta: "#b168df",
-    red: "#da6771",
-    white: "#efefef",
-    yellow: "#fff099",
+    // Theme colors here
 }
-// add theme
-acodex.addTheme(themeNme, colorSchema);
-// apply theme 
-acodex.applyTheme(themeNme);
+// Add theme
+acodex.addTheme(themeName, colorSchema);
+// Apply theme 
+acodex.applyTheme(themeName);
 ```
 
-## Custom Fonts 
+## Custom Fonts
 
-Mainly custom font is provided to load font files which are required by the termux theme, you are using.
+Custom fonts are provided to load font files required by the Termux theme you are using or If you want to change font of AcodeX terminal.
 
-For loading custom font , follow the given instructions:
-1. Download the font files 
-2. Create a `css` file(any where in the internal storage)
-3. Write css code to load font files, and use relative url of font file in css, for eg:
+To load a custom font:
+
+1. Download the font files(**Note: Download nerd font file in case if you are loadimg for termux theme**).
+2. Create a `css` file anywhere in the internal storage.
+3. Write CSS code to load font files using relative URLs in the CSS, for example:
 
 ```css
 @font-face {
@@ -335,52 +89,52 @@ For loading custom font , follow the given instructions:
 }
 ```
 
-4. Open AcodeX Settings page and there you will find option `"Custom Font StyleSheet"`
-5. Click it and it will open file browser and from there, you just select your css file which you have created in **Step 3**
-6. And also write font name on same AcodeX Settings page , in Font Family option.
-7. Hence done :) , Now just restart terminal.
+4. Open AcodeX Settings page and find the option `"Custom Font StyleSheet"`.
+5. Select your CSS file created in step 3.
+6. Enter the font name in the Font Family option.
+7. Restart the terminal.
 
 ## Prerequisites
 
-To use **AcodeX**, you need to have the [Termux app](https://termux.dev/en/) installed on your Android device. However, you do not need to switch between apps to use the terminal, as **AcodeX** offers a convenient way to access the terminal directly within the **Acode app** with the help of **Termux**
+To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) installed on your Android device. However, you don't need to switch between apps to use the terminal, as AcodeX offers a convenient way to access the terminal directly within the Acode app with the help of Termux.
 
 ## Installation
 
-Install plugin in **Acode App** From `Acode > Settings > Plugins > AcodeX`
-And Install server in termux via below command:
+1. Install the plugin in the Acode App from `Acode > Settings > Plugins > AcodeX`.
+
+2. Install the server in Termux using the following command:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash
 ```
-    
-## How to use?
 
-**New updated tutorial link: [https://youtu.be/sXlIhrbpjyw](https://youtu.be/sXlIhrbpjyw)**
+## How to Use
 
-- First Start Server on Termux via : `acodeX-server`
-- To use **AcodeX**, press `Ctrl+K` or search for `"Open Terminal"` in the command palette(Press `ctrl-shift-p` to open command palette). 
-- Then enter the port number, and the terminal will start. 
-- Use the minus icon button to hide the terminal while coding, and the terminal button to show it. 
-- You can also **drag** the terminal panel around by clicking and dragging through the **terminal header area**. 
-- The `✗` is for closing the terminal.
-- folder icon - button on terminal header is for navigating to opened files(in editor) directory .
+> **Tutorial link**: [https://youtu.be/sXlIhrbpjyw](https://youtu.be/sXlIhrbpjyw)
 
-> Don't change colors while using any predefined theme, only change in case of custom one.
+- Start the server in Termux using: `acodeX-server`.
+- To use AcodeX, press `Ctrl+K` or search for `"Open Terminal"` in the command palette (press `Ctrl+Shift+P` to open the command palette).
+- Enter the port number, and the terminal will start.
+- Use the minus icon button to hide the terminal while coding and the terminal button to show it.
+- You can also drag the terminal panel around by clicking and dragging through the terminal header area.
+- The `✗` button is for closing the terminal.
+- The folder icon button on the terminal header is for navigating to opened files (in the editor) directory.
 
-## Acknowledgements
+> Don't change colors while using any predefined theme; only change in the case of a custom one.
 
-**AcodeX** is made possible by the use of:
+## Acknowledgments
 
- - [xtermjs](https://xtermjs.org/)
- - [node-pty](https://github.com/microsoft/node-pty)
- - [Termux](https://termux.dev/en/)
+AcodeX is made possible by the use of:
 
+- [xtermjs](https://xtermjs.org/)
+- [node-pty](https://github.com/microsoft/node-pty)
+- [Termux](https://termux.dev/en/)
 
 ## Authors
 
-- **[@bajrangCoder](https://www.github.com/bajrangCoder)** - *AcodeX* is created by `Raunak Raj`, a passionate developer who aims to make coding more accessible and efficient for everyone even on Phones.
+- [@bajrangCoder](https://www.github.com/bajrangCoder) - AcodeX is created by Raunak Raj, a passionate developer who aims to make coding more accessible and efficient for everyone, even on phones.
 
-
-To contribute to **AcodeX**, visit the plugin's GitHub page and leave a star 🌟 to show your support. You can also report bugs, suggest improvements, or contribute to the codebase. **AcodeX** is an open-source project, and contributions are welcomes from the community
+To contribute to AcodeX, visit the plugin's GitHub page, leave a star 🌟 to show your support, report bugs, suggest improvements, or contribute to the codebase. AcodeX is an open-source project
+, and contributions are welcomed from the community.
 
 ❤️❤️ Thanks for using AcodeX ❤️❤️

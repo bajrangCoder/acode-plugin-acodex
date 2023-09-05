@@ -41,6 +41,7 @@ class AcodeX {
     pid;
     terminal = null;
     socket = null;
+    terminalCount = 0;
     //activeLSPConnections = {};
     // default settings for terminal
     //LSP = false;
@@ -306,6 +307,7 @@ class AcodeX {
                     appSettings.update();
                 }
             });
+            this._showAd();
         } catch (err) {
             console.log(err);
             alert("Warning", "Please Restart the app to use AcodeX");
@@ -511,6 +513,8 @@ class AcodeX {
             this.$attachAddon = new AttachAddon(this.socket);
             this.$terminal.loadAddon(this.$attachAddon);
             this.$terminal.unicode.activeVersion = "11";
+            this.terminalCount++;
+            this._showAd();
         } catch (err) {
             window.alert(err);
         }
@@ -576,6 +580,15 @@ class AcodeX {
             this.$terminalContainer.offsetHeight
         );
         this.$fitAddon.fit();
+    }
+    
+    async _showAd(){
+        if(this.terminalCount > 4) {
+            this.terminalCount = 0;
+            const adBox = await confirm("Support", "Please Support the Plugin with your small contribution 💓💗");
+            if(!adBox) return;
+            system.openInBrowser("https://www.buymeacoffee.com/bajrangCoder");
+        }
     }
 
     async closeTerminal() {
@@ -825,6 +838,8 @@ class AcodeX {
             return;
         }
         this.socket.send(`cd "${realPath}"\r`);
+        this.terminalCount++;
+        this._showAd();
     }
 
     async destroy() {
@@ -877,8 +892,8 @@ class AcodeX {
         this.settings.theme = themeName;
         this.settings.background = theme.background;
         this.settings.foreground = theme.foreground;
-        this.settings.cursor = theme.cursor || "";
-        this.settings.cursorAccent = theme.cursorAccent || "";
+        this.settings.cursor = theme.cursor || "#fff";
+        this.settings.cursorAccent = theme.cursorAccent || "#fff";
         this.settings.selectionBackground = theme.selectionBackground;
         this.settings.black = theme.black;
         this.settings.blue = theme.blue;
@@ -936,7 +951,263 @@ class AcodeX {
     }
 
     get settingsObj() {
-        return {
+        if(this.settings.theme === "custom"){
+            return {
+                list: [
+                    /*{
+                        key: "lsp",
+                        text: "Want LSP",
+                        info: "Whether the lsp should work or not.",
+                        checkbox: !!this.settings.lsp,
+                    },*/
+                    {
+                        index: 4,
+                        key: "customFontStyleSheet",
+                        text: "Custom Font Stylesheet file",
+                        info: "Select css file in which you have to define about your custom font.",
+                        value: this.settings.customFontStyleSheet,
+                    },
+                    {
+                        index: 0,
+                        key: "cursorBlink",
+                        text: "Cursor Blink",
+                        info: "Whether the cursor blinks.",
+                        checkbox: !!this.settings.cursorBlink,
+                    },
+                    {
+                        index: 1,
+                        key: "cursorStyle",
+                        text: "Cursor Style",
+                        value: this.settings.cursorStyle,
+                        info: "The style of the cursor.",
+                        select: [
+                            this.CURSOR_STYLE[0],
+                            this.CURSOR_STYLE[1],
+                            this.CURSOR_STYLE[2],
+                        ],
+                    },
+                    {
+                        index: 2,
+                        key: "fontSize",
+                        text: "Font Size",
+                        value: this.settings.fontSize,
+                        info: "The font size used to render text.",
+                        prompt: "Font Size",
+                        promptType: "text",
+                        promptOption: [
+                            {
+                                match: /^[0-9]+$/,
+                                required: true,
+                            },
+                        ],
+                    },
+                    {
+                        index: 3,
+                        key: "fontFamily",
+                        text: "Font Family",
+                        value: this.settings.fontFamily,
+                        info: "The font family used to render text.",
+                        prompt: "Font Family",
+                        promptType: "text",
+                    },
+                    {
+                        index: 5,
+                        key: "scrollBack",
+                        text: "Scroll Back",
+                        value: this.settings.scrollBack,
+                        info: "The amount of scrollback in the terminal. Scrollback is the amount of rows that are retained when lines are scrolled beyond the initial viewport.",
+                        prompt: "Scroll Back",
+                        promptType: "number",
+                        promptOption: [
+                            {
+                                match: /^[0-9]+$/,
+                                required: true,
+                            },
+                        ],
+                    },
+                    {
+                        index: 6,
+                        key: "scrollSensitivity",
+                        text: "Scroll Sensitivity",
+                        value: this.settings.scrollSensitivity,
+                        info: "The scrolling speed multiplier used for adjusting normal scrolling speed.",
+                        prompt: "Scroll Sensitivity",
+                        promptType: "number",
+                        promptOption: [
+                            {
+                                match: /^[0-9]+$/,
+                                required: true,
+                            },
+                        ],
+                    },
+                    {
+                        index: 7,
+                        key: "theme",
+                        text: "Theme",
+                        value: this.settings.theme,
+                        info: "Theme of terminal.",
+                        select: this.themeList,
+                    },
+                    {
+                        index: 8,
+                        key: "background",
+                        text: "Background Color",
+                        value: this.settings.background,
+                        color: this.settings.background,
+                    },
+                    {
+                        index: 8,
+                        key: "foreground",
+                        text: "Foreground Color",
+                        value: this.settings.foreground,
+                        color: this.settings.foreground,
+                    },
+                    {
+                        index: 9,
+                        key: "selectionBackground",
+                        text: "Selection Background Color",
+                        value: this.settings.selectionBackground,
+                        color: this.settings.selectionBackground,
+                    },
+                    {
+                        key: "cursor",
+                        text: "Cursor Color",
+                        value: this.settings.cursor,
+                        color: this.settings.cursor,
+                    },
+                    {
+                        key: "cursorAccent",
+                        text: "Cursor Accent Color",
+                        value: this.settings.cursorAccent,
+                        color: this.settings.cursorAccent,
+                    },
+                    {
+                        index: 10,
+                        key: "black",
+                        text: "Black Color",
+                        value: this.settings.black,
+                        color: this.settings.black,
+                    },
+                    {
+                        index: 11,
+                        key: "blue",
+                        text: "Blue Color",
+                        value: this.settings.blue,
+                        color: this.settings.blue,
+                    },
+                    {
+                        index: 12,
+                        key: "brightBlack",
+                        text: "Bright Black Color",
+                        value: this.settings.brightBlack,
+                        color: this.settings.brightBlack,
+                    },
+                    {
+                        index: 13,
+                        key: "brightBlue",
+                        text: "Bright Blue Color",
+                        value: this.settings.brightBlue,
+                        color: this.settings.brightBlue,
+                    },
+                    {
+                        index: 14,
+                        key: "brightCyan",
+                        text: "Bright Cyan Color",
+                        value: this.settings.brightCyan,
+                        color: this.settings.brightCyan,
+                    },
+                    {
+                        index: 15,
+                        key: "brightGreen",
+                        text: "Bright Green Color",
+                        value: this.settings.brightGreen,
+                        color: this.settings.brightGreen,
+                    },
+                    {
+                        index: 16,
+                        key: "brightMagenta",
+                        text: "Bright Magenta Color",
+                        value: this.settings.brightMagenta,
+                        color: this.settings.brightMagenta,
+                    },
+                    {
+                        index: 17,
+                        key: "brightRed",
+                        text: "Bright Red Color",
+                        value: this.settings.brightRed,
+                        color: this.settings.brightRed,
+                    },
+                    {
+                        index: 18,
+                        key: "brightWhite",
+                        text: "Bright White Color",
+                        value: this.settings.brightWhite,
+                        color: this.settings.brightWhite,
+                    },
+                    {
+                        index: 19,
+                        key: "brightYellow",
+                        text: "Bright Yellow Color",
+                        value: this.settings.brightYellow,
+                        color: this.settings.brightYellow,
+                    },
+                    {
+                        index: 20,
+                        key: "cyan",
+                        text: "Cyan Color",
+                        value: this.settings.cyan,
+                        color: this.settings.cyan,
+                    },
+                    {
+                        index: 21,
+                        key: "green",
+                        text: "Green Color",
+                        value: this.settings.green,
+                        color: this.settings.green,
+                    },
+                    {
+                        index: 22,
+                        key: "magenta",
+                        text: "Magenta Color",
+                        value: this.settings.magenta,
+                        color: this.settings.magenta,
+                    },
+                    {
+                        index: 23,
+                        key: "red",
+                        text: "Red Color",
+                        value: this.settings.red,
+                        color: this.settings.red,
+                    },
+                    {
+                        index: 24,
+                        key: "white",
+                        text: "White Color",
+                        value: this.settings.white,
+                        color: this.settings.white,
+                    },
+                    {
+                        index: 25,
+                        key: "yellow",
+                        text: "Yellow Color",
+                        value: this.settings.yellow,
+                        color: this.settings.yellow,
+                    },
+                ],
+                cb: (key, value) => {
+                    if (key === "customFontStyleSheet") {
+                        this.setCustomFontFile();
+                    } else if(key === "theme"){
+                        this.applyTheme(value);
+                        acode.alert("Warning", "Make sure to restart app if you want any change in theme Settings.");
+                    }else {
+                        this.settings[key] = value;
+                        appSettings.update();
+                    }
+                },
+            };
+        } else {
+            return {
             list: [
                 /*{
                     key: "lsp",
@@ -945,6 +1216,7 @@ class AcodeX {
                     checkbox: !!this.settings.lsp,
                 },*/
                 {
+                    index: 7,
                     key: "customFontStyleSheet",
                     text: "Custom Font Stylesheet file",
                     info: "Select css file in which you have to define about your custom font.",
@@ -985,6 +1257,7 @@ class AcodeX {
                     ],
                 },
                 {
+                    index: 3,
                     key: "fontFamily",
                     text: "Font Family",
                     value: this.settings.fontFamily,
@@ -993,7 +1266,7 @@ class AcodeX {
                     promptType: "text",
                 },
                 {
-                    index: 3,
+                    index: 4,
                     key: "scrollBack",
                     text: "Scroll Back",
                     value: this.settings.scrollBack,
@@ -1008,7 +1281,7 @@ class AcodeX {
                     ],
                 },
                 {
-                    index: 4,
+                    index: 5,
                     key: "scrollSensitivity",
                     text: "Scroll Sensitivity",
                     value: this.settings.scrollSensitivity,
@@ -1023,170 +1296,27 @@ class AcodeX {
                     ],
                 },
                 {
-                    index: 5,
+                    index: 6,
                     key: "theme",
                     text: "Theme",
                     value: this.settings.theme,
                     info: "Theme of terminal.",
                     select: this.themeList,
-                },
-                {
-                    index: 6,
-                    key: "background",
-                    text: "Background Color",
-                    value: this.settings.background,
-                    color: this.settings.background,
-                },
-                {
-                    index: 7,
-                    key: "foreground",
-                    text: "Foreground Color",
-                    value: this.settings.foreground,
-                    color: this.settings.foreground,
-                },
-                {
-                    index: 8,
-                    key: "selectionBackground",
-                    text: "Selection Background Color",
-                    value: this.settings.selectionBackground,
-                    color: this.settings.selectionBackground,
-                },
-                {
-                    key: "cursor",
-                    text: "Cursor Color",
-                    value: this.settings.cursor,
-                    color: this.settings.cursor,
-                },
-                {
-                    key: "cursorAccent",
-                    text: "Cursor Accent Color",
-                    value: this.settings.cursorAccent,
-                    color: this.settings.cursorAccent,
-                },
-                {
-                    index: 9,
-                    key: "black",
-                    text: "Black Color",
-                    value: this.settings.black,
-                    color: this.settings.black,
-                },
-                {
-                    index: 10,
-                    key: "blue",
-                    text: "Blue Color",
-                    value: this.settings.blue,
-                    color: this.settings.blue,
-                },
-                {
-                    index: 11,
-                    key: "brightBlack",
-                    text: "Bright Black Color",
-                    value: this.settings.brightBlack,
-                    color: this.settings.brightBlack,
-                },
-                {
-                    index: 12,
-                    key: "brightBlue",
-                    text: "Bright Blue Color",
-                    value: this.settings.brightBlue,
-                    color: this.settings.brightBlue,
-                },
-                {
-                    index: 13,
-                    key: "brightCyan",
-                    text: "Bright Cyan Color",
-                    value: this.settings.brightCyan,
-                    color: this.settings.brightCyan,
-                },
-                {
-                    index: 14,
-                    key: "brightGreen",
-                    text: "Bright Green Color",
-                    value: this.settings.brightGreen,
-                    color: this.settings.brightGreen,
-                },
-                {
-                    index: 15,
-                    key: "brightMagenta",
-                    text: "Bright Magenta Color",
-                    value: this.settings.brightMagenta,
-                    color: this.settings.brightMagenta,
-                },
-                {
-                    index: 16,
-                    key: "brightRed",
-                    text: "Bright Red Color",
-                    value: this.settings.brightRed,
-                    color: this.settings.brightRed,
-                },
-                {
-                    index: 17,
-                    key: "brightWhite",
-                    text: "Bright White Color",
-                    value: this.settings.brightWhite,
-                    color: this.settings.brightWhite,
-                },
-                {
-                    index: 18,
-                    key: "brightYellow",
-                    text: "Bright Yellow Color",
-                    value: this.settings.brightYellow,
-                    color: this.settings.brightYellow,
-                },
-                {
-                    index: 19,
-                    key: "cyan",
-                    text: "Cyan Color",
-                    value: this.settings.cyan,
-                    color: this.settings.cyan,
-                },
-                {
-                    index: 20,
-                    key: "green",
-                    text: "Green Color",
-                    value: this.settings.green,
-                    color: this.settings.green,
-                },
-                {
-                    index: 21,
-                    key: "magenta",
-                    text: "Magenta Color",
-                    value: this.settings.magenta,
-                    color: this.settings.magenta,
-                },
-                {
-                    index: 22,
-                    key: "red",
-                    text: "Red Color",
-                    value: this.settings.red,
-                    color: this.settings.red,
-                },
-                {
-                    index: 23,
-                    key: "white",
-                    text: "White Color",
-                    value: this.settings.white,
-                    color: this.settings.white,
-                },
-                {
-                    index: 24,
-                    key: "yellow",
-                    text: "Yellow Color",
-                    value: this.settings.yellow,
-                    color: this.settings.yellow,
-                },
+                }
             ],
             cb: (key, value) => {
                 if (key === "customFontStyleSheet") {
                     this.setCustomFontFile();
                 } else if(key === "theme"){
                     this.applyTheme(value);
+                    acode.alert("Warning", "Make sure to restart app if you want any change in theme Settings.");
                 }else {
                     this.settings[key] = value;
                     appSettings.update();
                 }
             },
         };
+        }
     }
 
     get settings() {
