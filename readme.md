@@ -2,17 +2,24 @@
 
 [![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/bajrangCoder)
 
-> **Note**: Before installing, update your acodeX-server to version `v2.1.0` by running the following command in Termux: `npm update -g acodex-server` (**Note:** _Only for old AcodeX user_)
+> **Warning**
+> This plugin requires the [AcodeX-Server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
 
-[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful plugin for the Acode app that enhances your coding productivity by adding terminal support. With AcodeX, you can execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
+> **Note**
+> **For old AcodeX users:**
+> Before installing, update your [AcodeX-Server](https://github.com/bajrangCoder/AcodeX-server) to version `v2.1.0` by running the following command in Termux:<br />
+> <pre>npm update -g acodex-server</pre>
 
-> **Note**: When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful plugin for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
+
+> **Note**
+> When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
 
 ### Support this project with your small contribution - [Click Me 💗](https://www.buymeacoffee.com/bajrangCoder)
 
 <details>
     <summary>
-        Updates v2.1.2
+        <h3 style="display:inline">Updates v2.1.2</h3>
     </summary>
     <ul>
         <li>Improved readme</li>
