@@ -6,7 +6,9 @@
 > This plugin requires the [AcodeX-Server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
 
 > **Note**
-> Before installing, update your acodeX-server to version `v2.1.0` by running the following command in Termux: `npm update -g acodex-server` (**Note:** _Only for old AcodeX user_)
+> _For old AcodeX users:_
+> Before installing, update your acodeX-server to version `v2.1.0` by running the following command in Termux:<br />
+> `npm update -g acodex-server`
 
 [AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful plugin for the Acode app that enhances your coding productivity by adding terminal support. With AcodeX, you can execute terminal commands directly within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
