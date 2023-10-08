@@ -1,13 +1,13 @@
 # AcodeX - Terminal Emulator
 
-[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/bajrangCoder)
+<a href="https://www.buymeacoffee.com/bajrangCoder" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="40" width="170"/></a>
 
 > **Warning**
 > This plugin requires the [AcodeX-Server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
 
 > **Note**
 > **For old AcodeX users:**
-> Before installing, update your [AcodeX-Server](https://github.com/bajrangCoder/AcodeX-server) to version `v2.1.0` by running the following command in Termux:<br />
+> Before installing, update your [AcodeX-Server](https://github.com/bajrangCoder/AcodeX-server) to use version `v2.2.0` , by running the following command in Termux:<br />
 > <pre>npm update -g acodex-server</pre>
 
 [AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful plugin for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
@@ -15,16 +15,39 @@
 > **Note**
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
 
+<details>
+    <summary>
+        <h3 style="display:inline">What's on this page?</h3>
+    </summary>
+    <ul>
+        <li>Support this project</li>
+        <li>Whats new?</li>
+        <li>Features</li>
+        <li>Api Docs</li>
+        <li>Loading Custom font</li>
+        <li>Installation</li>
+        <li>How to use?</li>
+        <li>Acknowledgement</li>
+        <li>Authors</li>
+        <li>Contribution</li>
+    </ul>
+</details>
+
+<br />
+
 ### Support this project with your small contribution - [Click Me 💗](https://www.buymeacoffee.com/bajrangCoder)
+
+<br />
 
 <details>
     <summary>
-        <h3 style="display:inline">Updates v2.1.2</h3>
+        <h3 style="display:inline">What's New (v2.2.0)?</h3>
     </summary>
     <ul>
-        <li>Improved readme</li>
-        <li>Fixed Settings issue</li>
-        <li>Some important internal changes</li>
+        <li>Introducing the brand new <strong>Multiple Sessions</strong> which is power efficient and effective</li>
+        <li>New Feature to keep track of terminal either you close acode accidentally</li>
+        <li>Some Internal Improvement and Bug fixes</li>
+        <li>Terminal will follow acode font if you aren't using any custom one</li>
     </ul>
 </details>
 <br/>
@@ -43,6 +66,10 @@
 
 - **Customizable**: You can customize the AcodeX terminal to your preferences.
 
+- **Multiple sessions**: You can create multiple sessions and session are managed judicially to minimise power drain.
+
+- **Background Process**: If you will close acode without closing acodex server or terminal in acode then it will be live and when you will open acode again then you can continue without any interuption.
+
 - **Easy Directory Changing**: You can open any folder with a button click.
 
 ### API Docs
@@ -58,10 +85,11 @@ const termController = acode.require("acodex");
 3. `.isTerminalOpened()`: Check if the terminal is opened.
 4. `.maximizeTerminal()`: Maximize the terminal if it's minimized.
 5. `.openTerminal(termContainerHeight, port)`: Open a new terminal (both `termContainerHeight` and `port` are optional).
-6. `.closeTerminal()`: Close the opened terminal.
-7. `.convertAcodeUriToTermReadable(path)`: Convert Acode file URI to an actual path.
-8. `.addTheme(themeName: string, colorSchema: IXtermTheme)`: Add a new theme to AcodeX's theme list.
-9. `.applyTheme(themeName: string)`: Apply the given theme to the terminal.
+6. `.createSession()`: creates a sessionif terminal is opened 
+7. `.closeTerminal()`: Close the opened terminal.
+8. `.convertAcodeUriToTermReadable(path)`: Convert Acode file URI to an actual path.
+9. `.addTheme(themeName: string, colorSchema: IXtermTheme)`: Add a new theme to AcodeX's theme list.
+10. `.applyTheme(themeName: string)`: Apply the given theme to the terminal.
 
 Example of addTheme & applyTheme:
 
@@ -69,7 +97,7 @@ Example of addTheme & applyTheme:
 const acodex = acode.require("acodex");
 const themeName = "Test"; // name of theme
 const colorSchema  = {
-    // Theme colors here
+    // Theme colors here, you can find colors in themes.js
 }
 // Add theme
 acodex.addTheme(themeName, colorSchema);
@@ -79,11 +107,14 @@ acodex.applyTheme(themeName);
 
 ## Custom Fonts
 
+> **Note**
+> It will be changed in comming updates to user-friendly method 
+
 Custom fonts are provided to load font files required by the Termux theme you are using or If you want to change font of AcodeX terminal.
 
 To load a custom font:
 
-1. Download the font files(**Note: Download nerd font file in case if you are loadimg for termux theme**).
+1. Download the font files(**Note: Download nerd font file in case if you are loading for termux theme**).
 2. Create a `css` file anywhere in the internal storage.
 3. Write CSS code to load font files using relative URLs in the CSS, for example:
 
@@ -115,6 +146,16 @@ To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) install
 curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash
 ```
 
+or 
+
+```bash
+pkg update && pkg upgrade -y
+pkg install python nodejs -y
+npm i -g acodex-server
+```
+
+Basically just install `python` & `nodejs` and then just install `acodex-server` npm package globally
+
 ## How to Use
 
 > **Tutorial link**: [https://youtu.be/sXlIhrbpjyw](https://youtu.be/sXlIhrbpjyw)
@@ -122,6 +163,7 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 - Start the server in Termux using: `acodeX-server`.
 - To use AcodeX, press `Ctrl+K` or search for `"Open Terminal"` in the command palette (press `Ctrl+Shift+P` to open the command palette).
 - Enter the port number, and the terminal will start.
+- Plus `+` icon to create new session 
 - Use the minus icon button to hide the terminal while coding and the terminal button to show it.
 - You can also drag the terminal panel around by clicking and dragging through the terminal header area.
 - The `✗` button is for closing the terminal.

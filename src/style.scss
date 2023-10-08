@@ -1,4 +1,4 @@
-.terminal-container{
+.terminal-container {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -11,7 +11,7 @@
     border-top: 1px solid var(--popup-border-color);
     overflow: hidden;
     box-sizing: border-box;
-    .terminal-header{
+    .terminal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -22,17 +22,45 @@
         border-top: 1px solid var(--border-color);
         background: var(--primary-color);
         box-shadow: 0 1px 6px var(--box-shadow-color);
-        h3{
+        .terminal-title {
             margin: 0;
+            position: relative;
+            padding-right: 20px; /* Space for the triangle */
+            cursor: pointer;
+            &:after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                right: 0;
+                transform: translateY(-50%);
+                border-style: solid;
+                border-width: 8px 8px 0 8px; /* Adjust the size of the triangle */
+                border-color: var(--border-color) transparent transparent
+                    transparent; /* Adjust the color */
+            }
         }
-        .control-btn{
+        .control-btn {
             display: flex;
             justify-content: center;
             align-content: center;
             margin: 0;
             box-sizing: border-box;
             height: 100%;
-            .cd-btn{
+            .add-session-btn {
+                height: 100%;
+                width: 30px;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                margin-right: 8px;
+                border-radius: 10px;
+                transition: all 0.3s ease-in-out;
+                color: var(--primary-text-color);
+                &:active {
+                    background: limegreen;
+                }
+            }
+            .cd-btn {
                 height: 100%;
                 width: 30px;
                 border-radius: 10px;
@@ -41,11 +69,11 @@
                 margin-right: 8px;
                 color: var(--primary-text-color);
                 transition: all 0.3s ease-in-out;
-                &:active{
+                &:active {
                     background: var(--active-icon-color);
                 }
             }
-            .hide-terminal-btn{
+            .hide-terminal-btn {
                 font-size: 22px;
                 height: 100%;
                 width: 30px;
@@ -55,11 +83,11 @@
                 color: var(--primary-text-color);
                 margin-right: 8px;
                 transition: all 0.3s ease-in-out;
-                &:active{
+                &:active {
                     background: var(--active-icon-color);
                 }
             }
-            .close-terminal-btn{
+            .close-terminal-btn {
                 font-size: 19px;
                 font-weight: 700;
                 height: 100%;
@@ -69,22 +97,22 @@
                 border: none;
                 color: var(--primary-text-color);
                 transition: all 0.3s ease-in-out;
-                &:active{
+                &:active {
                     background: var(--error-text-color);
                 }
             }
         }
     }
-    .terminal-content{
+    .terminal-content {
         flex-grow: 1;
         overflow-y: auto;
         box-sizing: border-box;
         max-height: 80vh;
         background: inherit;
-        width: 100vw;
+        width: 100%;
     }
 }
-.show-terminal-btn{
+.show-terminal-btn {
     height: 35px;
     width: 35px;
     background: var(--button-background-color);
@@ -98,12 +126,14 @@
     border-radius: 50%;
     place-items: center;
     touch-action: none;
-    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-    svg{
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+        rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
+        rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    svg {
         height: 17px;
         width: 17px;
     }
 }
-.hide{
+.hide {
     display: none;
 }

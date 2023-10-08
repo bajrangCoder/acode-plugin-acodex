@@ -2,14 +2,11 @@ import plugin from "../plugin.json";
 import style from "./style.scss";
 import { themes } from "./themes.js";
 
-//import { AceLanguageClient } from "ace-linters/build/ace-language-client";
-
 // xtermjs
 import { Terminal } from "xterm";
 // xtermjs addons
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
-//import { SerializeAddon } from "xterm-addon-serialize";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { Unicode11Addon } from "xterm-addon-unicode11";
 import { AttachAddon } from "xterm-addon-attach";
@@ -22,6 +19,7 @@ const appSettings = acode.require("settings");
 const helpers = acode.require("helpers");
 const fsOperation = acode.require("fsOperation");
 const toInternalUrl = acode.require("toInternalUrl");
+const select = acode.require("select");
 
 const { editor } = editorManager;
 
@@ -41,39 +39,38 @@ class AcodeX {
     pid;
     terminal = null;
     socket = null;
-    terminalCount = 0;
-    //activeLSPConnections = {};
     // default settings for terminal
-    //LSP = false;
     CURSOR_BLINK = true;
     SHOW_ARROW_BTN = false;
-    CURSOR_STYLE = ["block","underline","bar"];
+    CURSOR_STYLE = ["block", "underline", "bar"];
     FONT_SIZE = 10;
-    FONT_FAMILY = "'Cascadia Code', Menlo, monospace";
+    //FONT_FAMILY = "'Cascadia Code', Menlo, monospace";
+    FONT_FAMILY = appSettings.get("editorFont");
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
-    themeList = ["xterm","snazzy","sapphire","light","custom"];
+    themeList = ["xterm", "snazzy", "sapphire", "light", "custom"];
 
     constructor() {
         if (!appSettings.value[plugin.id]) {
-            this._saveSetting()
+            this._saveSetting();
         } else {
-            if(!this.settings.theme){
+            if (!this.settings.theme) {
                 delete appSettings.value[plugin.id];
                 appSettings.update(false);
-                this._saveSetting()
+                this._saveSetting();
             }
         }
     }
 
-    async init() {
+    async init($page, cacheFile, cacheFileUrl) {
         try {
             this.xtermCss = tag("link", {
                 rel: "stylesheet",
                 href: this.baseUrl + "xterm.css",
             });
-            this.$style = tag("style", {
-                textContent: style,
+            this.$style = tag("link", {
+                rel: "stylesheet",
+                href: this.baseUrl + "main.css",
             });
             this._loadCustomFontStyleSheet();
             document.head.append(this.xtermCss, this.$style);
@@ -83,7 +80,7 @@ class AcodeX {
                 description: "Open Terminal",
                 bindKey: { win: "Ctrl-K" },
                 exec: () => {
-                    this.createTerminal(270, null);
+                    this.openTerminalPanel(270, null);
                 },
             });
             editorManager.editor.commands.addCommand({
@@ -92,13 +89,6 @@ class AcodeX {
                 bindKey: { win: "Ctrl-J" },
                 exec: this.closeTerminal.bind(this),
             });
-            /*if (this.settings.lsp) {
-                editorManager.editor.commands.addCommand({
-                    name: "acodex:start_lsp",
-                    description: "Start Lsp",
-                    exec: this.startLSPServer(editorManager.editor),
-                });
-            }*/
             // main terminal container
             this.$terminalContainer = tag("div", {
                 className: "terminal-container",
@@ -107,11 +97,17 @@ class AcodeX {
                 className: "terminal-header",
             });
             this.$terminalTitle = tag("h3", {
-                textContent: "AcodeX",
+                textContent: "AcodeX 1",
+                className: "terminal-title",
             });
+
             const $controlBtn = tag("div", {
                 className: "control-btn",
             });
+            const addSessionBtn = tag("button", {
+                className: "add-session-btn",
+            });
+            addSessionBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 38q-.65 0-1.075-.425-.425-.425-.425-1.075v-11h-11q-.65 0-1.075-.425Q10 24.65 10 24q0-.65.425-1.075.425-.425 1.075-.425h11v-11q0-.65.425-1.075Q23.35 10 24 10q.65 0 1.075.425.425.425.425 1.075v11h11q.65 0 1.075.425Q38 23.35 38 24q0 .65-.425 1.075-.425.425-1.075.425h-11v11q0 .65-.425 1.075Q24.65 38 24 38Z"/></svg>`;
             this.$cdBtn = tag("button", {
                 className: "cd-btn",
             });
@@ -125,9 +121,12 @@ class AcodeX {
             });
             this.$closeTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 26.1 13.5 36.6q-.45.45-1.05.45-.6 0-1.05-.45-.45-.45-.45-1.05 0-.6.45-1.05L21.9 24 11.4 13.5q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.9l10.5-10.5q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05L26.1 24l10.5 10.5q.45.45.45 1.05 0 .6-.45 1.05-.45.45-1.05.45-.6 0-1.05-.45Z"/></svg>`;
             $controlBtn.append(
-                ...[this.$cdBtn, this.$hideTermBtn, this.$closeTermBtn]
+                addSessionBtn,
+                this.$cdBtn,
+                this.$hideTermBtn,
+                this.$closeTermBtn
             );
-            this.$terminalHeader.append(...[this.$terminalTitle, $controlBtn]);
+            this.$terminalHeader.append(this.$terminalTitle, $controlBtn);
             this.$terminalContent = tag("div", {
                 className: "terminal-content",
             });
@@ -146,6 +145,7 @@ class AcodeX {
             this.$showTermBtn.classList.add("hide");
             this.$terminalContainer.classList.add("hide");
 
+            this.$cacheFile = cacheFile;
             // add event listnner to all buttons and terminal panel header
             this.$terminalHeader.addEventListener(
                 "mousedown",
@@ -155,6 +155,37 @@ class AcodeX {
                 "touchstart",
                 this.startDragging.bind(this)
             );
+
+            addSessionBtn.addEventListener(
+                "click",
+                this.createSession.bind(this)
+            );
+            this.$terminalTitle.addEventListener("click", async (e) => {
+                let sessionNames;
+                const jsonData = await this.$cacheFile.readFile("utf8");
+                let sessionsData = JSON.parse(jsonData);
+
+                if (Array.isArray(sessionsData)) {
+                    // Extract session names and return them in an array
+                    sessionNames = sessionsData.map((session) => session.name);
+                } else {
+                    sessionNames = [];
+                }
+
+                const opt = {
+                    hideOnSelect: true,
+                    default: localStorage.getItem("AcodeX_Current_Session"),
+                };
+
+                const sessionSelectBox = await select(
+                    "AcodeX Sessions",
+                    sessionNames,
+                    opt
+                );
+                if (sessionSelectBox) {
+                    this.changeSession(sessionSelectBox);
+                }
+            });
 
             this.$closeTermBtn.addEventListener(
                 "click",
@@ -240,26 +271,19 @@ class AcodeX {
                     this.$showTermBtn.style.bottom =
                         Math.max(0, Math.min(maxY, currentY)) + "px";
                 }
+                if (localStorage.getItem("AcodeX_Is_Opened") === "true") {
+                    this._updateTerminalHeight();
+                }
             });
-
-            if (localStorage.getItem("AcodeX_Is_Opened") === "true") {
-                this.createTerminal(
+            if (
+                localStorage.getItem("AcodeX_Is_Opened") === "true" &&
+                localStorage.getItem("AcodeX_Current_Session")
+            ) {
+                await this.openTerminalPanel(
                     localStorage.getItem("AcodeX_Terminal_Cont_Height") || 270,
                     localStorage.getItem("AcodeX_Port") || 8767
                 );
             }
-
-            // if (this.settings.lsp) {
-            //     setInterval(() => {
-            //         this.startLSPServer(editorManager.editor);
-            //     }, 2000);
-            //     editorManager.on("switch-file", () => {
-            //         this.startLSPServer(editorManager.editor);
-            //     });
-            // }
-
-            /*editor.on("changeMode", this.startLSPServer.bind(this));
-            this.startLSPServer();*/
 
             // acodex terminal api
             acode.define("acodex", {
@@ -290,6 +314,11 @@ class AcodeX {
                         this.createTerminal(termContainerHeight, port);
                     }
                 },
+                createSession: () => {
+                    if (this.isTerminalOpened) {
+                        this.createSession();
+                    }
+                },
                 closeTerminal: () => {
                     if (this.isTerminalOpened) {
                         this.closeTerminal();
@@ -305,224 +334,273 @@ class AcodeX {
                 applyTheme: (themeNme) => {
                     this.settings.theme = themeNme;
                     appSettings.update();
-                }
+                },
             });
-            this._showAd();
         } catch (err) {
             console.log(err);
             alert("Warning", "Please Restart the app to use AcodeX");
         }
     }
 
-    /* LSP Stuffs */
-    /*startLSPServer() {
-        const fileType = this.getFileType(editor);
-
-        for (const language in this.activeLSPConnections) {
-            if (language !== fileType) {
-                this.closeLSPConnection(language);
-            }
-        }
-
-        this.connectToLSP(fileType);
-    }
-
-    closeLSPConnection(language) {
-        this.languageProvider.closeDocument(editor)
-        const socket = this.activeLSPConnections[language];
-        if (socket) {
-            socket.close();
-            delete this.activeLSPConnections[language];
-        }
-    }
-
-    connectToLSP(language) {
-        if (this.activeLSPConnections[language]) {
-            return this.activeLSPConnections[language];
-        }
-        const lspUrl = this.lspServers[language];
-        if (!lspUrl) {
-            return;
-        }
-        let socket = new WebSocket(lspUrl);
-        this.languageProvider = AceLanguageClient.for(socket);
-        this.activeLSPConnections[language] = socket;
-        this.languageProvider.setGlobalOptions("python", {
-            pylsp: {
-                configurationSources: ["pycodestyle"],
-                plugins: {
-                    pycodestyle: {
-                        enabled: true,
-                        ignore: ["E501"],
-                        maxLineLength: 10,
-                    },
-                    pyflakes: {
-                        enabled: true,
-                    },
-                },
-            },
-        });
-        this.languageProvider.registerEditor(editor);
-        acode.registerFormatter(plugin.id, ["py"], () => {
-            this.languageProvider.format();
-        });
-    }
-
-    getFileType() {
-        const mode = editor.getSession().getMode().$id;
-        const modeLang = mode.split("/")[2];
-        return modeLang;
-    }
-
-    get lspServers() {
-        return {
-            python: "ws://localhost:3000",
-        };
-    }*/
-
-    async createTerminal(termContainerHeight, portFromParm) {
+    async openTerminalPanel(termContainerHeight, portFromParm) {
+        /*
+        opens floating terminal panel
+        @parm termContainerHeight: number
+        @parm portFromParm: number(optional)
+        */
+        // prompt for port if its not given as param
         const port =
             portFromParm ||
             (await prompt("Port", "8767", "number", {
                 required: true,
             }));
-        if (port) {
-            this.$terminalContainer.classList.remove("hide");
-            this.$terminal = this.terminalObj;
-            this.$fitAddon = new FitAddon();
-            //this.$serializeAddon = new SerializeAddon();
-            this.$webglAddon = new WebglAddon();
-            this.$unicode11Addon = new Unicode11Addon();
-            this.$webLinkAddon = new WebLinksAddon(
-                (event, uri) => {
-                    system.openInBrowser(uri);
-                }
+
+        if (!port) return;
+        // save port in localhost
+        localStorage.setItem("AcodeX_Port", port);
+        this.$terminalContainer.classList.remove("hide");
+        this.isTerminalOpened = true;
+        this.$terminalContainer.style.height = termContainerHeight + "px";
+        this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
+        localStorage.setItem(
+            "AcodeX_Terminal_Cont_Height",
+            termContainerHeight
+        );
+
+        if (localStorage.getItem("AcodeX_Current_Session")) {
+            this.changeSession(
+                localStorage.getItem("AcodeX_Current_Session"),
+                true
             );
-            this.$terminal.loadAddon(this.$fitAddon);
-            //this.$terminal.loadAddon(this.$serializeAddon);
-            this.$terminal.loadAddon(this.$unicode11Addon);
-            this.$terminal.loadAddon(this.$webLinkAddon);
-
-            this.$terminal.onResize((size) => {
-                if (!this.pid) return;
-                const cols = size.cols;
-                const rows = size.rows;
-                const url =
-                    "http://localhost:" +
-                    port +
-                    "/terminals/" +
-                    this.pid +
-                    "/size?cols=" +
-                    cols +
-                    "&rows=" +
-                    rows;
-
-                fetch(url, { method: "POST" });
-            });
-
-            this.$fitAddon.fit();
-            if (this.$webglAddon) {
-                try {
-                    this.$terminal.loadAddon(this.$webglAddon);
-                    this.$terminal.open(this.$terminalContent);
-                } catch (e) {
-                    window.toast(
-                        "error during loading webgl addon: " + e,
-                        4000
-                    );
-                    this.$webglAddon.dispose();
-                    this.$webglAddon = undefined;
-                }
-            }
-            if (!this.$terminal.element) {
-                // webgl loading failed for some reason, attach with DOM renderer
-                this.$terminal.open(this.$terminalContent);
-            }
-            this.$terminal.focus();
-            // fit is called within a setTimeout, cols and rows need this.
-            setTimeout(async () => {
-                // Set terminal size again to set the specific dimensions on the demo
-
-                this.isTerminalOpened = true;
-                this.$terminalContainer.style.height =
-                    termContainerHeight + "px";
-                localStorage.setItem("AcodeX_Terminal_Cont_Height", 270);
-                if (
-                    localStorage.getItem("AcodeX_Terminal_Is_Minimised") ===
-                    "true"
-                ) {
-                    this.minimise();
-                }
-                localStorage.setItem(
-                    "AcodeX_Terminal_Is_Minimised",
-                    this.isTerminalMinimized
-                );
-                localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
-                this._updateTerminalHeight.bind(this);
-                try{
-                    const res = await fetch(
-                        "http://localhost:" +
-                            port +
-                            "/terminals?cols=" +
-                            this.$terminal.cols +
-                            "&rows=" +
-                            this.$terminal.rows,
-                        { method: "POST" }
-                    );
-                    const processId = await res.text();
-                    this.pid = processId;
-                } catch (err){
-                    if (!this.$terminalContainer.classList.contains("hide"))
-                        this.$terminalContainer.classList.add("hide");
-                    if (!this.$showTermBtn.classList.contains("hide"))
-                        this.$showTermBtn.classList.add("hide");
-                    this.isTerminalMinimized = false;
-                    this.isTerminalOpened = false;
-                    localStorage.setItem(
-                        "AcodeX_Terminal_Is_Minimised",
-                        this.isTerminalMinimized
-                    );
-                    localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
-                    this.$terminalContainer.style.height = this.previousTerminalHeight;
-                    localStorage.setItem(
-                        "AcodeX_Terminal_Cont_Height",
-                        this.$terminalContainer.offsetHeight
-                    );
-                    window.toast("Start the acodex server in termux first!", 4000);
-                }
-                this.socket = new WebSocket(
-                    `ws://localhost:${port}/terminals/${this.pid}`
-                );
-                this.socket.onopen = this.openNewTerminal();
-                /*this.socket.onmessage = () => {
-                    console.log(this.$serializeAddon.serialize())
-                }*/
-                this.socket.onerror = (error) => {
-                    acode.alert("AcodeX Error", error);
-                };
-            }, 0);
+        } else {
+            this.$terminalContent.innerHTML = "";
+            this.createSession();
         }
     }
 
-    async openNewTerminal() {
-        /*
-        open a new terminal in app
-        */
-        try {
-            this.$fitAddon.fit();
+    async createXtermTerminal(port) {
+        this.$terminal = this.terminalObj;
+        this.$fitAddon = new FitAddon();
+        this.$webglAddon = new WebglAddon();
+        this.$unicode11Addon = new Unicode11Addon();
+        this.$webLinkAddon = new WebLinksAddon((event, uri) => {
+            system.openInBrowser(uri);
+        });
+        this.$terminal.loadAddon(this.$fitAddon);
+        this.$terminal.loadAddon(this.$unicode11Addon);
+        this.$terminal.loadAddon(this.$webLinkAddon);
+
+        this.$fitAddon.fit();
+        if (this.$webglAddon) {
+            try {
+                this.$terminal.loadAddon(this.$webglAddon);
+                this.$terminal.open(this.$terminalContent);
+            } catch (e) {
+                window.toast("error during loading webgl addon: " + e, 4000);
+                this.$webglAddon.dispose();
+                this.$webglAddon = undefined;
+            }
+        }
+        if (!this.$terminal.element) {
+            // webgl loading failed for some reason, attach with DOM renderer
+            this.$terminal.open(this.$terminalContent);
+        }
+        this.$terminal.focus();
+        this._updateTerminalHeight();
+    }
+
+    async attachSocketToXterm(port, pid) {
+        this.$terminal.onResize((size) => {
+            if (!pid) return;
+            const cols = size.cols;
+            const rows = size.rows;
+            const url =
+                "http://localhost:" +
+                port +
+                "/terminals/" +
+                pid +
+                "/size?cols=" +
+                cols +
+                "&rows=" +
+                rows;
+
+            fetch(url, { method: "POST" });
+        });
+        this.socket = new WebSocket(`ws://localhost:${port}/terminals/${pid}`);
+        this.socket.onopen = () => {
             this.$attachAddon = new AttachAddon(this.socket);
             this.$terminal.loadAddon(this.$attachAddon);
             this.$terminal.unicode.activeVersion = "11";
-            this.terminalCount++;
-            this._showAd();
+            this._updateTerminalHeight();
+            localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+            // check for is terminal minimised
+            if (
+                localStorage.getItem("AcodeX_Terminal_Is_Minimised") === "true"
+            ) {
+                this.minimise();
+            }
+        };
+        this.socket.onerror = (error) => {
+            acode.alert("AcodeX Error", JSON.stringify(error));
+        };
+    }
+
+    async createSession() {
+        /*
+        creates terminal session
+        */
+        let pid;
+        const jsonData = await this.$cacheFile.readFile("utf8");
+        let sessionsData = jsonData ? JSON.parse(jsonData) : [];
+
+        if (sessionsData.length === 0) {
+            this.createXtermTerminal(localStorage.getItem("AcodeX_Port"));
+            pid = await this._generateProcessId();
+            if (!pid) return;
+            sessionsData = [{ name: "AcodeX1", pid: pid }];
+        } else {
+            this._hideTerminalSession();
+            // Find the highest session number among existing sessions
+            const highestSessionNumber = sessionsData.reduce(
+                (maxNumber, session) => {
+                    const sessionName = session.name;
+                    const match = sessionName.match(/^AcodeX(\d+)$/);
+                    if (match) {
+                        const sessionNumber = parseInt(match[1], 10);
+                        return Math.max(maxNumber, sessionNumber);
+                    }
+                    return maxNumber;
+                },
+                0
+            );
+
+            // Generate the next session name with an incremented number
+            const nextSessionNumber = highestSessionNumber + 1;
+            const nextSessionName = `AcodeX${nextSessionNumber}`;
+
+            this.createXtermTerminal(localStorage.getItem("AcodeX_Port"));
+            pid = await this._generateProcessId();
+            if (!pid) return;
+            sessionsData.push({ name: nextSessionName, pid });
+        }
+
+        await Promise.all([
+            this.$cacheFile.writeFile(sessionsData),
+            this.attachSocketToXterm(localStorage.getItem("AcodeX_Port"), pid),
+        ]);
+        this._updateTerminalHeight();
+        localStorage.setItem(
+            "AcodeX_Current_Session",
+            sessionsData[sessionsData.length - 1].name
+        );
+        this.$terminalTitle.textContent =
+            sessionsData[sessionsData.length - 1].name;
+        window.toast(
+            `Created Session: ${sessionsData[sessionsData.length - 1].name}`,
+            3000
+        );
+    }
+
+    _hideTerminalSession() {
+        this.$terminal.dispose();
+        this.$terminal = null;
+        this.socket.close();
+        this.socket = null;
+        this.$attachAddon.dispose();
+        this.$fitAddon.dispose();
+        this.$unicode11Addon.dispose();
+        this.$webLinkAddon.dispose();
+        this.$webglAddon.dispose();
+        this.$attachAddon = undefined;
+        this.$fitAddon = undefined;
+        this.$unicode11Addon = undefined;
+        this.$webLinkAddon = undefined;
+        this.$webglAddon = undefined;
+        this.$terminalContent.innerHTML = "";
+    }
+
+    async _generateProcessId() {
+        try {
+            const res = await fetch(
+                "http://localhost:" +
+                    localStorage.getItem("AcodeX_Port") +
+                    "/terminals?cols=" +
+                    this.$terminal.cols +
+                    "&rows=" +
+                    this.$terminal.rows,
+                { method: "POST" }
+            );
+            return await res.text();
         } catch (err) {
-            window.alert(err);
+            if (!this.$terminalContainer.classList.contains("hide"))
+                this.$terminalContainer.classList.add("hide");
+            if (!this.$showTermBtn.classList.contains("hide"))
+                this.$showTermBtn.classList.add("hide");
+            this.isTerminalMinimized = false;
+            this.isTerminalOpened = false;
+            localStorage.setItem(
+                "AcodeX_Terminal_Is_Minimised",
+                this.isTerminalMinimized
+            );
+            localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+            this.$terminalContainer.style.height = this.previousTerminalHeight;
+            localStorage.setItem(
+                "AcodeX_Terminal_Cont_Height",
+                this.$terminalContainer.offsetHeight
+            );
+            localStorage.removeItem("AcodeX_Current_Session");
+            window.toast("Start the acodex server in termux first!", 4000);
         }
     }
 
-    _saveSetting(){
+    async changeSession(sessionName, isFirst = false) {
+        if (isFirst) {
+            this.createXtermTerminal(localStorage.getItem("AcodeX_Port"));
+            const pid = await this._getPidBySessionName(sessionName);
+            if (!pid) return;
+            this.attachSocketToXterm(localStorage.getItem("AcodeX_Port"), pid);
+            localStorage.setItem("AcodeX_Current_Session", sessionName);
+            this.$terminalTitle.textContent = sessionName;
+        } else {
+            if (sessionName === localStorage.getItem("AcodeX_Current_Session"))
+                return;
+            this._hideTerminalSession();
+            this.createXtermTerminal(localStorage.getItem("AcodeX_Port"));
+            const pid = await this._getPidBySessionName(sessionName);
+            if (!pid) return;
+            this.attachSocketToXterm(localStorage.getItem("AcodeX_Port"), pid);
+            localStorage.setItem("AcodeX_Current_Session", sessionName);
+            this.$terminalTitle.textContent = sessionName;
+        }
+    }
+
+    async _getPidBySessionName(sessionName) {
+        const jsonData = await this.$cacheFile.readFile("utf8");
+        let sessionsData = jsonData ? JSON.parse(jsonData) : [];
+
+        // Check if the sessions data is an array
+        if (Array.isArray(sessionsData)) {
+            // Find the session by name
+            const session = sessionsData.find((s) => s.name === sessionName);
+
+            // Check if the session was found
+            if (session) {
+                // Return the PID associated with the session
+                return session.pid;
+            } else {
+                console.log(
+                    `Error: Session '${sessionName}' not found in JSON file.`
+                );
+                return null;
+            }
+        } else {
+            console.log("Error: Sessions data is not an array in JSON file.");
+            return null;
+        }
+    }
+
+    _saveSetting() {
         appSettings.value[plugin.id] = {
-            //lsp: this.LSP,
             cursorBlink: this.CURSOR_BLINK,
             cursorStyle: this.CURSOR_STYLE[0],
             fontSize: this.FONT_SIZE,
@@ -581,13 +659,27 @@ class AcodeX {
         );
         this.$fitAddon.fit();
     }
-    
-    async _showAd(){
-        if(this.terminalCount > 4) {
-            this.terminalCount = 0;
-            const adBox = await confirm("Support", "Please Support the Plugin with your small contribution 💓💗");
-            if(!adBox) return;
-            system.openInBrowser("https://www.buymeacoffee.com/bajrangCoder");
+
+    async _getLastSessionName() {
+        try {
+            // Read the JSON file
+            const jsonData = await this.$cacheFile.readFile("utf8");
+            let sessionsData = jsonData ? JSON.parse(jsonData) : [];
+
+            // Check if the sessions data is an array
+            if (Array.isArray(sessionsData) && sessionsData.length > 0) {
+                // Get the last session name
+                const lastSession = sessionsData[sessionsData.length - 1];
+                return lastSession.name;
+            } else {
+                console.error(
+                    "Error: No sessions found in JSON file or sessions data is not an array."
+                );
+                return null;
+            }
+        } catch (error) {
+            console.error("Error reading or parsing JSON file:", error);
+            return null;
         }
     }
 
@@ -597,38 +689,110 @@ class AcodeX {
         */
         let confirmation = await confirm("Warning", "Are you sure ?");
         if (!confirmation) return;
-        if (this.$terminal != null) {
-            if(this.socket){
-                this.socket.close();
-            }
-            this.$terminal.dispose();
-            this.$terminal = null;
-            this.socket = null;
-            this.pid = "";
-            this.$attachAddon = undefined;
-            this.$fitAddon = undefined;
-            this.$serializeAddon = undefined;
-            this.$unicode11Addon = undefined;
-            this.$webLinkAddon = undefined;
-            this.$webglAddon = undefined;
+        if (
+            this.$terminal != null &&
+            localStorage.getItem("AcodeX_Current_Session")
+        ) {
+            const pidOfCurrentSession = await this._getPidBySessionName(
+                localStorage.getItem("AcodeX_Current_Session")
+            );
+            fetch(
+                `http://localhost:${localStorage.getItem(
+                    "AcodeX_Port"
+                )}/terminals/${pidOfCurrentSession}/terminate`,
+                {
+                    method: "POST",
+                }
+            )
+                .then(async (response) => {
+                    if (response.ok) {
+                        const jsonData = await this.$cacheFile.readFile("utf8");
+                        let sessionsData = jsonData ? JSON.parse(jsonData) : [];
+
+                        // Filter out the session to delete
+                        sessionsData = sessionsData.filter(
+                            (session) =>
+                                session.name !==
+                                localStorage.getItem("AcodeX_Current_Session")
+                        );
+
+                        // Save the updated sessionsData back to the JSON file
+                        await this.$cacheFile.writeFile(sessionsData);
+
+                        // Check if there are any remaining sessions
+                        if (sessionsData.length > 0) {
+                            // Get the next session name
+                            const nextSessionName =
+                                await this._getLastSessionName();
+                            this.changeSession(nextSessionName);
+                        } else {
+                            this._hideTerminalSession();
+                            if (
+                                !this.$terminalContainer.classList.contains(
+                                    "hide"
+                                )
+                            )
+                                this.$terminalContainer.classList.add("hide");
+                            if (!this.$showTermBtn.classList.contains("hide"))
+                                this.$showTermBtn.classList.add("hide");
+                            this.isTerminalMinimized = false;
+                            this.isTerminalOpened = false;
+                            localStorage.removeItem("AcodeX_Port");
+                            localStorage.removeItem("AcodeX_Current_Session");
+                            localStorage.setItem(
+                                "AcodeX_Terminal_Is_Minimised",
+                                this.isTerminalMinimized
+                            );
+                            localStorage.setItem(
+                                "AcodeX_Is_Opened",
+                                this.isTerminalOpened
+                            );
+                            this.$terminalContainer.style.height =
+                                this.previousTerminalHeight;
+                            localStorage.setItem(
+                                "AcodeX_Terminal_Cont_Height",
+                                this.$terminalContainer.offsetHeight
+                            );
+                        }
+                    } else {
+                        acode.alert(
+                            "AcodeX Error",
+                            `Failed to close terminal ${this.pid}.`
+                        );
+                    }
+                })
+                .catch(async (error) => {
+                    if (!this.$terminalContainer.classList.contains("hide"))
+                        this.$terminalContainer.classList.add("hide");
+                    if (!this.$showTermBtn.classList.contains("hide"))
+                        this.$showTermBtn.classList.add("hide");
+                    this.isTerminalMinimized = false;
+                    this.isTerminalOpened = false;
+                    localStorage.setItem(
+                        "AcodeX_Terminal_Is_Minimised",
+                        this.isTerminalMinimized
+                    );
+                    localStorage.setItem(
+                        "AcodeX_Is_Opened",
+                        this.isTerminalOpened
+                    );
+                    this.$terminalContainer.style.height =
+                        this.previousTerminalHeight;
+                    localStorage.setItem(
+                        "AcodeX_Terminal_Cont_Height",
+                        this.$terminalContainer.offsetHeight
+                    );
+                    localStorage.removeItem("AcodeX_Current_Session");
+                    await this.$cacheFile.writeFile("");
+                    acode.alert(
+                        "AcodeX Server",
+                        "Disconnected from server because server gets closed 😞!"
+                    );
+                    console.error(
+                        `Error while closing terminal ${this.pid}: ${error}`
+                    );
+                });
         }
-        this.$terminalContent.innerHTML = "";
-        if (!this.$terminalContainer.classList.contains("hide"))
-            this.$terminalContainer.classList.add("hide");
-        if (!this.$showTermBtn.classList.contains("hide"))
-            this.$showTermBtn.classList.add("hide");
-        this.isTerminalMinimized = false;
-        this.isTerminalOpened = false;
-        localStorage.setItem(
-            "AcodeX_Terminal_Is_Minimised",
-            this.isTerminalMinimized
-        );
-        localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
-        this.$terminalContainer.style.height = this.previousTerminalHeight;
-        localStorage.setItem(
-            "AcodeX_Terminal_Cont_Height",
-            this.$terminalContainer.offsetHeight
-        );
     }
 
     startDraggingFlotingBtn(e) {
@@ -737,8 +901,7 @@ class AcodeX {
 
         this.$terminalContainer.style.height = newHeight + "px";
         localStorage.setItem("AcodeX_Terminal_Cont_Height", newHeight);
-        this._updateTerminalHeight.bind(this);
-        this.$fitAddon.fit();
+        this._updateTerminalHeight();
     }
 
     stopDragging(e) {
@@ -838,8 +1001,6 @@ class AcodeX {
             return;
         }
         this.socket.send(`cd "${realPath}"\r`);
-        this.terminalCount++;
-        this._showAd();
     }
 
     async destroy() {
@@ -847,7 +1008,6 @@ class AcodeX {
         this.xtermCss.remove();
         editorManager.editor.commands.removeCommand("terminal:open_terminal");
         editorManager.editor.commands.removeCommand("terminal:close_terminal");
-        //editorManager.editor.commands.removeCommand("terminal:start_lsp");
         this.$terminalContainer.remove();
         this.$showTermBtn.remove();
         document.removeEventListener(
@@ -873,6 +1033,7 @@ class AcodeX {
 
         localStorage.removeItem("AcodeX_Terminal_Is_Minimised");
         localStorage.removeItem("AcodeX_Port");
+        localStorage.removeItem("AcodeX_Current_Session");
         localStorage.removeItem("AcodeX_Terminal_Cont_Height");
         localStorage.removeItem("AcodeX_Is_Opened");
     }
@@ -886,8 +1047,8 @@ class AcodeX {
         this.settings.customFontStyleSheet = newUrl;
         appSettings.update();
     }
-    
-    async applyTheme(themeName){
+
+    async applyTheme(themeName) {
         const theme = themes[themeName];
         this.settings.theme = themeName;
         this.settings.background = theme.background;
@@ -951,15 +1112,9 @@ class AcodeX {
     }
 
     get settingsObj() {
-        if(this.settings.theme === "custom"){
+        if (this.settings.theme === "custom") {
             return {
                 list: [
-                    /*{
-                        key: "lsp",
-                        text: "Want LSP",
-                        info: "Whether the lsp should work or not.",
-                        checkbox: !!this.settings.lsp,
-                    },*/
                     {
                         index: 4,
                         key: "customFontStyleSheet",
@@ -1197,10 +1352,13 @@ class AcodeX {
                 cb: (key, value) => {
                     if (key === "customFontStyleSheet") {
                         this.setCustomFontFile();
-                    } else if(key === "theme"){
+                    } else if (key === "theme") {
                         this.applyTheme(value);
-                        acode.alert("Warning", "Make sure to restart app if you want any change in theme Settings.");
-                    }else {
+                        acode.alert(
+                            "Warning",
+                            "Make sure to restart app if you want any change in theme Settings."
+                        );
+                    } else {
                         this.settings[key] = value;
                         appSettings.update();
                     }
@@ -1208,114 +1366,111 @@ class AcodeX {
             };
         } else {
             return {
-            list: [
-                /*{
-                    key: "lsp",
-                    text: "Want LSP",
-                    info: "Whether the lsp should work or not.",
-                    checkbox: !!this.settings.lsp,
-                },*/
-                {
-                    index: 7,
-                    key: "customFontStyleSheet",
-                    text: "Custom Font Stylesheet file",
-                    info: "Select css file in which you have to define about your custom font.",
-                    value: this.settings.customFontStyleSheet,
+                list: [
+                    {
+                        index: 7,
+                        key: "customFontStyleSheet",
+                        text: "Custom Font Stylesheet file",
+                        info: "Select css file in which you have to define about your custom font.",
+                        value: this.settings.customFontStyleSheet,
+                    },
+                    {
+                        index: 0,
+                        key: "cursorBlink",
+                        text: "Cursor Blink",
+                        info: "Whether the cursor blinks.",
+                        checkbox: !!this.settings.cursorBlink,
+                    },
+                    {
+                        index: 1,
+                        key: "cursorStyle",
+                        text: "Cursor Style",
+                        value: this.settings.cursorStyle,
+                        info: "The style of the cursor.",
+                        select: [
+                            this.CURSOR_STYLE[0],
+                            this.CURSOR_STYLE[1],
+                            this.CURSOR_STYLE[2],
+                        ],
+                    },
+                    {
+                        index: 2,
+                        key: "fontSize",
+                        text: "Font Size",
+                        value: this.settings.fontSize,
+                        info: "The font size used to render text.",
+                        prompt: "Font Size",
+                        promptType: "text",
+                        promptOption: [
+                            {
+                                match: /^[0-9]+$/,
+                                required: true,
+                            },
+                        ],
+                    },
+                    {
+                        index: 3,
+                        key: "fontFamily",
+                        text: "Font Family",
+                        value: this.settings.fontFamily,
+                        info: "The font family used to render text.",
+                        prompt: "Font Family",
+                        promptType: "text",
+                    },
+                    {
+                        index: 4,
+                        key: "scrollBack",
+                        text: "Scroll Back",
+                        value: this.settings.scrollBack,
+                        info: "The amount of scrollback in the terminal. Scrollback is the amount of rows that are retained when lines are scrolled beyond the initial viewport.",
+                        prompt: "Scroll Back",
+                        promptType: "number",
+                        promptOption: [
+                            {
+                                match: /^[0-9]+$/,
+                                required: true,
+                            },
+                        ],
+                    },
+                    {
+                        index: 5,
+                        key: "scrollSensitivity",
+                        text: "Scroll Sensitivity",
+                        value: this.settings.scrollSensitivity,
+                        info: "The scrolling speed multiplier used for adjusting normal scrolling speed.",
+                        prompt: "Scroll Sensitivity",
+                        promptType: "number",
+                        promptOption: [
+                            {
+                                match: /^[0-9]+$/,
+                                required: true,
+                            },
+                        ],
+                    },
+                    {
+                        index: 6,
+                        key: "theme",
+                        text: "Theme",
+                        value: this.settings.theme,
+                        info: "Theme of terminal.",
+                        select: this.themeList,
+                    },
+                ],
+                cb: (key, value) => {
+                    if (key === "customFontStyleSheet") {
+                        this.setCustomFontFile();
+                    } else if (key === "theme") {
+                        this.applyTheme(value);
+                        acode.alert(
+                            "Warning",
+                            "Make sure to restart app if you want any change in theme Settings."
+                        );
+                    } else {
+                        this.settings[key] = value;
+                        appSettings.update();
+                    }
                 },
-                {
-                    index: 0,
-                    key: "cursorBlink",
-                    text: "Cursor Blink",
-                    info: "Whether the cursor blinks.",
-                    checkbox: !!this.settings.cursorBlink,
-                },
-                {
-                    index: 1,
-                    key: "cursorStyle",
-                    text: "Cursor Style",
-                    value: this.settings.cursorStyle,
-                    info: "The style of the cursor.",
-                    select: [
-                        this.CURSOR_STYLE[0],
-                        this.CURSOR_STYLE[1],
-                        this.CURSOR_STYLE[2],
-                    ],
-                },
-                {
-                    index: 2,
-                    key: "fontSize",
-                    text: "Font Size",
-                    value: this.settings.fontSize,
-                    info: "The font size used to render text.",
-                    prompt: "Font Size",
-                    promptType: "text",
-                    promptOption: [
-                        {
-                            match: /^[0-9]+$/,
-                            required: true,
-                        },
-                    ],
-                },
-                {
-                    index: 3,
-                    key: "fontFamily",
-                    text: "Font Family",
-                    value: this.settings.fontFamily,
-                    info: "The font family used to render text.",
-                    prompt: "Font Family",
-                    promptType: "text",
-                },
-                {
-                    index: 4,
-                    key: "scrollBack",
-                    text: "Scroll Back",
-                    value: this.settings.scrollBack,
-                    info: "The amount of scrollback in the terminal. Scrollback is the amount of rows that are retained when lines are scrolled beyond the initial viewport.",
-                    prompt: "Scroll Back",
-                    promptType: "number",
-                    promptOption: [
-                        {
-                            match: /^[0-9]+$/,
-                            required: true,
-                        },
-                    ],
-                },
-                {
-                    index: 5,
-                    key: "scrollSensitivity",
-                    text: "Scroll Sensitivity",
-                    value: this.settings.scrollSensitivity,
-                    info: "The scrolling speed multiplier used for adjusting normal scrolling speed.",
-                    prompt: "Scroll Sensitivity",
-                    promptType: "number",
-                    promptOption: [
-                        {
-                            match: /^[0-9]+$/,
-                            required: true,
-                        },
-                    ],
-                },
-                {
-                    index: 6,
-                    key: "theme",
-                    text: "Theme",
-                    value: this.settings.theme,
-                    info: "Theme of terminal.",
-                    select: this.themeList,
-                }
-            ],
-            cb: (key, value) => {
-                if (key === "customFontStyleSheet") {
-                    this.setCustomFontFile();
-                } else if(key === "theme"){
-                    this.applyTheme(value);
-                    acode.alert("Warning", "Make sure to restart app if you want any change in theme Settings.");
-                }else {
-                    this.settings[key] = value;
-                    appSettings.update();
-                }
-            },
-        };
+            };
         }
     }
 
