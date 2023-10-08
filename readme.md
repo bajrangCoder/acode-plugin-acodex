@@ -48,6 +48,7 @@
         <li>New Feature to keep track of terminal either you close acode accidentally</li>
         <li>Some Internal Improvement and Bug fixes</li>
         <li>Terminal will follow acode font if you aren't using any custom one</li>
+        <li>You can use live-server in Acodex in background</li>
     </ul>
 </details>
 <br/>
