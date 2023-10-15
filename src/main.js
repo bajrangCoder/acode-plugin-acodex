@@ -39,6 +39,7 @@ class AcodeX {
     pid;
     terminal = null;
     socket = null;
+    $fitAddon = undefined;
     // default settings for terminal
     CURSOR_BLINK = true;
     SHOW_ARROW_BTN = false;
@@ -140,7 +141,12 @@ class AcodeX {
             });
             this.$showTermBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-terminal" viewBox="0 0 16 16"><path d="M6 9a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 9zM3.854 4.146a.5.5 0 1 0-.708.708L4.793 6.5 3.146 8.146a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2z"/><path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/></svg>`;
             // append Terminal panel to app main
-            app.get("main").append(this.$terminalContainer, this.$showTermBtn);
+            if (app.get("main")) {
+                app.get("main").append(
+                    this.$terminalContainer,
+                    this.$showTermBtn
+                );
+            }
 
             this.$showTermBtn.classList.add("hide");
             this.$terminalContainer.classList.add("hide");
@@ -258,6 +264,16 @@ class AcodeX {
                     );
                     this.$terminalContainer.style.height =
                         adjustedHeight + "px";
+                    if (
+                        localStorage.getItem("AcodeX_Is_Opened") === "true" &&
+                        this.$fitAddon !== undefined
+                    ) {
+                        this._updateTerminalHeight();
+                    }
+                    localStorage.setItem(
+                        "AcodeX_Terminal_Cont_Height",
+                        this.$terminalContainer.offsetHeight
+                    );
                 }
                 if (!this.$showTermBtn.classList.contains("hide")) {
                     let totalHeaderHeight =
@@ -270,9 +286,6 @@ class AcodeX {
                     const currentY = parseInt(this.$showTermBtn.style.bottom);
                     this.$showTermBtn.style.bottom =
                         Math.max(0, Math.min(maxY, currentY)) + "px";
-                }
-                if (localStorage.getItem("AcodeX_Is_Opened") === "true") {
-                    this._updateTerminalHeight();
                 }
             });
             if (
@@ -338,7 +351,7 @@ class AcodeX {
             });
         } catch (err) {
             console.log(err);
-            alert("Warning", "Please Restart the app to use AcodeX");
+            //alert("Warning", "Please Restart the app to use AcodeX");
         }
     }
 
@@ -356,16 +369,15 @@ class AcodeX {
             }));
 
         if (!port) return;
+        if (!document.querySelector(".terminal-container")) {
+            app.get("main").append(this.$terminalContainer, this.$showTermBtn);
+        }
         // save port in localhost
         localStorage.setItem("AcodeX_Port", port);
         this.$terminalContainer.classList.remove("hide");
         this.isTerminalOpened = true;
         this.$terminalContainer.style.height = termContainerHeight + "px";
         this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
-        localStorage.setItem(
-            "AcodeX_Terminal_Cont_Height",
-            termContainerHeight
-        );
 
         if (localStorage.getItem("AcodeX_Current_Session")) {
             this.changeSession(
@@ -433,6 +445,10 @@ class AcodeX {
             this.$terminal.unicode.activeVersion = "11";
             this._updateTerminalHeight();
             localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+            localStorage.setItem(
+                "AcodeX_Terminal_Cont_Height",
+                this.$terminalContainer.offsetHeight
+            );
             // check for is terminal minimised
             if (
                 localStorage.getItem("AcodeX_Terminal_Is_Minimised") === "true"
@@ -941,8 +957,15 @@ class AcodeX {
         show terminal and hide the show terminal button
         */
         if (this.isTerminalMinimized) {
-            this.$terminalContainer.style.height =
-                localStorage.getItem("AcodeX_Terminal_Cont_Height") + "px";
+            if (
+                parseInt(localStorage.getItem("AcodeX_Terminal_Cont_Height")) <=
+                50
+            ) {
+                this.$terminalContainer.style.height = "50px";
+            } else {
+                this.$terminalContainer.style.height =
+                    localStorage.getItem("AcodeX_Terminal_Cont_Height") + "px";
+            }
             this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
             this.$fitAddon.fit();
             localStorage.setItem(

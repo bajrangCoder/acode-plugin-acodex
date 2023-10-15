@@ -5,11 +5,6 @@
 > **Warning**
 > This plugin requires the [AcodeX-Server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
 
-> **Note**
-> **For old AcodeX users:**
-> Before installing, update your [AcodeX-Server](https://github.com/bajrangCoder/AcodeX-server) to use version `v2.2.0` , by running the following command in Termux:<br />
-> <pre>npm update -g acodex-server</pre>
-
 [AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful plugin for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
 > **Note**
@@ -41,14 +36,11 @@
 
 <details>
     <summary>
-        <h3 style="display:inline">What's New (v2.2.0)?</h3>
+        <h3 style="display:inline">What's New (v2.2.1)?</h3>
     </summary>
     <ul>
-        <li>Introducing the brand new <strong>Multiple Sessions</strong> which is power efficient and effective</li>
-        <li>New Feature to keep track of terminal either you close acode accidentally</li>
-        <li>Some Internal Improvement and Bug fixes</li>
-        <li>Terminal will follow acode font if you aren't using any custom one</li>
-        <li>You can use live-server in Acodex in background</li>
+        <li>Fixed critical minimising issue (clear cache then try)</li>
+        <li>Now no need to restart app after installing plugin</li>
     </ul>
 </details>
 <br/>

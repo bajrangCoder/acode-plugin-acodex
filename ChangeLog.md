@@ -1,10 +1,18 @@
 # Change Logs
 
+## `Update v2.2.0`
+
+- Introducing the brand new **Multiple Sessions** which is power efficient and effective
+- New Feature to keep track of terminal either you close acode accidentally
+- Some Internal Improvement and Bug fixes
+- Terminal will follow acode font if you aren't using any custom one
+- You can use live-server in Acodex in background
+
 ## `Update v2.1.2`
 
-- Improved readme
-- Fixed Settings issue
-- Some important internal changes
+-   Improved readme
+-   Fixed Settings issue
+-   Some important internal changes
 
 ## `Update v2.1.1`
 
