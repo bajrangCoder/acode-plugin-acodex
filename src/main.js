@@ -1,5 +1,6 @@
 import plugin from "../plugin.json";
 import style from "./style.scss";
+import fontStyles from "./fonts.scss";
 import { themes } from "./themes.js";
 
 // xtermjs
@@ -41,15 +42,32 @@ class AcodeX {
     socket = null;
     $fitAddon = undefined;
     // default settings for terminal
+    ALLOW_TRANSPRANCY = false;
     CURSOR_BLINK = true;
     SHOW_ARROW_BTN = false;
     CURSOR_STYLE = ["block", "underline", "bar"];
     FONT_SIZE = 10;
-    //FONT_FAMILY = "'Cascadia Code', Menlo, monospace";
     FONT_FAMILY = appSettings.get("editorFont");
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
-    themeList = ["xterm", "snazzy", "sapphire", "light", "custom"];
+    themeList = [
+        "ayuDark",
+        "ayuLight",
+        "ayuMirage",
+        "catppuccin",
+        "dracula",
+        "elementary",
+        "everblush",
+        "light",
+        "material",
+        "nekonakoDjancoeg",
+        "oneDark",
+        "sapphire",
+        "siduckOneDark",
+        "snazzy",
+        "xterm",
+        "custom"
+    ];
 
     constructor() {
         if (!appSettings.value[plugin.id]) {
@@ -73,8 +91,12 @@ class AcodeX {
                 rel: "stylesheet",
                 href: this.baseUrl + "main.css"
             });
+            this.$fontStyles = tag("link", {
+                rel: "stylesheet",
+                href: this.baseUrl + "fonts.css"
+            });
             this._loadCustomFontStyleSheet();
-            document.head.append(this.xtermCss, this.$style);
+            document.head.append(this.xtermCss, this.$style, this.$fontStyles);
             // add command in command Pallete for opening and closing terminal
             editorManager.editor.commands.addCommand({
                 name: "acodex:open_terminal",
@@ -374,7 +396,19 @@ class AcodeX {
         this.$terminalContainer.classList.remove("hide");
         this.isTerminalOpened = true;
         this.$terminalContainer.style.height = termContainerHeight + "px";
+        this.$terminalContent.style.width = "100%";
         this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
+
+        if (this.settings.transparency) {
+            this.$terminalContainer.style.background = "transparent";
+            this.$terminalContainer.style.backdropFilter = `blur(${this.settings.blurValue})`;
+            this.$terminalHeader.style.background = "transparent";
+            this.$terminalHeader.style.backdropFilter = `blur(${this.settings.blurValue})`;
+        } else {
+            this.$terminalContainer.style.background =
+                "var(--popup-background-color)";
+            this.$terminalHeader.style.background = "var(--primary-color)";
+        }
 
         if (localStorage.getItem("AcodeX_Current_Session")) {
             this.changeSession(
@@ -452,6 +486,8 @@ class AcodeX {
             ) {
                 this.minimise();
             }
+            this.$terminal.focus();
+            this._updateTerminalHeight();
         };
         this.socket.onerror = error => {
             acode.alert("AcodeX Error", JSON.stringify(error));
@@ -615,6 +651,8 @@ class AcodeX {
     _saveSetting() {
         appSettings.value[plugin.id] = {
             port: 8767,
+            transparency: this.ALLOW_TRANSPRANCY,
+            blurValue: "4px",
             cursorBlink: this.CURSOR_BLINK,
             cursorStyle: this.CURSOR_STYLE[0],
             fontSize: this.FONT_SIZE,
@@ -667,6 +705,7 @@ class AcodeX {
     _updateTerminalHeight() {
         const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
         this.$terminalContent.style.height = `calc(100% - ${terminalHeaderHeight}px)`;
+        this.$terminalContent.style.width = `100%`;
         localStorage.setItem(
             "AcodeX_Terminal_Cont_Height",
             this.$terminalContainer.offsetHeight
@@ -1058,9 +1097,19 @@ class AcodeX {
     async setCustomFontFile() {
         const { url } = await acode.fileBrowser(
             "file",
-            "select custom font stylesheet(from internal storage only)"
+            "select custom font stylesheet"
         );
-        const newUrl = await toInternalUrl(url);
+        if (!url) return;
+        let realUrl = this._convertPath(url);
+        if (realUrl.startsWith("/sdcard")) {
+            realUrl = realUrl.replace("/sdcard", "file:///storage/emulated/0");
+        } else if (realUrl.startsWith("$HOME")) {
+            return;
+        }
+        const urlSegments = url.split("/");
+        const fileNameWithExtension = urlSegments[urlSegments.length - 1];
+        realUrl = realUrl + "/" + fileNameWithExtension;
+        const newUrl = await toInternalUrl(realUrl);
         this.settings.customFontStyleSheet = newUrl;
         appSettings.update();
     }
@@ -1092,8 +1141,22 @@ class AcodeX {
         appSettings.update();
     }
 
+    hexToTransparentRGBA(hex, alpha) {
+        // Remove the hash character if it's present
+        hex = hex.replace("#", "");
+
+        // Parse the hex value to RGB
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        // Return the RGBA string with the specified alpha value
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
     get terminalObj() {
         return new Terminal({
+            allowTransparency: this.settings.transparency,
             allowProposedApi: true,
             scrollOnUserInput: true,
             cursorBlink: this.settings.cursorBlink,
@@ -1103,7 +1166,9 @@ class AcodeX {
             fontSize: this.settings.fontSize,
             fontFamily: this.settings.fontFamily,
             theme: {
-                background: this.settings.background,
+                background: this.settings.transparency
+                    ? this.hexToTransparentRGBA(this.settings.background, 0.5)
+                    : this.settings.background,
                 foreground: this.settings.foreground,
                 selectionBackground: this.settings.selectionBackground,
                 cursor: this.settings.cursor,
@@ -1130,7 +1195,102 @@ class AcodeX {
 
     async clearCache() {
         await this.$cacheFile.writeFile("");
-        window.toast("Cache cleared 🔥",3000);
+        window.toast("Cache cleared 🔥", 3000);
+    }
+
+    get fontsList() {
+        return [
+            [
+                this.FONT_FAMILY,
+                "Default Editor Font",
+                "file file_type_font",
+                true
+            ],
+            [
+                "Fira Code Bold Nerd Font",
+                "Fira Code Bold Nerd Font",
+                "file file_type_font",
+                true
+            ],
+            [
+                "Fira Code Medium Nerd Font",
+                "Fira Code Medium Nerd Font",
+                "file file_type_font",
+                true
+            ],
+            [
+                "JetBrains Mono Bold Nerd Font",
+                "JetBrains Mono Bold Nerd Font",
+                "file file_type_font",
+                true
+            ],
+            [
+                "JetBrains Mono Medium Nerd Font",
+                "JetBrains Mono Medium Nerd Font",
+                "file file_type_font",
+                true
+            ],
+            [
+                "VictorMonoNerdFont Bold",
+                "VictorMonoNerdFont Bold",
+                "file file_type_font",
+                true
+            ],
+            [
+                "VictorMonoNerdFont BoldItalic",
+                "VictorMonoNerdFont BoldItalic",
+                "file file_type_font",
+                true
+            ],
+            [
+                "VictorMonoNerdFont Medium",
+                "VictorMonoNerdFont Medium",
+                "file file_type_font",
+                true
+            ],
+            [
+                "VictorMonoNerdFont Italic",
+                "VictorMonoNerdFont Italic",
+                "file file_type_font",
+                true
+            ],
+            [
+                "SauceCodeProNerdFont Bold",
+                "SauceCodeProNerdFont Bold",
+                "file file_type_font",
+                true
+            ],
+            [
+                "SauceCodeProNerdFont Medium",
+                "SauceCodeProNerdFont Medium",
+                "file file_type_font",
+                true
+            ],
+            [
+                "MesloLGS NF Bold Italic",
+                "MesloLGS NF Bold Italic",
+                "file file_type_font",
+                true
+            ],
+            [
+                "MesloLGS NF Bold",
+                "MesloLGS NF Bold",
+                "file file_type_font",
+                true
+            ],
+            [
+                "MesloLGS NF Italic",
+                "MesloLGS NF Italic",
+                "file file_type_font",
+                true
+            ],
+            [
+                "MesloLGS NF Regular",
+                "MesloLGS NF Regular",
+                "file file_type_font",
+                true
+            ]
+        ];
     }
 
     get settingsObj() {
@@ -1151,6 +1311,19 @@ class AcodeX {
                         ]
                     },
                     {
+                        key: "blurValue",
+                        text: "Blur Value(in px)",
+                        value: this.settings.blurValue,
+                        info: "Blur value for terminal in transparent mode",
+                        prompt: "Blur Value",
+                        promptType: "text",
+                        promptOption: [
+                            {
+                                required: true
+                            }
+                        ]
+                    },
+                    {
                         key: "clearCache",
                         text: "Clear Cache",
                         info: "Helps in clearing cache which contains session details in case of any problems or bug"
@@ -1161,6 +1334,12 @@ class AcodeX {
                         text: "Custom Font Stylesheet file",
                         info: "Select css file in which you have to define about your custom font.",
                         value: this.settings.customFontStyleSheet
+                    },
+                    {
+                        key: "transparency",
+                        text: "Allow Transparent Terminal",
+                        info: "Makes terminal transparent but it will also led to slightly performance decrement",
+                        checkbox: !!this.settings.transparency
                     },
                     {
                         index: 0,
@@ -1202,8 +1381,7 @@ class AcodeX {
                         text: "Font Family",
                         value: this.settings.fontFamily,
                         info: "The font family used to render text.",
-                        prompt: "Font Family",
-                        promptType: "text"
+                        select: this.fontsList
                     },
                     {
                         index: 5,
@@ -1423,9 +1601,28 @@ class AcodeX {
                         ]
                     },
                     {
+                        key: "blurValue",
+                        text: "Blur Value(in px)",
+                        value: this.settings.blurValue,
+                        info: "Blur value for terminal in transparent mode",
+                        prompt: "Blur Value",
+                        promptType: "text",
+                        promptOption: [
+                            {
+                                required: true
+                            }
+                        ]
+                    },
+                    {
                         key: "clearCache",
                         text: "Clear Cache",
                         info: "Helps in clearing cache which contains session details in case of any problems or bug"
+                    },
+                    {
+                        key: "transparency",
+                        text: "Allow Transparent Terminal",
+                        info: "Makes terminal transparent but it will also led to slightly performance decrement",
+                        checkbox: !!this.settings.transparency
                     },
                     {
                         index: 7,
@@ -1474,8 +1671,7 @@ class AcodeX {
                         text: "Font Family",
                         value: this.settings.fontFamily,
                         info: "The font family used to render text.",
-                        prompt: "Font Family",
-                        promptType: "text"
+                        select: this.fontsList
                     },
                     {
                         index: 4,

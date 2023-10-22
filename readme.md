@@ -28,19 +28,20 @@
     </ul>
 </details>
 
-<br />
 
 ### Support this project with your small contribution - [Click Me 💗](https://www.buymeacoffee.com/bajrangCoder)
 
-<br />
 
 <details>
     <summary>
-        <h3 style="display:inline">What's New (v2.2.1)?</h3>
+        <h3 style="display:inline">What's New (v2.3.0)?</h3>
     </summary>
     <ul>
-        <li>Fixed critical minimising issue (clear cache then try)</li>
-        <li>Now no need to restart app after installing plugin</li>
+        <li>Removed port prompt from starting of terminal, now you can only change port from Settings</li>
+        <li>Added a setting to make terminal transparent</li>
+        <li>Fixed loading of custom font issue</li>
+        <li>Add many new themes and modified <code>snazzy theme</code> like Ayulight, Ayudark, Ayu Mirage, Catppuccin, Dracula, NekonakoDjancoeg, SiduckOneDark, Elementary, Everblush, One Dark</li>
+        <li>Added some nerd fonts like FiraCode, VictorMono, Jetbrains, SauceCodePro, Meslo</li>
     </ul>
 </details>
 <br/>
@@ -64,6 +65,11 @@
 - **Background Process**: If you will close acode without closing acodex server or terminal in acode then it will be live and when you will open acode again then you can continue without any interuption.
 
 - **Easy Directory Changing**: You can open any folder with a button click.
+
+- **Themes**: Comes with beautiful themes (10+)
+
+- **Transparent Terminal**: You can also make the termianl panel transparent
+- **Nerd Fonts**: Comes preloaded with some nerd fonts and you can also load your custom fonts
 
 ### API Docs
 
@@ -103,7 +109,7 @@ acodex.applyTheme(themeName);
 > **Note**
 > It will be changed in comming updates to user-friendly method 
 
-Custom fonts are provided to load font files required by the Termux theme you are using or If you want to change font of AcodeX terminal.
+Custom fonts are provided to load any other external fonts 
 
 To load a custom font:
 
@@ -169,7 +175,6 @@ Basically just install `python` & `nodejs` and then just install `acodex-server`
 AcodeX is made possible by the use of:
 
 - [xtermjs](https://xtermjs.org/)
-- [node-pty](https://github.com/microsoft/node-pty)
 - [Termux](https://termux.dev/en/)
 
 ## Authors

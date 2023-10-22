@@ -1,11 +1,11 @@
 {
   "id": "bajrangcoder.acodex",
-  "name": "AcodeX",
+  "name": "AcodeX - Terminal",
   "main": "dist/main.js",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "readme": "readme.md",
   "icon": "icon.png",
-  "files": ["xterm.css"],
+  "files": [],
   "minVersionCode": 290,
   "author": {
     "name": "Raunak Raj",

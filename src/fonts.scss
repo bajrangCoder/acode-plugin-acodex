@@ -1,0 +1,86 @@
+$base: "https://localhost/__cdvfile_files-external__/plugins/bajrangcoder.acodex/fonts/";
+
+@font-face {
+    font-family: "Fira Code Bold Nerd Font";
+    src: url("#{$base}Fira Code Bold Nerd Font.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+@font-face {
+    font-family: "Fira Code Medium Nerd Font";
+    src: url("#{$base}Fira Code Medium Nerd Font Complete Mono.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "JetBrains Mono Bold Nerd Font";
+    src: url("#{$base}JetBrains Mono Bold Nerd Font Complete.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+@font-face {
+    font-family: "JetBrains Mono Medium Nerd Font";
+    src: url("#{$base}JetBrains Mono Medium Nerd Font Complete.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "VictorMonoNerdFont Bold";
+    src: url(#{$base} + "VictorMonoNerdFont-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+@font-face {
+    font-family: "VictorMonoNerdFont BoldItalic";
+    src: url(#{$base} + "VictorMonoNerdFont-BoldItalic.ttf") format("truetype");
+    font-weight: bold;
+    font-style: italic;
+}
+@font-face {
+    font-family: "VictorMonoNerdFont Medium";
+    src: url(#{$base} + "VictorMonoNerdFont-Medium.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "VictorMonoNerdFont Italic";
+    src: url(#{$base} + "VictorMonoNerdFont-Italic.ttf") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
+@font-face {
+    font-family: "SauceCodeProNerdFont Bold";
+    src: url(#{$base} + "SauceCodeProNerdFont-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+@font-face {
+    font-family: "SauceCodeProNerdFont Medium";
+    src: url(#{$base} + "SauceCodeProNerdFont-Medium.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "MesloLGS NF Bold Italic";
+    src: url("#{$base}MesloLGS NF Bold Italic.ttf") format("truetype");
+    font-weight: bold;
+    font-style: italic;
+}
+@font-face {
+    font-family: "MesloLGS NF Bold";
+    src: url("#{$base}MesloLGS NF Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+@font-face {
+    font-family: "MesloLGS NF Italic";
+    src: url("#{$base}MesloLGS NF Italic.ttf") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
+@font-face {
+    font-family: "MesloLGS NF Regular";
+    src: url("#{$base}MesloLGS NF Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}

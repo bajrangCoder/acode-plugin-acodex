@@ -1,5 +1,10 @@
 # Change Logs
 
+## `Update v2.2.1`
+
+- Fixed critical minimising issue (clear cache then try)
+- Now no need to restart app after installing plugin
+
 ## `Update v2.2.0`
 
 - Introducing the brand new **Multiple Sessions** which is power efficient and effective
