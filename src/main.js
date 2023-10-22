@@ -55,7 +55,7 @@ class AcodeX {
         if (!appSettings.value[plugin.id]) {
             this._saveSetting();
         } else {
-            if (!this.settings.theme) {
+            if (!this.settings.port) {
                 delete appSettings.value[plugin.id];
                 appSettings.update(false);
                 this._saveSetting();
@@ -67,11 +67,11 @@ class AcodeX {
         try {
             this.xtermCss = tag("link", {
                 rel: "stylesheet",
-                href: this.baseUrl + "xterm.css",
+                href: this.baseUrl + "xterm.css"
             });
             this.$style = tag("link", {
                 rel: "stylesheet",
-                href: this.baseUrl + "main.css",
+                href: this.baseUrl + "main.css"
             });
             this._loadCustomFontStyleSheet();
             document.head.append(this.xtermCss, this.$style);
@@ -81,44 +81,44 @@ class AcodeX {
                 description: "Open Terminal",
                 bindKey: { win: "Ctrl-K" },
                 exec: () => {
-                    this.openTerminalPanel(270, null);
-                },
+                    this.openTerminalPanel(270, this.settings.port);
+                }
             });
             editorManager.editor.commands.addCommand({
                 name: "acodex:close_terminal",
                 description: "Close Terminal",
                 bindKey: { win: "Ctrl-J" },
-                exec: this.closeTerminal.bind(this),
+                exec: this.closeTerminal.bind(this)
             });
             // main terminal container
             this.$terminalContainer = tag("div", {
-                className: "terminal-container",
+                className: "terminal-container"
             });
             this.$terminalHeader = tag("div", {
-                className: "terminal-header",
+                className: "terminal-header"
             });
             this.$terminalTitle = tag("h3", {
                 textContent: "AcodeX 1",
-                className: "terminal-title",
+                className: "terminal-title"
             });
 
             const $controlBtn = tag("div", {
-                className: "control-btn",
+                className: "control-btn"
             });
             const addSessionBtn = tag("button", {
-                className: "add-session-btn",
+                className: "add-session-btn"
             });
             addSessionBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 38q-.65 0-1.075-.425-.425-.425-.425-1.075v-11h-11q-.65 0-1.075-.425Q10 24.65 10 24q0-.65.425-1.075.425-.425 1.075-.425h11v-11q0-.65.425-1.075Q23.35 10 24 10q.65 0 1.075.425.425.425.425 1.075v11h11q.65 0 1.075.425Q38 23.35 38 24q0 .65-.425 1.075-.425.425-1.075.425h-11v11q0 .65-.425 1.075Q24.65 38 24 38Z"/></svg>`;
             this.$cdBtn = tag("button", {
-                className: "cd-btn",
+                className: "cd-btn"
             });
             this.$cdBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14V3.5zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5V6zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7H1.633z"/></svg>`;
             this.$hideTermBtn = tag("button", {
-                className: "hide-terminal-btn",
+                className: "hide-terminal-btn"
             });
             this.$hideTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M15.5 25.5q-.65 0-1.075-.425Q14 24.65 14 24q0-.65.425-1.075.425-.425 1.075-.425h17q.65 0 1.075.425Q34 23.35 34 24q0 .65-.425 1.075-.425.425-1.075.425Z"/></svg>`;
             this.$closeTermBtn = tag("button", {
-                className: "close-terminal-btn",
+                className: "close-terminal-btn"
             });
             this.$closeTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 26.1 13.5 36.6q-.45.45-1.05.45-.6 0-1.05-.45-.45-.45-.45-1.05 0-.6.45-1.05L21.9 24 11.4 13.5q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.9l10.5-10.5q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05L26.1 24l10.5 10.5q.45.45.45 1.05 0 .6-.45 1.05-.45.45-1.05.45-.6 0-1.05-.45Z"/></svg>`;
             $controlBtn.append(
@@ -129,7 +129,7 @@ class AcodeX {
             );
             this.$terminalHeader.append(this.$terminalTitle, $controlBtn);
             this.$terminalContent = tag("div", {
-                className: "terminal-content",
+                className: "terminal-content"
             });
             this.$terminalContainer.append(
                 this.$terminalHeader,
@@ -137,7 +137,7 @@ class AcodeX {
             );
             // show terminal button
             this.$showTermBtn = tag("button", {
-                className: "show-terminal-btn",
+                className: "show-terminal-btn"
             });
             this.$showTermBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-terminal" viewBox="0 0 16 16"><path d="M6 9a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 9zM3.854 4.146a.5.5 0 1 0-.708.708L4.793 6.5 3.146 8.146a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2z"/><path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/></svg>`;
             // append Terminal panel to app main
@@ -166,21 +166,21 @@ class AcodeX {
                 "click",
                 this.createSession.bind(this)
             );
-            this.$terminalTitle.addEventListener("click", async (e) => {
+            this.$terminalTitle.addEventListener("click", async e => {
                 let sessionNames;
                 const jsonData = await this.$cacheFile.readFile("utf8");
                 let sessionsData = JSON.parse(jsonData);
 
                 if (Array.isArray(sessionsData)) {
                     // Extract session names and return them in an array
-                    sessionNames = sessionsData.map((session) => session.name);
+                    sessionNames = sessionsData.map(session => session.name);
                 } else {
                     sessionNames = [];
                 }
 
                 const opt = {
                     hideOnSelect: true,
-                    default: localStorage.getItem("AcodeX_Current_Session"),
+                    default: localStorage.getItem("AcodeX_Current_Session")
                 };
 
                 const sessionSelectBox = await select(
@@ -294,13 +294,13 @@ class AcodeX {
             ) {
                 await this.openTerminalPanel(
                     localStorage.getItem("AcodeX_Terminal_Cont_Height") || 270,
-                    localStorage.getItem("AcodeX_Port") || 8767
+                    this.settings.port
                 );
             }
 
             // acodex terminal api
             acode.define("acodex", {
-                execute: (cmd) => {
+                execute: cmd => {
                     /*
                     {cmd}: command to run in terminal
                     */
@@ -322,7 +322,10 @@ class AcodeX {
                         this.maxmise();
                     }
                 },
-                openTerminal: (termContainerHeight = 270, port = null) => {
+                openTerminal: (
+                    termContainerHeight = 270,
+                    port = this.settings.port
+                ) => {
                     if (!this.isTerminalOpened) {
                         this.createTerminal(termContainerHeight, port);
                     }
@@ -337,17 +340,17 @@ class AcodeX {
                         this.closeTerminal();
                     }
                 },
-                convertAcodeUriToTermReadable: (path) => {
+                convertAcodeUriToTermReadable: path => {
                     return this._convertPath(path);
                 },
                 addTheme: (themeNme, colorSchema) => {
                     this.themeList.push(themeNme);
                     themes[themeNme] = colorSchema;
                 },
-                applyTheme: (themeNme) => {
+                applyTheme: themeNme => {
                     this.settings.theme = themeNme;
                     appSettings.update();
-                },
+                }
             });
         } catch (err) {
             console.log(err);
@@ -355,25 +358,19 @@ class AcodeX {
         }
     }
 
-    async openTerminalPanel(termContainerHeight, portFromParm) {
+    async openTerminalPanel(termContainerHeight, port) {
         /*
         opens floating terminal panel
         @parm termContainerHeight: number
-        @parm portFromParm: number(optional)
+        @parm port: number
         */
-        // prompt for port if its not given as param
-        const port =
-            portFromParm ||
-            (await prompt("Port", "8767", "number", {
-                required: true,
-            }));
 
         if (!port) return;
         if (!document.querySelector(".terminal-container")) {
             app.get("main").append(this.$terminalContainer, this.$showTermBtn);
         }
-        // save port in localhost
-        localStorage.setItem("AcodeX_Port", port);
+        this.settings.port = port;
+        appSettings.update(false);
         this.$terminalContainer.classList.remove("hide");
         this.isTerminalOpened = true;
         this.$terminalContainer.style.height = termContainerHeight + "px";
@@ -422,7 +419,7 @@ class AcodeX {
     }
 
     async attachSocketToXterm(port, pid) {
-        this.$terminal.onResize((size) => {
+        this.$terminal.onResize(size => {
             if (!pid) return;
             const cols = size.cols;
             const rows = size.rows;
@@ -456,7 +453,7 @@ class AcodeX {
                 this.minimise();
             }
         };
-        this.socket.onerror = (error) => {
+        this.socket.onerror = error => {
             acode.alert("AcodeX Error", JSON.stringify(error));
         };
     }
@@ -470,7 +467,7 @@ class AcodeX {
         let sessionsData = jsonData ? JSON.parse(jsonData) : [];
 
         if (sessionsData.length === 0) {
-            this.createXtermTerminal(localStorage.getItem("AcodeX_Port"));
+            this.createXtermTerminal(this.settings.port);
             pid = await this._generateProcessId();
             if (!pid) return;
             sessionsData = [{ name: "AcodeX1", pid: pid }];
@@ -494,7 +491,7 @@ class AcodeX {
             const nextSessionNumber = highestSessionNumber + 1;
             const nextSessionName = `AcodeX${nextSessionNumber}`;
 
-            this.createXtermTerminal(localStorage.getItem("AcodeX_Port"));
+            this.createXtermTerminal(this.settings.port);
             pid = await this._generateProcessId();
             if (!pid) return;
             sessionsData.push({ name: nextSessionName, pid });
@@ -502,7 +499,7 @@ class AcodeX {
 
         await Promise.all([
             this.$cacheFile.writeFile(sessionsData),
-            this.attachSocketToXterm(localStorage.getItem("AcodeX_Port"), pid),
+            this.attachSocketToXterm(this.settings.port, pid)
         ]);
         this._updateTerminalHeight();
         localStorage.setItem(
@@ -539,7 +536,7 @@ class AcodeX {
         try {
             const res = await fetch(
                 "http://localhost:" +
-                    localStorage.getItem("AcodeX_Port") +
+                    this.settings.port +
                     "/terminals?cols=" +
                     this.$terminal.cols +
                     "&rows=" +
@@ -571,20 +568,20 @@ class AcodeX {
 
     async changeSession(sessionName, isFirst = false) {
         if (isFirst) {
-            this.createXtermTerminal(localStorage.getItem("AcodeX_Port"));
+            this.createXtermTerminal(this.settings.port);
             const pid = await this._getPidBySessionName(sessionName);
             if (!pid) return;
-            this.attachSocketToXterm(localStorage.getItem("AcodeX_Port"), pid);
+            this.attachSocketToXterm(this.settings.port, pid);
             localStorage.setItem("AcodeX_Current_Session", sessionName);
             this.$terminalTitle.textContent = sessionName;
         } else {
             if (sessionName === localStorage.getItem("AcodeX_Current_Session"))
                 return;
             this._hideTerminalSession();
-            this.createXtermTerminal(localStorage.getItem("AcodeX_Port"));
+            this.createXtermTerminal(this.settings.port);
             const pid = await this._getPidBySessionName(sessionName);
             if (!pid) return;
-            this.attachSocketToXterm(localStorage.getItem("AcodeX_Port"), pid);
+            this.attachSocketToXterm(this.settings.port, pid);
             localStorage.setItem("AcodeX_Current_Session", sessionName);
             this.$terminalTitle.textContent = sessionName;
         }
@@ -597,7 +594,7 @@ class AcodeX {
         // Check if the sessions data is an array
         if (Array.isArray(sessionsData)) {
             // Find the session by name
-            const session = sessionsData.find((s) => s.name === sessionName);
+            const session = sessionsData.find(s => s.name === sessionName);
 
             // Check if the session was found
             if (session) {
@@ -617,6 +614,7 @@ class AcodeX {
 
     _saveSetting() {
         appSettings.value[plugin.id] = {
+            port: 8767,
             cursorBlink: this.CURSOR_BLINK,
             cursorStyle: this.CURSOR_STYLE[0],
             fontSize: this.FONT_SIZE,
@@ -645,7 +643,7 @@ class AcodeX {
             magenta: themes["sapphire"].magenta,
             red: themes["sapphire"].red,
             white: themes["sapphire"].white,
-            yellow: themes["sapphire"].yellow,
+            yellow: themes["sapphire"].yellow
         };
         appSettings.update(false);
     }
@@ -656,7 +654,7 @@ class AcodeX {
                 const fontStyleSheet = tag("link", {
                     href: this.settings.customFontStyleSheet,
                     rel: "stylesheet",
-                    id: "customFontAcodeXStyleSheet",
+                    id: "customFontAcodeXStyleSheet"
                 });
                 document.head.append(fontStyleSheet);
             } else {
@@ -713,21 +711,19 @@ class AcodeX {
                 localStorage.getItem("AcodeX_Current_Session")
             );
             fetch(
-                `http://localhost:${localStorage.getItem(
-                    "AcodeX_Port"
-                )}/terminals/${pidOfCurrentSession}/terminate`,
+                `http://localhost:${this.settings.port}/terminals/${pidOfCurrentSession}/terminate`,
                 {
-                    method: "POST",
+                    method: "POST"
                 }
             )
-                .then(async (response) => {
+                .then(async response => {
                     if (response.ok) {
                         const jsonData = await this.$cacheFile.readFile("utf8");
                         let sessionsData = jsonData ? JSON.parse(jsonData) : [];
 
                         // Filter out the session to delete
                         sessionsData = sessionsData.filter(
-                            (session) =>
+                            session =>
                                 session.name !==
                                 localStorage.getItem("AcodeX_Current_Session")
                         );
@@ -753,7 +749,6 @@ class AcodeX {
                                 this.$showTermBtn.classList.add("hide");
                             this.isTerminalMinimized = false;
                             this.isTerminalOpened = false;
-                            localStorage.removeItem("AcodeX_Port");
                             localStorage.removeItem("AcodeX_Current_Session");
                             localStorage.setItem(
                                 "AcodeX_Terminal_Is_Minimised",
@@ -777,7 +772,7 @@ class AcodeX {
                         );
                     }
                 })
-                .catch(async (error) => {
+                .catch(async error => {
                     if (!this.$terminalContainer.classList.contains("hide"))
                         this.$terminalContainer.classList.add("hide");
                     if (!this.$showTermBtn.classList.contains("hide"))
@@ -1055,7 +1050,6 @@ class AcodeX {
         window.removeEventListener("touchend", this.stopDragging);
 
         localStorage.removeItem("AcodeX_Terminal_Is_Minimised");
-        localStorage.removeItem("AcodeX_Port");
         localStorage.removeItem("AcodeX_Current_Session");
         localStorage.removeItem("AcodeX_Terminal_Cont_Height");
         localStorage.removeItem("AcodeX_Is_Opened");
@@ -1129,9 +1123,14 @@ class AcodeX {
                 magenta: this.settings.magenta,
                 red: this.settings.red,
                 white: this.settings.white,
-                yellow: this.settings.yellow,
-            },
+                yellow: this.settings.yellow
+            }
         });
+    }
+
+    async clearCache() {
+        await this.$cacheFile.writeFile("");
+        window.toast("Cache cleared 🔥",3000);
     }
 
     get settingsObj() {
@@ -1139,18 +1138,36 @@ class AcodeX {
             return {
                 list: [
                     {
+                        key: "port",
+                        text: "Server Port",
+                        value: this.settings.port,
+                        info: "Port which is displayed on termux when starting the server",
+                        prompt: "Server Port",
+                        promptType: "number",
+                        promptOption: [
+                            {
+                                required: true
+                            }
+                        ]
+                    },
+                    {
+                        key: "clearCache",
+                        text: "Clear Cache",
+                        info: "Helps in clearing cache which contains session details in case of any problems or bug"
+                    },
+                    {
                         index: 4,
                         key: "customFontStyleSheet",
                         text: "Custom Font Stylesheet file",
                         info: "Select css file in which you have to define about your custom font.",
-                        value: this.settings.customFontStyleSheet,
+                        value: this.settings.customFontStyleSheet
                     },
                     {
                         index: 0,
                         key: "cursorBlink",
                         text: "Cursor Blink",
                         info: "Whether the cursor blinks.",
-                        checkbox: !!this.settings.cursorBlink,
+                        checkbox: !!this.settings.cursorBlink
                     },
                     {
                         index: 1,
@@ -1161,8 +1178,8 @@ class AcodeX {
                         select: [
                             this.CURSOR_STYLE[0],
                             this.CURSOR_STYLE[1],
-                            this.CURSOR_STYLE[2],
-                        ],
+                            this.CURSOR_STYLE[2]
+                        ]
                     },
                     {
                         index: 2,
@@ -1175,9 +1192,9 @@ class AcodeX {
                         promptOption: [
                             {
                                 match: /^[0-9]+$/,
-                                required: true,
-                            },
-                        ],
+                                required: true
+                            }
+                        ]
                     },
                     {
                         index: 3,
@@ -1186,7 +1203,7 @@ class AcodeX {
                         value: this.settings.fontFamily,
                         info: "The font family used to render text.",
                         prompt: "Font Family",
-                        promptType: "text",
+                        promptType: "text"
                     },
                     {
                         index: 5,
@@ -1199,9 +1216,9 @@ class AcodeX {
                         promptOption: [
                             {
                                 match: /^[0-9]+$/,
-                                required: true,
-                            },
-                        ],
+                                required: true
+                            }
+                        ]
                     },
                     {
                         index: 6,
@@ -1214,9 +1231,9 @@ class AcodeX {
                         promptOption: [
                             {
                                 match: /^[0-9]+$/,
-                                required: true,
-                            },
-                        ],
+                                required: true
+                            }
+                        ]
                     },
                     {
                         index: 7,
@@ -1224,153 +1241,153 @@ class AcodeX {
                         text: "Theme",
                         value: this.settings.theme,
                         info: "Theme of terminal.",
-                        select: this.themeList,
+                        select: this.themeList
                     },
                     {
                         index: 8,
                         key: "background",
                         text: "Background Color",
                         value: this.settings.background,
-                        color: this.settings.background,
+                        color: this.settings.background
                     },
                     {
                         index: 8,
                         key: "foreground",
                         text: "Foreground Color",
                         value: this.settings.foreground,
-                        color: this.settings.foreground,
+                        color: this.settings.foreground
                     },
                     {
                         index: 9,
                         key: "selectionBackground",
                         text: "Selection Background Color",
                         value: this.settings.selectionBackground,
-                        color: this.settings.selectionBackground,
+                        color: this.settings.selectionBackground
                     },
                     {
                         key: "cursor",
                         text: "Cursor Color",
                         value: this.settings.cursor,
-                        color: this.settings.cursor,
+                        color: this.settings.cursor
                     },
                     {
                         key: "cursorAccent",
                         text: "Cursor Accent Color",
                         value: this.settings.cursorAccent,
-                        color: this.settings.cursorAccent,
+                        color: this.settings.cursorAccent
                     },
                     {
                         index: 10,
                         key: "black",
                         text: "Black Color",
                         value: this.settings.black,
-                        color: this.settings.black,
+                        color: this.settings.black
                     },
                     {
                         index: 11,
                         key: "blue",
                         text: "Blue Color",
                         value: this.settings.blue,
-                        color: this.settings.blue,
+                        color: this.settings.blue
                     },
                     {
                         index: 12,
                         key: "brightBlack",
                         text: "Bright Black Color",
                         value: this.settings.brightBlack,
-                        color: this.settings.brightBlack,
+                        color: this.settings.brightBlack
                     },
                     {
                         index: 13,
                         key: "brightBlue",
                         text: "Bright Blue Color",
                         value: this.settings.brightBlue,
-                        color: this.settings.brightBlue,
+                        color: this.settings.brightBlue
                     },
                     {
                         index: 14,
                         key: "brightCyan",
                         text: "Bright Cyan Color",
                         value: this.settings.brightCyan,
-                        color: this.settings.brightCyan,
+                        color: this.settings.brightCyan
                     },
                     {
                         index: 15,
                         key: "brightGreen",
                         text: "Bright Green Color",
                         value: this.settings.brightGreen,
-                        color: this.settings.brightGreen,
+                        color: this.settings.brightGreen
                     },
                     {
                         index: 16,
                         key: "brightMagenta",
                         text: "Bright Magenta Color",
                         value: this.settings.brightMagenta,
-                        color: this.settings.brightMagenta,
+                        color: this.settings.brightMagenta
                     },
                     {
                         index: 17,
                         key: "brightRed",
                         text: "Bright Red Color",
                         value: this.settings.brightRed,
-                        color: this.settings.brightRed,
+                        color: this.settings.brightRed
                     },
                     {
                         index: 18,
                         key: "brightWhite",
                         text: "Bright White Color",
                         value: this.settings.brightWhite,
-                        color: this.settings.brightWhite,
+                        color: this.settings.brightWhite
                     },
                     {
                         index: 19,
                         key: "brightYellow",
                         text: "Bright Yellow Color",
                         value: this.settings.brightYellow,
-                        color: this.settings.brightYellow,
+                        color: this.settings.brightYellow
                     },
                     {
                         index: 20,
                         key: "cyan",
                         text: "Cyan Color",
                         value: this.settings.cyan,
-                        color: this.settings.cyan,
+                        color: this.settings.cyan
                     },
                     {
                         index: 21,
                         key: "green",
                         text: "Green Color",
                         value: this.settings.green,
-                        color: this.settings.green,
+                        color: this.settings.green
                     },
                     {
                         index: 22,
                         key: "magenta",
                         text: "Magenta Color",
                         value: this.settings.magenta,
-                        color: this.settings.magenta,
+                        color: this.settings.magenta
                     },
                     {
                         index: 23,
                         key: "red",
                         text: "Red Color",
                         value: this.settings.red,
-                        color: this.settings.red,
+                        color: this.settings.red
                     },
                     {
                         index: 24,
                         key: "white",
                         text: "White Color",
                         value: this.settings.white,
-                        color: this.settings.white,
+                        color: this.settings.white
                     },
                     {
                         index: 25,
                         key: "yellow",
                         text: "Yellow Color",
                         value: this.settings.yellow,
-                        color: this.settings.yellow,
-                    },
+                        color: this.settings.yellow
+                    }
                 ],
                 cb: (key, value) => {
                     if (key === "customFontStyleSheet") {
@@ -1381,28 +1398,48 @@ class AcodeX {
                             "Warning",
                             "Make sure to restart app if you want any change in theme Settings."
                         );
+                    } else if (key === "clearCache") {
+                        this.clearCache();
                     } else {
                         this.settings[key] = value;
                         appSettings.update();
                     }
-                },
+                }
             };
         } else {
             return {
                 list: [
                     {
+                        key: "port",
+                        text: "Server Port",
+                        value: this.settings.port,
+                        info: "Port which is displayed on termux when starting the server",
+                        prompt: "Server Port",
+                        promptType: "number",
+                        promptOption: [
+                            {
+                                required: true
+                            }
+                        ]
+                    },
+                    {
+                        key: "clearCache",
+                        text: "Clear Cache",
+                        info: "Helps in clearing cache which contains session details in case of any problems or bug"
+                    },
+                    {
                         index: 7,
                         key: "customFontStyleSheet",
                         text: "Custom Font Stylesheet file",
                         info: "Select css file in which you have to define about your custom font.",
-                        value: this.settings.customFontStyleSheet,
+                        value: this.settings.customFontStyleSheet
                     },
                     {
                         index: 0,
                         key: "cursorBlink",
                         text: "Cursor Blink",
                         info: "Whether the cursor blinks.",
-                        checkbox: !!this.settings.cursorBlink,
+                        checkbox: !!this.settings.cursorBlink
                     },
                     {
                         index: 1,
@@ -1413,8 +1450,8 @@ class AcodeX {
                         select: [
                             this.CURSOR_STYLE[0],
                             this.CURSOR_STYLE[1],
-                            this.CURSOR_STYLE[2],
-                        ],
+                            this.CURSOR_STYLE[2]
+                        ]
                     },
                     {
                         index: 2,
@@ -1427,9 +1464,9 @@ class AcodeX {
                         promptOption: [
                             {
                                 match: /^[0-9]+$/,
-                                required: true,
-                            },
-                        ],
+                                required: true
+                            }
+                        ]
                     },
                     {
                         index: 3,
@@ -1438,7 +1475,7 @@ class AcodeX {
                         value: this.settings.fontFamily,
                         info: "The font family used to render text.",
                         prompt: "Font Family",
-                        promptType: "text",
+                        promptType: "text"
                     },
                     {
                         index: 4,
@@ -1451,9 +1488,9 @@ class AcodeX {
                         promptOption: [
                             {
                                 match: /^[0-9]+$/,
-                                required: true,
-                            },
-                        ],
+                                required: true
+                            }
+                        ]
                     },
                     {
                         index: 5,
@@ -1466,9 +1503,9 @@ class AcodeX {
                         promptOption: [
                             {
                                 match: /^[0-9]+$/,
-                                required: true,
-                            },
-                        ],
+                                required: true
+                            }
+                        ]
                     },
                     {
                         index: 6,
@@ -1476,8 +1513,8 @@ class AcodeX {
                         text: "Theme",
                         value: this.settings.theme,
                         info: "Theme of terminal.",
-                        select: this.themeList,
-                    },
+                        select: this.themeList
+                    }
                 ],
                 cb: (key, value) => {
                     if (key === "customFontStyleSheet") {
@@ -1488,11 +1525,13 @@ class AcodeX {
                             "Warning",
                             "Make sure to restart app if you want any change in theme Settings."
                         );
+                    } else if (key === "clearCache") {
+                        this.clearCache();
                     } else {
                         this.settings[key] = value;
                         appSettings.update();
                     }
-                },
+                }
             };
         }
     }
