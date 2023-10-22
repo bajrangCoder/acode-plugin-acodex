@@ -91,12 +91,8 @@ class AcodeX {
                 rel: "stylesheet",
                 href: this.baseUrl + "main.css"
             });
-            this.$fontStyles = tag("link", {
-                rel: "stylesheet",
-                href: this.baseUrl + "fonts.css"
-            });
             this._loadCustomFontStyleSheet();
-            document.head.append(this.xtermCss, this.$style, this.$fontStyles);
+            document.head.append(this.xtermCss, this.$style);
             // add command in command Pallete for opening and closing terminal
             editorManager.editor.commands.addCommand({
                 name: "acodex:open_terminal",
@@ -1292,6 +1288,10 @@ class AcodeX {
             ]
         ];
     }
+    
+    async downloadFont(fontNme){
+        
+    }
 
     get settingsObj() {
         if (this.settings.theme === "custom") {
@@ -1578,6 +1578,8 @@ class AcodeX {
                         );
                     } else if (key === "clearCache") {
                         this.clearCache();
+                    } else if (key === "fontFamily") {
+                        console.log("Font: " + value);
                     } else {
                         this.settings[key] = value;
                         appSettings.update();
@@ -1723,6 +1725,8 @@ class AcodeX {
                         );
                     } else if (key === "clearCache") {
                         this.clearCache();
+                    } else if (key === "fontFamily") {
+                        console.log("Font: " + value);
                     } else {
                         this.settings[key] = value;
                         appSettings.update();
