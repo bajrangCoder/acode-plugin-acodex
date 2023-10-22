@@ -34,14 +34,15 @@
 
 <details>
     <summary>
-        <h3 style="display:inline">What's New (v2.3.0)?</h3>
+        <h3 style="display:inline">What's New (v2.3.0 & v2.3.1)?</h3>
     </summary>
     <ul>
         <li>Removed port prompt from starting of terminal, now you can only change port from Settings</li>
         <li>Added a setting to make terminal transparent</li>
         <li>Fixed loading of custom font issue</li>
-        <li>Add many new themes and modified <code>snazzy theme</code> like Ayulight, Ayudark, Ayu Mirage, Catppuccin, Dracula, NekonakoDjancoeg, SiduckOneDark, Elementary, Everblush, One Dark</li>
+        <li>Added many new themes like Ayulight, Ayudark, Ayu Mirage, Catppuccin, Dracula, NekonakoDjancoeg, SiduckOneDark, Elementary, Everblush, One Dark and modified <code>snazzy theme</code></li>
         <li>Added some nerd fonts like FiraCode, VictorMono, Jetbrains, SauceCodePro, Meslo</li>
+        <li>v2.3.1 : reduced the plugin size</li>
     </ul>
 </details>
 <br/>
@@ -154,6 +155,9 @@ npm i -g acodex-server
 ```
 
 Basically just install `python` & `nodejs` and then just install `acodex-server` npm package globally
+
+> **Note:**
+> You can uninstall python after successful installation of `acodex-server`
 
 ## How to Use
 

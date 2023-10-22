@@ -21,8 +21,28 @@ const helpers = acode.require("helpers");
 const fsOperation = acode.require("fsOperation");
 const toInternalUrl = acode.require("toInternalUrl");
 const select = acode.require("select");
+const loader = acode.require("loader");
 
 const { editor } = editorManager;
+
+const themeList = [
+    "ayuDark",
+    "ayuLight",
+    "ayuMirage",
+    "catppuccin",
+    "dracula",
+    "elementary",
+    "everblush",
+    "light",
+    "material",
+    "nekonakoDjancoeg",
+    "oneDark",
+    "sapphire",
+    "siduckOneDark",
+    "snazzy",
+    "xterm",
+    "custom"
+];
 
 class AcodeX {
     // constants for dragable Terminal panel
@@ -50,24 +70,6 @@ class AcodeX {
     FONT_FAMILY = appSettings.get("editorFont");
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
-    themeList = [
-        "ayuDark",
-        "ayuLight",
-        "ayuMirage",
-        "catppuccin",
-        "dracula",
-        "elementary",
-        "everblush",
-        "light",
-        "material",
-        "nekonakoDjancoeg",
-        "oneDark",
-        "sapphire",
-        "siduckOneDark",
-        "snazzy",
-        "xterm",
-        "custom"
-    ];
 
     constructor() {
         if (!appSettings.value[plugin.id]) {
@@ -306,6 +308,9 @@ class AcodeX {
                         Math.max(0, Math.min(maxY, currentY)) + "px";
                 }
             });
+            if(!await fsOperation(window.DATA_STORAGE+"acodex_fonts").exists()){
+                this.downloadFont();
+            }
             if (
                 localStorage.getItem("AcodeX_Is_Opened") === "true" &&
                 localStorage.getItem("AcodeX_Current_Session")
@@ -362,7 +367,7 @@ class AcodeX {
                     return this._convertPath(path);
                 },
                 addTheme: (themeNme, colorSchema) => {
-                    this.themeList.push(themeNme);
+                    themeList.push(themeNme);
                     themes[themeNme] = colorSchema;
                 },
                 applyTheme: themeNme => {
@@ -1059,6 +1064,7 @@ class AcodeX {
     async destroy() {
         this.$style.remove();
         this.xtermCss.remove();
+        await fsOperation(window.DATA_STORAGE+"acodex_fonts").delete();
         editorManager.editor.commands.removeCommand("terminal:open_terminal");
         editorManager.editor.commands.removeCommand("terminal:close_terminal");
         this.$terminalContainer.remove();
@@ -1288,9 +1294,52 @@ class AcodeX {
             ]
         ];
     }
-    
-    async downloadFont(fontNme){
-        
+
+    async downloadFont() {
+        try {
+            const baseFontDir = window.DATA_STORAGE + "acodex_fonts";
+            const baseFontUrl =
+                "https://cdn.jsdelivr.net/gh/bajrangCoder/acode-plugin-acodex@main/fonts/";
+            const fontsUrls = [
+                baseFontUrl + "Fira Code Bold Nerd Font.ttf",
+                baseFontUrl + "Fira Code Medium Nerd Font Complete Mono.ttf",
+                baseFontUrl + "JetBrains Mono Bold Nerd Font Complete.ttf",
+                baseFontUrl + "JetBrains Mono Medium Nerd Font Complete.ttf",
+                baseFontUrl + "MesloLGS NF Bold Italic.ttf",
+                baseFontUrl + "MesloLGS NF Bold.ttf",
+                baseFontUrl + "MesloLGS NF Italic.ttf",
+                baseFontUrl + "MesloLGS NF Regular.ttf",
+                baseFontUrl + "SauceCodeProNerdFont-Bold.ttf",
+                baseFontUrl + "SauceCodeProNerdFont-Medium.ttf",
+                baseFontUrl + "VictorMonoNerdFont-Bold.ttf",
+                baseFontUrl + "VictorMonoNerdFont-BoldItalic.ttf",
+                baseFontUrl + "VictorMonoNerdFont-Italic.ttf",
+                baseFontUrl + "VictorMonoNerdFont-Medium.ttf"
+            ];
+            if (!(await fsOperation(baseFontDir).exists())) {
+                await fsOperation(window.DATA_STORAGE).createDirectory(
+                    "acodex_fonts"
+                );
+                loader.create("AcodeX", "Downloading Fonts...");
+                fontsUrls.forEach(async fontFileURL => {
+                    fetch(fontFileURL)
+                        .then(response => response.blob())
+                        .then(async blob => {
+                            const fileName = fontFileURL.split('/').pop(); // Get the file name from the URL
+                            await fsOperation(baseFontDir).createFile(fileName, blob);
+                        })
+                        .catch(error => {
+                            loader.destroy();
+                            window.toast(`Error fetching font file: ${error.toString()}`, 4000);
+                        });
+                });
+                loader.destroy();
+                window.toast("Fonts Downloaded successfully 💥", 3000);
+            }
+        } catch (err) {
+            console.log(err);
+            loader.destroy();
+        }
     }
 
     get settingsObj() {
@@ -1419,7 +1468,7 @@ class AcodeX {
                         text: "Theme",
                         value: this.settings.theme,
                         info: "Theme of terminal.",
-                        select: this.themeList
+                        select: themeList
                     },
                     {
                         index: 8,
@@ -1578,8 +1627,6 @@ class AcodeX {
                         );
                     } else if (key === "clearCache") {
                         this.clearCache();
-                    } else if (key === "fontFamily") {
-                        console.log("Font: " + value);
                     } else {
                         this.settings[key] = value;
                         appSettings.update();
@@ -1711,7 +1758,7 @@ class AcodeX {
                         text: "Theme",
                         value: this.settings.theme,
                         info: "Theme of terminal.",
-                        select: this.themeList
+                        select: themeList
                     }
                 ],
                 cb: (key, value) => {
@@ -1725,8 +1772,6 @@ class AcodeX {
                         );
                     } else if (key === "clearCache") {
                         this.clearCache();
-                    } else if (key === "fontFamily") {
-                        console.log("Font: " + value);
                     } else {
                         this.settings[key] = value;
                         appSettings.update();
