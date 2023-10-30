@@ -4,12 +4,15 @@
 
 - updated xtermjs and its addons
 - added a `fontWeight` option in plugin settings
+- added a `cursorInactiveStyle` option in plugin settings
 - internal changes and improvement
 - fixed transparent terminal Bug
 - fixed resizing issue
 - fixed minimising and maximising issue
 - added a setting to change show terminal button/maximise button size from plugin settings
 - fixed settings page issue
+- now no any need of restarting terminal after changing its settings (except: transparency option and scroll option)
+- added some additional keybindings for terminal for easy usability(read Additional Keybindings section in description for more)
 
 ## `Update v2.3.0` & `Update v2.3.1`
 

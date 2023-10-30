@@ -23,6 +23,8 @@ const toInternalUrl = acode.require("toInternalUrl");
 const select = acode.require("select");
 const loader = acode.require("loader");
 
+const { clipboard } = cordova.plugins;
+
 const { editor } = editorManager;
 
 const themeList = [
@@ -66,6 +68,7 @@ class AcodeX {
     CURSOR_BLINK = true;
     SHOW_ARROW_BTN = false;
     CURSOR_STYLE = ["block", "underline", "bar"];
+    CURSOR_INACTIVE_STYLE = ["outline", "block", "bar", "underline", "none"];
     FONT_SIZE = 11;
     FONT_FAMILY = appSettings.get("editorFont");
     FONT_WEIGHT = [
@@ -291,17 +294,17 @@ class AcodeX {
             // to adjust size of terminal or floating button when Keyboard is opened
             window.addEventListener("resize", () => {
                 if (this.$terminalContainer) {
-                    if(!this.$terminalContainer.classList.contains("hide")){
+                    if (!this.$terminalContainer.classList.contains("hide")) {
                         const totalHeaderHeight =
-                            document.querySelector("#root header")?.offsetHeight ||
-                            0;
+                            document.querySelector("#root header")
+                                ?.offsetHeight || 0;
                         const totalFooterHeight =
-                            document.querySelector("#quick-tools")?.offsetHeight ||
-                            0;
+                            document.querySelector("#quick-tools")
+                                ?.offsetHeight || 0;
                         const screenHeight =
                             window.innerHeight -
                             (totalHeaderHeight + totalFooterHeight);
-    
+
                         const currentHeight = parseInt(
                             this.$terminalContainer.style.height
                         );
@@ -319,15 +322,17 @@ class AcodeX {
                 }
 
                 if (this.$showTermBtn) {
-                    if(!this.$showTermBtn.classList.contains("hide")){
+                    if (!this.$showTermBtn.classList.contains("hide")) {
                         let totalHeaderHeight =
-                            document.querySelector("#root header")?.offsetHeight ||
-                            0;
+                            document.querySelector("#root header")
+                                ?.offsetHeight || 0;
                         let maxY =
                             window.innerHeight -
                             totalHeaderHeight -
                             this.$showTermBtn.offsetHeight;
-                        const currentY = parseInt(this.$showTermBtn.style.bottom);
+                        const currentY = parseInt(
+                            this.$showTermBtn.style.bottom
+                        );
                         this.$showTermBtn.style.bottom =
                             Math.max(0, Math.min(maxY, currentY)) + "px";
                     }
@@ -528,6 +533,60 @@ class AcodeX {
         this.socket.onerror = error => {
             acode.alert("AcodeX Error", JSON.stringify(error));
         };
+        this.$terminal.attachCustomKeyEventHandler(async e => {
+            if (e.type === "keydown") {
+                const jsonData = await this.$cacheFile.readFile("utf8");
+                let sessionsData = jsonData ? JSON.parse(jsonData) : [];
+                if (e.ctrlKey && e.keyCode === 78) {
+                    // ctrl+n
+                    this.createSession();
+                    return false;
+                } else if (e.ctrlKey && e.keyCode === 87) {
+                    // ctrl+w
+                    this.closeTerminal();
+                    return false;
+                } else if (e.ctrlKey && e.keyCode === 86) {
+                    // ctrl+v
+                    clipboard.paste((text) => {
+                        this.$terminal.paste(text);
+                    });
+                    return false;
+                } else if (e.ctrlKey && e.keyCode >= 49 && e.keyCode <= 53) {
+                    // ctrl+1 to ctrl+5
+                    // 49 is the keyCode for '1', 50 for '2', and so on
+                    const sessionIndex = e.keyCode - 49;
+                    if (sessionsData.length > sessionIndex) {
+                        const selectedSession = sessionsData[sessionIndex];
+                        this.changeSession(selectedSession.name);
+                        return false;
+                    }
+                } else if (e.ctrlKey && e.keyCode === 37) {
+                    // Ctrl+Left Arrow
+                    const currentIndex = sessionsData.findIndex(
+                        session =>
+                            session.name ===
+                            localStorage.getItem("AcodeX_Current_Session")
+                    );
+                    if (currentIndex > 0) {
+                        const previousSession = sessionsData[currentIndex - 1];
+                        this.changeSession(previousSession.name);
+                        return false;
+                    }
+                } else if (e.ctrlKey && e.keyCode === 39) {
+                    // Ctrl+Right Arrow
+                    const currentIndex = sessionsData.findIndex(
+                        session =>
+                            session.name ===
+                            localStorage.getItem("AcodeX_Current_Session")
+                    );
+                    if (currentIndex < sessionsData.length - 1) {
+                        const nextSession = sessionsData[currentIndex + 1];
+                        this.changeSession(nextSession.name);
+                        return false;
+                    }
+                }
+            }
+        });
     }
 
     async createSession() {
@@ -692,34 +751,35 @@ class AcodeX {
             blurValue: "4px",
             cursorBlink: this.CURSOR_BLINK,
             cursorStyle: this.CURSOR_STYLE[0],
+            cursorInactiveStyle: this.CURSOR_INACTIVE_STYLE[0],
             fontSize: this.FONT_SIZE,
             fontFamily: this.FONT_FAMILY,
             fontWeight: this.FONT_WEIGHT[0],
             customFontStyleSheet: "",
             scrollBack: this.SCROLLBACK,
             scrollSensitivity: this.SCROLL_SENSITIVITY,
-            theme: "ayuMirage",
-            background: themes["ayuMirage"].background,
-            foreground: themes["ayuMirage"].foreground,
-            cursor: themes["ayuMirage"].cursor || "",
-            cursorAccent: themes["ayuMirage"].cursorAccent || "",
-            selectionBackground: themes["ayuMirage"].selectionBackground,
-            black: themes["ayuMirage"].black,
-            blue: themes["ayuMirage"].blue,
-            brightBlack: themes["ayuMirage"].brightBlack,
-            brightBlue: themes["ayuMirage"].brightBlue,
-            brightCyan: themes["ayuMirage"].brightCyan,
-            brightGreen: themes["ayuMirage"].brightGreen,
-            brightMagenta: themes["ayuMirage"].brightMagenta,
-            brightRed: themes["ayuMirage"].brightWhite,
-            brightWhite: themes["ayuMirage"].brightWhite,
-            brightYellow: themes["ayuMirage"].brightYellow,
-            cyan: themes["ayuMirage"].cyan,
-            green: themes["ayuMirage"].green,
-            magenta: themes["ayuMirage"].magenta,
-            red: themes["ayuMirage"].red,
-            white: themes["ayuMirage"].white,
-            yellow: themes["ayuMirage"].yellow
+            theme: "catppuccin",
+            background: themes["catppuccin"].background,
+            foreground: themes["catppuccin"].foreground,
+            cursor: themes["catppuccin"].cursor || "",
+            cursorAccent: themes["catppuccin"].cursorAccent || "",
+            selectionBackground: themes["catppuccin"].selectionBackground,
+            black: themes["catppuccin"].black,
+            blue: themes["catppuccin"].blue,
+            brightBlack: themes["catppuccin"].brightBlack,
+            brightBlue: themes["catppuccin"].brightBlue,
+            brightCyan: themes["catppuccin"].brightCyan,
+            brightGreen: themes["catppuccin"].brightGreen,
+            brightMagenta: themes["catppuccin"].brightMagenta,
+            brightRed: themes["catppuccin"].brightWhite,
+            brightWhite: themes["catppuccin"].brightWhite,
+            brightYellow: themes["catppuccin"].brightYellow,
+            cyan: themes["catppuccin"].cyan,
+            green: themes["catppuccin"].green,
+            magenta: themes["catppuccin"].magenta,
+            red: themes["catppuccin"].red,
+            white: themes["catppuccin"].white,
+            yellow: themes["catppuccin"].yellow
         };
         appSettings.update(false);
     }
@@ -742,7 +802,7 @@ class AcodeX {
 
     _updateTerminalHeight() {
         const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
-        this.$terminalContent.style.height = `calc(100% - ${terminalHeaderHeight}px)`;
+        this.$terminalContent.style.height = `calc(100vh - ${terminalHeaderHeight}px)`;
         localStorage.setItem(
             "AcodeX_Terminal_Cont_Height",
             this.$terminalContainer.offsetHeight
@@ -1236,6 +1296,7 @@ class AcodeX {
             scrollOnUserInput: true,
             cursorBlink: this.settings.cursorBlink,
             cursorStyle: this.settings.cursorStyle,
+            cursorInactiveStyle: this.settings.cursorInactiveStyle,
             scrollBack: this.settings.scrollBack,
             scrollSensitivity: this.settings.scrollSensitivity,
             fontSize: this.settings.fontSize,
@@ -1484,6 +1545,13 @@ class AcodeX {
                             this.CURSOR_STYLE[1],
                             this.CURSOR_STYLE[2]
                         ]
+                    },
+                    {
+                        key: "cursorInactiveStyle",
+                        text: "Cursor Inactive Style",
+                        value: this.settings.cursorInactiveStyle,
+                        info: "The style of the cursor when the terminal is not focused.",
+                        select: this.CURSOR_INACTIVE_STYLE
                     },
                     {
                         index: 2,
@@ -1781,6 +1849,13 @@ class AcodeX {
                         ]
                     },
                     {
+                        key: "cursorInactiveStyle",
+                        text: "Cursor Inactive Style",
+                        value: this.settings.cursorInactiveStyle,
+                        info: "The style of the cursor when the terminal is not focused.",
+                        select: this.CURSOR_INACTIVE_STYLE
+                    },
+                    {
                         index: 2,
                         key: "fontSize",
                         text: "Font Size",
@@ -1858,6 +1933,9 @@ class AcodeX {
                 if (value === "custom") {
                     acode.alert("AcodeX Warning", "Restart the app please");
                 }
+                if (this.$terminal) {
+                    this.$terminal.options.theme = this.terminalThemeObj;
+                }
                 break;
             case "clearCache":
                 this.clearCache();
@@ -1866,6 +1944,45 @@ class AcodeX {
                 if (this.$showTermBtn) {
                     this.$showTermBtn.style.height = value + "px";
                     this.$showTermBtn.style.width = value + "px";
+                }
+            case "fontSize":
+                if (this.$terminal) {
+                    this.$terminal.options.fontSize = value;
+                }
+                this.settings[key] = value;
+                appSettings.update();
+                break;
+            case "fontFamily":
+                if (this.$terminal) {
+                    this.$terminal.options.fontFamily = value;
+                }
+                this.settings[key] = value;
+                appSettings.update();
+                break;
+            case "fontWeight":
+                if (this.$terminal) {
+                    this.$terminal.options.fontWeight = value;
+                }
+                this.settings[key] = value;
+                appSettings.update();
+                break;
+            case "cursorBlink":
+                if (this.$terminal) {
+                    this.$terminal.options.cursorBlink = value;
+                }
+                this.settings[key] = value;
+                appSettings.update();
+                break;
+            case "cursorStyle":
+                if (this.$terminal) {
+                    this.$terminal.options.cursorStyle = value;
+                }
+                this.settings[key] = value;
+                appSettings.update();
+                break;
+            case "cursorInactiveStyle":
+                if (this.$terminal) {
+                    this.$terminal.options.cursorInactiveStyle = value;
                 }
                 this.settings[key] = value;
                 appSettings.update();

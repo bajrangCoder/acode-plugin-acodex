@@ -125,6 +125,25 @@ To load a custom font:
 6. Enter the font name in the Font Family option.
 7. Restart the terminal.
 
+## Additional Terminal Keybindings
+
+AcodeX provides some additional Keybindings for easy usability of terminal features.
+
+> Note: These keybindings will only work if you will use these inside terminal only.
+
+Following are the supported Keybindings :
+
+- <kbd>Ctrl+N</kbd> : opens a new terminal session 
+- <kbd>Ctrl+W</kbd> : close opened terminal session 
+- <kbd>Ctrl+V</kbd> : paste something from clipboard inside your terminal
+- <kbd>Ctrl+Left Arrow</kbd> : open previous session corresponding to current one like if current one is session 2 then it will open session 1(if exists)
+- <kbd>Ctrl+Right Arrow</kbd> : open next session corresponding to current one like if current one is session 2 then it will open session 2(if exists)
+- <kbd>Ctrl+1</kbd> : opens session 1
+- <kbd>Ctrl+2</kbd> : opens session 2 if exists
+- <kbd>Ctrl+3</kbd> : opens session 3 if exists
+- <kbd>Ctrl+4</kbd> : opens session 4 if exists
+- <kbd>Ctrl+5</kbd> : opens session 5 if exists
+
 ## Prerequisites
 
 To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) installed on your Android device. However, you don't need to switch between apps to use the terminal, as AcodeX offers a convenient way to access the terminal directly within the Acode app with the help of Termux.
