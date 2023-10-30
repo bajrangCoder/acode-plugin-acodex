@@ -34,16 +34,9 @@
 
 <details>
     <summary>
-        <h3 style="display:inline">What's New (v2.3.0 & v2.3.1)?</h3>
+        <h3 style="display:inline">What's New v3.0.0?</h3>
     </summary>
-    <ul>
-        <li>Removed port prompt from starting of terminal, now you can only change port from Settings</li>
-        <li>Added a setting to make terminal transparent</li>
-        <li>Fixed loading of custom font issue</li>
-        <li>Added many new themes like Ayulight, Ayudark, Ayu Mirage, Catppuccin, Dracula, NekonakoDjancoeg, SiduckOneDark, Elementary, Everblush, One Dark and modified <code>snazzy theme</code></li>
-        <li>Added some nerd fonts like FiraCode, VictorMono, Jetbrains, SauceCodePro, Meslo</li>
-        <li>v2.3.1 : reduced the plugin size</li>
-    </ul>
+    currently read the changelog 
 </details>
 <br/>
 

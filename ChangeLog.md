@@ -1,5 +1,25 @@
 # Change Logs
 
+## `Update v3.0.0`
+
+- updated xtermjs and its addons
+- added a `fontWeight` option in plugin settings
+- internal changes and improvement
+- fixed transparent terminal Bug
+- fixed resizing issue
+- fixed minimising and maximising issue
+- added a setting to change show terminal button/maximise button size from plugin settings
+- fixed settings page issue
+
+## `Update v2.3.0` & `Update v2.3.1`
+
+- Removed port prompt from starting of terminal, now you can only change port from Settings
+- Added a setting to make terminal transparent
+- Fixed loading of custom font issue
+- Added many new themes like Ayulight, Ayudark, Ayu Mirage, Catppuccin, Dracula, NekonakoDjancoeg, SiduckOneDark, Elementary, Everblush, One Dark and modified `snazzy theme`
+- Added some nerd fonts like FiraCode, VictorMono, Jetbrains, SauceCodePro, Meslo
+- reduced the plugin size
+
 ## `Update v2.2.1`
 
 - Fixed critical minimising issue (clear cache then try)

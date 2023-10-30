@@ -66,16 +66,30 @@ class AcodeX {
     CURSOR_BLINK = true;
     SHOW_ARROW_BTN = false;
     CURSOR_STYLE = ["block", "underline", "bar"];
-    FONT_SIZE = 10;
+    FONT_SIZE = 11;
     FONT_FAMILY = appSettings.get("editorFont");
+    FONT_WEIGHT = [
+        "normal",
+        "bold",
+        "100",
+        "200",
+        "300",
+        "400",
+        "500",
+        "600",
+        "700",
+        "800",
+        "900"
+    ];
     SCROLLBACK = 1000;
     SCROLL_SENSITIVITY = 1000;
+    showTerminalBtnSize = 35;
 
     constructor() {
         if (!appSettings.value[plugin.id]) {
             this._saveSetting();
         } else {
-            if (!this.settings.port) {
+            if (!this.settings.showTerminalBtnSize) {
                 delete appSettings.value[plugin.id];
                 appSettings.update(false);
                 this._saveSetting();
@@ -85,6 +99,13 @@ class AcodeX {
 
     async init($page, cacheFile, cacheFileUrl) {
         try {
+            if (
+                !(await fsOperation(
+                    window.DATA_STORAGE + "acodex_fonts"
+                ).exists())
+            ) {
+                this.downloadFont();
+            }
             this.xtermCss = tag("link", {
                 rel: "stylesheet",
                 href: this.baseUrl + "xterm.css"
@@ -170,6 +191,13 @@ class AcodeX {
 
             this.$showTermBtn.classList.add("hide");
             this.$terminalContainer.classList.add("hide");
+
+            if (this.settings.showTerminalBtnSize) {
+                this.$showTermBtn.style.height =
+                    this.settings.showTerminalBtnSize + "px";
+                this.$showTermBtn.style.width =
+                    this.settings.showTerminalBtnSize + "px";
+            }
 
             this.$cacheFile = cacheFile;
             // add event listnner to all buttons and terminal panel header
@@ -262,55 +290,50 @@ class AcodeX {
             window.addEventListener("touchend", this.stopDragging.bind(this));
             // to adjust size of terminal or floating button when Keyboard is opened
             window.addEventListener("resize", () => {
-                if (
-                    !this.$terminalContainer.classList.contains("hide") ||
-                    this.$terminalContainer.style.height != "0px"
-                ) {
-                    const totalHeaderHeight =
-                        document.querySelector("#root header").offsetHeight +
-                        document.querySelector("#root ul").offsetHeight;
-                    const totalFooterHeight =
-                        document.querySelector("#quick-tools").offsetHeight;
-                    const screenHeight =
-                        window.innerHeight -
-                        (totalHeaderHeight + totalFooterHeight);
-
-                    const currentHeight = parseInt(
-                        this.$terminalContainer.style.height
-                    );
-                    const adjustedHeight = Math.min(
-                        currentHeight,
-                        screenHeight
-                    );
-                    this.$terminalContainer.style.height =
-                        adjustedHeight + "px";
-                    if (
-                        localStorage.getItem("AcodeX_Is_Opened") === "true" &&
-                        this.$fitAddon !== undefined
-                    ) {
-                        this._updateTerminalHeight();
+                if (this.$terminalContainer) {
+                    if(!this.$terminalContainer.classList.contains("hide")){
+                        const totalHeaderHeight =
+                            document.querySelector("#root header")?.offsetHeight ||
+                            0;
+                        const totalFooterHeight =
+                            document.querySelector("#quick-tools")?.offsetHeight ||
+                            0;
+                        const screenHeight =
+                            window.innerHeight -
+                            (totalHeaderHeight + totalFooterHeight);
+    
+                        const currentHeight = parseInt(
+                            this.$terminalContainer.style.height
+                        );
+                        const adjustedHeight = Math.min(
+                            currentHeight,
+                            screenHeight
+                        );
+                        this.$terminalContainer.style.height =
+                            adjustedHeight + "px";
+                        localStorage.setItem(
+                            "AcodeX_Terminal_Cont_Height",
+                            this.$terminalContainer.offsetHeight
+                        );
                     }
-                    localStorage.setItem(
-                        "AcodeX_Terminal_Cont_Height",
-                        this.$terminalContainer.offsetHeight
-                    );
                 }
-                if (!this.$showTermBtn.classList.contains("hide")) {
-                    let totalHeaderHeight =
-                        document.querySelector("#root header").offsetHeight +
-                        document.querySelector("#root ul").offsetHeight;
-                    let maxY =
-                        window.innerHeight -
-                        totalHeaderHeight -
-                        this.$showTermBtn.offsetHeight;
-                    const currentY = parseInt(this.$showTermBtn.style.bottom);
-                    this.$showTermBtn.style.bottom =
-                        Math.max(0, Math.min(maxY, currentY)) + "px";
+
+                if (this.$showTermBtn) {
+                    if(!this.$showTermBtn.classList.contains("hide")){
+                        let totalHeaderHeight =
+                            document.querySelector("#root header")?.offsetHeight ||
+                            0;
+                        let maxY =
+                            window.innerHeight -
+                            totalHeaderHeight -
+                            this.$showTermBtn.offsetHeight;
+                        const currentY = parseInt(this.$showTermBtn.style.bottom);
+                        this.$showTermBtn.style.bottom =
+                            Math.max(0, Math.min(maxY, currentY)) + "px";
+                    }
                 }
             });
-            if(!await fsOperation(window.DATA_STORAGE+"acodex_fonts").exists()){
-                this.downloadFont();
-            }
+
             if (
                 localStorage.getItem("AcodeX_Is_Opened") === "true" &&
                 localStorage.getItem("AcodeX_Current_Session")
@@ -403,7 +426,9 @@ class AcodeX {
         if (this.settings.transparency) {
             this.$terminalContainer.style.background = "transparent";
             this.$terminalContainer.style.backdropFilter = `blur(${this.settings.blurValue})`;
-            this.$terminalHeader.style.background = "transparent";
+            this.$terminalHeader.style.background = this.transparentColor(
+                this.$terminalHeader
+            );
             this.$terminalHeader.style.backdropFilter = `blur(${this.settings.blurValue})`;
         } else {
             this.$terminalContainer.style.background =
@@ -422,6 +447,16 @@ class AcodeX {
         }
     }
 
+    transparentColor(element) {
+        let currentBackgroundColor =
+            window.getComputedStyle(element).backgroundColor;
+        // Extract the RGB values
+        var rgbValues = currentBackgroundColor.match(/\d+/g);
+        // Convert the RGB values to RGBA by adding 1 for the alpha (transparency) value
+        var currentAlpha = parseFloat(rgbValues[3]) || 1.0;
+        return `rgba(${rgbValues[0]}, ${rgbValues[1]}, ${rgbValues[2]}, 0.5)`;
+    }
+
     async createXtermTerminal(port) {
         this.$terminal = this.terminalObj;
         this.$fitAddon = new FitAddon();
@@ -434,7 +469,7 @@ class AcodeX {
         this.$terminal.loadAddon(this.$unicode11Addon);
         this.$terminal.loadAddon(this.$webLinkAddon);
 
-        this.$fitAddon.fit();
+        this.fitTerminal();
         if (this.$webglAddon) {
             try {
                 this.$terminal.loadAddon(this.$webglAddon);
@@ -552,15 +587,15 @@ class AcodeX {
     }
 
     _hideTerminalSession() {
-        this.$terminal.dispose();
-        this.$terminal = null;
-        this.socket.close();
-        this.socket = null;
         this.$attachAddon.dispose();
         this.$fitAddon.dispose();
         this.$unicode11Addon.dispose();
         this.$webLinkAddon.dispose();
         this.$webglAddon.dispose();
+        this.$terminal.dispose();
+        this.socket.close();
+        this.socket = null;
+        this.$terminal = undefined;
         this.$attachAddon = undefined;
         this.$fitAddon = undefined;
         this.$unicode11Addon = undefined;
@@ -653,36 +688,38 @@ class AcodeX {
         appSettings.value[plugin.id] = {
             port: 8767,
             transparency: this.ALLOW_TRANSPRANCY,
+            showTerminalBtnSize: 35,
             blurValue: "4px",
             cursorBlink: this.CURSOR_BLINK,
             cursorStyle: this.CURSOR_STYLE[0],
             fontSize: this.FONT_SIZE,
             fontFamily: this.FONT_FAMILY,
+            fontWeight: this.FONT_WEIGHT[0],
             customFontStyleSheet: "",
             scrollBack: this.SCROLLBACK,
             scrollSensitivity: this.SCROLL_SENSITIVITY,
-            theme: "sapphire",
-            background: themes["sapphire"].background,
-            foreground: themes["sapphire"].foreground,
-            cursor: themes["sapphire"].cursor || "",
-            cursorAccent: themes["sapphire"].cursorAccent || "",
-            selectionBackground: themes["sapphire"].selectionBackground,
-            black: themes["sapphire"].black,
-            blue: themes["sapphire"].blue,
-            brightBlack: themes["sapphire"].brightBlack,
-            brightBlue: themes["sapphire"].brightBlue,
-            brightCyan: themes["sapphire"].brightCyan,
-            brightGreen: themes["sapphire"].brightGreen,
-            brightMagenta: themes["sapphire"].brightMagenta,
-            brightRed: themes["sapphire"].brightWhite,
-            brightWhite: themes["sapphire"].brightWhite,
-            brightYellow: themes["sapphire"].brightYellow,
-            cyan: themes["sapphire"].cyan,
-            green: themes["sapphire"].green,
-            magenta: themes["sapphire"].magenta,
-            red: themes["sapphire"].red,
-            white: themes["sapphire"].white,
-            yellow: themes["sapphire"].yellow
+            theme: "ayuMirage",
+            background: themes["ayuMirage"].background,
+            foreground: themes["ayuMirage"].foreground,
+            cursor: themes["ayuMirage"].cursor || "",
+            cursorAccent: themes["ayuMirage"].cursorAccent || "",
+            selectionBackground: themes["ayuMirage"].selectionBackground,
+            black: themes["ayuMirage"].black,
+            blue: themes["ayuMirage"].blue,
+            brightBlack: themes["ayuMirage"].brightBlack,
+            brightBlue: themes["ayuMirage"].brightBlue,
+            brightCyan: themes["ayuMirage"].brightCyan,
+            brightGreen: themes["ayuMirage"].brightGreen,
+            brightMagenta: themes["ayuMirage"].brightMagenta,
+            brightRed: themes["ayuMirage"].brightWhite,
+            brightWhite: themes["ayuMirage"].brightWhite,
+            brightYellow: themes["ayuMirage"].brightYellow,
+            cyan: themes["ayuMirage"].cyan,
+            green: themes["ayuMirage"].green,
+            magenta: themes["ayuMirage"].magenta,
+            red: themes["ayuMirage"].red,
+            white: themes["ayuMirage"].white,
+            yellow: themes["ayuMirage"].yellow
         };
         appSettings.update(false);
     }
@@ -706,12 +743,18 @@ class AcodeX {
     _updateTerminalHeight() {
         const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
         this.$terminalContent.style.height = `calc(100% - ${terminalHeaderHeight}px)`;
-        this.$terminalContent.style.width = `100%`;
         localStorage.setItem(
             "AcodeX_Terminal_Cont_Height",
             this.$terminalContainer.offsetHeight
         );
-        this.$fitAddon.fit();
+        this.fitTerminal();
+    }
+
+    fitTerminal() {
+        const dimensions = this.$fitAddon.proposeDimensions();
+        if (dimensions) {
+            this.$terminal.resize(dimensions.cols + 2, dimensions.rows + 1);
+        }
     }
 
     async _getLastSessionName() {
@@ -974,7 +1017,8 @@ class AcodeX {
                     "AcodeX_Terminal_Cont_Height",
                     this.$terminalContainer.offsetHeight
                 );
-                this.$terminalContainer.style.height = 0;
+                this.$terminalContainer.style.height = "0px";
+                this.$terminalContainer.classList.add("hide");
                 this.isTerminalMinimized = true;
                 localStorage.setItem(
                     "AcodeX_Terminal_Is_Minimised",
@@ -1001,8 +1045,9 @@ class AcodeX {
                 this.$terminalContainer.style.height =
                     localStorage.getItem("AcodeX_Terminal_Cont_Height") + "px";
             }
+            this.$terminalContainer.classList.remove("hide");
             this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
-            this.$fitAddon.fit();
+            this.fitTerminal();
             localStorage.setItem(
                 "AcodeX_Terminal_Cont_Height",
                 this.$terminalContainer.offsetHeight
@@ -1064,7 +1109,7 @@ class AcodeX {
     async destroy() {
         this.$style.remove();
         this.xtermCss.remove();
-        await fsOperation(window.DATA_STORAGE+"acodex_fonts").delete();
+        await fsOperation(window.DATA_STORAGE + "acodex_fonts").delete();
         editorManager.editor.commands.removeCommand("terminal:open_terminal");
         editorManager.editor.commands.removeCommand("terminal:close_terminal");
         this.$terminalContainer.remove();
@@ -1156,6 +1201,34 @@ class AcodeX {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
+    get terminalThemeObj() {
+        return {
+            background: this.settings.transparency
+                ? this.hexToTransparentRGBA(this.settings.background, 0.5)
+                : this.settings.background,
+            foreground: this.settings.foreground,
+            selectionBackground: this.settings.selectionBackground,
+            cursor: this.settings.cursor,
+            cursorAccent: this.settings.cursorAccent,
+            black: this.settings.black,
+            blue: this.settings.blue,
+            brightBlack: this.settings.brightBlack,
+            brightBlue: this.settings.brightBlue,
+            brightCyan: this.settings.brightCyan,
+            brightGreen: this.settings.brightGreen,
+            brightMagenta: this.settings.brightMagenta,
+            brightRed: this.settings.brightRed,
+            brightWhite: this.settings.brightWhite,
+            brightYellow: this.settings.brightYellow,
+            cyan: this.settings.cyan,
+            green: this.settings.green,
+            magenta: this.settings.magenta,
+            red: this.settings.red,
+            white: this.settings.white,
+            yellow: this.settings.yellow
+        };
+    }
+
     get terminalObj() {
         return new Terminal({
             allowTransparency: this.settings.transparency,
@@ -1167,31 +1240,8 @@ class AcodeX {
             scrollSensitivity: this.settings.scrollSensitivity,
             fontSize: this.settings.fontSize,
             fontFamily: this.settings.fontFamily,
-            theme: {
-                background: this.settings.transparency
-                    ? this.hexToTransparentRGBA(this.settings.background, 0.5)
-                    : this.settings.background,
-                foreground: this.settings.foreground,
-                selectionBackground: this.settings.selectionBackground,
-                cursor: this.settings.cursor,
-                cursorAccent: this.settings.cursorAccent,
-                black: this.settings.black,
-                blue: this.settings.blue,
-                brightBlack: this.settings.brightBlack,
-                brightBlue: this.settings.brightBlue,
-                brightCyan: this.settings.brightCyan,
-                brightGreen: this.settings.brightGreen,
-                brightMagenta: this.settings.brightMagenta,
-                brightRed: this.settings.brightRed,
-                brightWhite: this.settings.brightWhite,
-                brightYellow: this.settings.brightYellow,
-                cyan: this.settings.cyan,
-                green: this.settings.green,
-                magenta: this.settings.magenta,
-                red: this.settings.red,
-                white: this.settings.white,
-                yellow: this.settings.yellow
-            }
+            fontWeight: this.settings.fontWeight,
+            theme: this.terminalThemeObj
         });
     }
 
@@ -1203,7 +1253,7 @@ class AcodeX {
     get fontsList() {
         return [
             [
-                this.FONT_FAMILY,
+                appSettings.get("editorFont"),
                 "Default Editor Font",
                 "file file_type_font",
                 true
@@ -1325,12 +1375,18 @@ class AcodeX {
                     fetch(fontFileURL)
                         .then(response => response.blob())
                         .then(async blob => {
-                            const fileName = fontFileURL.split('/').pop(); // Get the file name from the URL
-                            await fsOperation(baseFontDir).createFile(fileName, blob);
+                            const fileName = fontFileURL.split("/").pop(); // Get the file name from the URL
+                            await fsOperation(baseFontDir).createFile(
+                                fileName,
+                                blob
+                            );
                         })
                         .catch(error => {
                             loader.destroy();
-                            window.toast(`Error fetching font file: ${error.toString()}`, 4000);
+                            window.toast(
+                                `Error fetching font file: ${error.toString()}`,
+                                4000
+                            );
                         });
                 });
                 loader.destroy();
@@ -1352,6 +1408,19 @@ class AcodeX {
                         value: this.settings.port,
                         info: "Port which is displayed on termux when starting the server",
                         prompt: "Server Port",
+                        promptType: "number",
+                        promptOption: [
+                            {
+                                required: true
+                            }
+                        ]
+                    },
+                    {
+                        key: "showTerminalBtnSize",
+                        text: "Show Terminal button size",
+                        value: this.settings.showTerminalBtnSize,
+                        info: "Size of terminal show button (in px)",
+                        prompt: "Show Terminal button size",
                         promptType: "number",
                         promptOption: [
                             {
@@ -1396,6 +1465,13 @@ class AcodeX {
                         text: "Cursor Blink",
                         info: "Whether the cursor blinks.",
                         checkbox: !!this.settings.cursorBlink
+                    },
+                    {
+                        key: "fontWeight",
+                        text: "Font Weight",
+                        value: this.settings.fontWeight,
+                        info: "The font weight used to render non-bold text.",
+                        select: this.FONT_WEIGHT
                     },
                     {
                         index: 1,
@@ -1616,22 +1692,7 @@ class AcodeX {
                         color: this.settings.yellow
                     }
                 ],
-                cb: (key, value) => {
-                    if (key === "customFontStyleSheet") {
-                        this.setCustomFontFile();
-                    } else if (key === "theme") {
-                        this.applyTheme(value);
-                        acode.alert(
-                            "Warning",
-                            "Make sure to restart app if you want any change in theme Settings."
-                        );
-                    } else if (key === "clearCache") {
-                        this.clearCache();
-                    } else {
-                        this.settings[key] = value;
-                        appSettings.update();
-                    }
-                }
+                cb: (key, value) => this.settingsSaveCallback(key, value)
             };
         } else {
             return {
@@ -1642,6 +1703,26 @@ class AcodeX {
                         value: this.settings.port,
                         info: "Port which is displayed on termux when starting the server",
                         prompt: "Server Port",
+                        promptType: "number",
+                        promptOption: [
+                            {
+                                required: true
+                            }
+                        ]
+                    },
+                    {
+                        key: "fontWeight",
+                        text: "Font Weight",
+                        value: this.settings.fontWeight,
+                        info: "The font weight used to render non-bold text.",
+                        select: this.FONT_WEIGHT
+                    },
+                    {
+                        key: "showTerminalBtnSize",
+                        text: "Show Terminal button size",
+                        value: this.settings.showTerminalBtnSize,
+                        info: "Size of terminal show button (in px)",
+                        prompt: "Show Terminal button size",
                         promptType: "number",
                         promptOption: [
                             {
@@ -1761,23 +1842,38 @@ class AcodeX {
                         select: themeList
                     }
                 ],
-                cb: (key, value) => {
-                    if (key === "customFontStyleSheet") {
-                        this.setCustomFontFile();
-                    } else if (key === "theme") {
-                        this.applyTheme(value);
-                        acode.alert(
-                            "Warning",
-                            "Make sure to restart app if you want any change in theme Settings."
-                        );
-                    } else if (key === "clearCache") {
-                        this.clearCache();
-                    } else {
-                        this.settings[key] = value;
-                        appSettings.update();
-                    }
-                }
+                cb: (key, value) => this.settingsSaveCallback(key, value)
             };
+        }
+    }
+
+    settingsSaveCallback(key, value) {
+        switch (key) {
+            case "customFontStyleSheet":
+                this.setCustomFontFile();
+                break;
+
+            case "theme":
+                this.applyTheme(value);
+                if (value === "custom") {
+                    acode.alert("AcodeX Warning", "Restart the app please");
+                }
+                break;
+            case "clearCache":
+                this.clearCache();
+                break;
+            case "showTerminalBtnSize":
+                if (this.$showTermBtn) {
+                    this.$showTermBtn.style.height = value + "px";
+                    this.$showTermBtn.style.width = value + "px";
+                }
+                this.settings[key] = value;
+                appSettings.update();
+                break;
+
+            default:
+                this.settings[key] = value;
+                appSettings.update();
         }
     }
 
