@@ -547,7 +547,7 @@ class AcodeX {
                     return false;
                 } else if (e.ctrlKey && e.keyCode === 86) {
                     // ctrl+v
-                    clipboard.paste((text) => {
+                    clipboard.paste(text => {
                         this.$terminal.paste(text);
                     });
                     return false;
@@ -1431,26 +1431,32 @@ class AcodeX {
                 await fsOperation(window.DATA_STORAGE).createDirectory(
                     "acodex_fonts"
                 );
-                loader.create("AcodeX", "Downloading Fonts...");
+                const fontDownloadLoader = loader.create(
+                    "AcodeX",
+                    "Downloading Fonts..."
+                );
                 fontsUrls.forEach(async fontFileURL => {
+                    const fileName = fontFileURL.split("/").pop();
+                    fontDownloadLoader.setMessage(
+                        `Downloading Font: ${fileName}`
+                    );
                     fetch(fontFileURL)
                         .then(response => response.blob())
                         .then(async blob => {
-                            const fileName = fontFileURL.split("/").pop(); // Get the file name from the URL
                             await fsOperation(baseFontDir).createFile(
                                 fileName,
                                 blob
                             );
                         })
                         .catch(error => {
-                            loader.destroy();
+                            fontDownloadLoader.destroy();
                             window.toast(
                                 `Error fetching font file: ${error.toString()}`,
                                 4000
                             );
                         });
                 });
-                loader.destroy();
+                fontDownloadLoader.destroy();
                 window.toast("Fonts Downloaded successfully 💥", 3000);
             }
         } catch (err) {
