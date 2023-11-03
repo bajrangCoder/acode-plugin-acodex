@@ -467,8 +467,11 @@ class AcodeX {
         this.$fitAddon = new FitAddon();
         this.$webglAddon = new WebglAddon();
         this.$unicode11Addon = new Unicode11Addon();
-        this.$webLinkAddon = new WebLinksAddon((event, uri) => {
-            system.openInBrowser(uri);
+        this.$webLinkAddon = new WebLinksAddon(async (event, uri) => {
+            const linkOpenConfirm = await confirm("AcodeX Link", `Do you want to open ${uri} in browser?`);
+            if(linkOpenConfirm){
+                system.openInBrowser(uri);
+            }
         });
         this.$terminal.loadAddon(this.$fitAddon);
         this.$terminal.loadAddon(this.$unicode11Addon);
