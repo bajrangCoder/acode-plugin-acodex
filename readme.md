@@ -18,9 +18,11 @@
 
 <details>
     <summary>
-        <h3 style="display:inline">Update v3.0.0</h3>
+        <h3 style="display:inline">Update v3.0.0 & v3.0.1</h3>
     </summary>
-    
+
+- fixed [#38](https://github.com/bajrangCoder/acode-plugin-acodex/issues/38) in `v3.0.1`
+
 - no need to update the acodeX-server
 - updated xtermjs and its addons
 - added a `fontWeight` option in plugin settings
