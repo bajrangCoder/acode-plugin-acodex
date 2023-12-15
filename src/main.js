@@ -992,8 +992,8 @@ class AcodeX {
                 newY;
             let buttonLeft = this.$showTermBtn.offsetLeft - newX;
             let totalHeaderHeight =
-                document.querySelector("#root header").offsetHeight +
-                document.querySelector("#root ul").offsetHeight;
+                document.querySelector("#root header")?.offsetHeight || 0 +
+                document.querySelector("#root ul")?.offsetHeight || 0;
             let maxX = window.innerWidth - this.$showTermBtn.offsetWidth;
             let maxY =
                 window.innerHeight -
@@ -1047,10 +1047,10 @@ class AcodeX {
         let newHeight = this.startHeight - diffY;
 
         const totalHeaderHeight =
-            document.querySelector("#root header").offsetHeight +
-            document.querySelector("#root ul").offsetHeight;
+            document.querySelector("#root header")?.offsetHeight || 0 +
+            document.querySelector("#root ul")?.offsetHeight || 0;
         const totalFooterHeight =
-            document.querySelector("#quick-tools").offsetHeight;
+            document.querySelector("#quick-tools")?.offsetHeight || 0;
         const maximumHeight =
             window.innerHeight - (totalHeaderHeight + totalFooterHeight);
         const minimumHeight = 100;
