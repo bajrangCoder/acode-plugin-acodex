@@ -92,7 +92,7 @@ class AcodeX {
         if (!appSettings.value[plugin.id]) {
             this._saveSetting();
         } else {
-            if (!this.settings.showTerminalBtnSize) {
+            if (!this.settings.serverHost) {
                 delete appSettings.value[plugin.id];
                 appSettings.update(false);
                 this._saveSetting();
@@ -378,7 +378,7 @@ class AcodeX {
                     port = this.settings.port
                 ) => {
                     if (!this.isTerminalOpened) {
-                        this.createTerminal(termContainerHeight, port);
+                        this.openTerminalPanel(termContainerHeight, port);
                     }
                 },
                 createSession: () => {
@@ -405,7 +405,6 @@ class AcodeX {
             });
         } catch (err) {
             console.log(err);
-            //alert("Warning", "Please Restart the app to use AcodeX");
         }
     }
 
@@ -501,19 +500,11 @@ class AcodeX {
             if (!pid) return;
             const cols = size.cols;
             const rows = size.rows;
-            const url =
-                "http://localhost:" +
-                port +
-                "/terminals/" +
-                pid +
-                "/size?cols=" +
-                cols +
-                "&rows=" +
-                rows;
+            const url = `http://${this.settings.serverHost}:${port}/terminals/${pid}/size?cols=${cols}&rows=${rows}`;
 
             fetch(url, { method: "POST" });
         });
-        this.socket = new WebSocket(`ws://localhost:${port}/terminals/${pid}`);
+        this.socket = new WebSocket(`ws://${this.settings.serverHost}:${port}/terminals/${pid}`);
         this.socket.onopen = () => {
             this.$attachAddon = new AttachAddon(this.socket);
             this.$terminal.loadAddon(this.$attachAddon);
@@ -587,6 +578,18 @@ class AcodeX {
                         this.changeSession(nextSession.name);
                         return false;
                     }
+                } else if (e.ctrlKey && e.keyCode === 107) {
+                    // Ctrl + Plus(+)
+                    const fontSize = this.$terminal.options.fontSize;
+                } else if (e.ctrlKey && e.keyCode === 109) {
+                    // Ctrl + Minus(-)
+                    const fontSize = this.$terminal.options.fontSize;
+                } else if (e.ctrlKey && e.keyCode === 88) {
+                    // Ctrl + x
+                    const selectedStr = this.$terminal.getSelection();
+                    if(selectedStr)
+                        clipboard.copy(selectedStr);
+                        window.toast('Copied ✅', 3000);
                 }
             }
         });
@@ -669,12 +672,7 @@ class AcodeX {
     async _generateProcessId() {
         try {
             const res = await fetch(
-                "http://localhost:" +
-                    this.settings.port +
-                    "/terminals?cols=" +
-                    this.$terminal.cols +
-                    "&rows=" +
-                    this.$terminal.rows,
+                    `http://${this.settings.serverHost}:${this.settings.port}/terminals?cols=${this.$terminal.cols}&rows=${this.$terminal.rows}`,
                 { method: "POST" }
             );
             return await res.text();
@@ -749,6 +747,7 @@ class AcodeX {
     _saveSetting() {
         appSettings.value[plugin.id] = {
             port: 8767,
+            serverHost: "localhost"
             transparency: this.ALLOW_TRANSPRANCY,
             showTerminalBtnSize: 35,
             blurValue: "4px",
@@ -857,7 +856,7 @@ class AcodeX {
                 localStorage.getItem("AcodeX_Current_Session")
             );
             fetch(
-                `http://localhost:${this.settings.port}/terminals/${pidOfCurrentSession}/terminate`,
+                `http://${this.settings.serverHost}:${this.settings.port}/terminals/${pidOfCurrentSession}/terminate`,
                 {
                     method: "POST"
                 }
@@ -1486,6 +1485,19 @@ class AcodeX {
                         ]
                     },
                     {
+                        key: "serverHost",
+                        text: "Server Host Name",
+                        value: this.settings.serverHost,
+                        info: "Hostname which is displayed on termux when starting the server",
+                        prompt: "Server Host Name",
+                        promptType: "text",
+                        promptOption: [
+                            {
+                                required: true
+                            }
+                        ]
+                    },
+                    {
                         key: "showTerminalBtnSize",
                         text: "Show Terminal button size",
                         value: this.settings.showTerminalBtnSize,
@@ -1781,6 +1793,19 @@ class AcodeX {
                         info: "Port which is displayed on termux when starting the server",
                         prompt: "Server Port",
                         promptType: "number",
+                        promptOption: [
+                            {
+                                required: true
+                            }
+                        ]
+                    },
+                    {
+                        key: "serverHost",
+                        text: "Server Host Name",
+                        value: this.settings.serverHost,
+                        info: "Hostname which is displayed on termux when starting the server",
+                        prompt: "Server Host Name",
+                        promptType: "text",
                         promptOption: [
                             {
                                 required: true
