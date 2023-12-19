@@ -531,19 +531,22 @@ class AcodeX {
             if (e.type === "keydown") {
                 const jsonData = await this.$cacheFile.readFile("utf8");
                 let sessionsData = jsonData ? JSON.parse(jsonData) : [];
-                if (e.ctrlKey && e.keyCode === 78) {
+                if (e.ctrlKey && (e.key === "N" || e.key === "n")) {
                     // ctrl+n
                     this.createSession();
                     return false;
-                } else if (e.ctrlKey && e.keyCode === 87) {
+                } else if (e.ctrlKey && (e.key === "W" || e.key === "w")) {
                     // ctrl+w
                     this.closeTerminal();
                     return false;
-                } else if (e.ctrlKey && e.keyCode === 86) {
+                } else if (e.ctrlKey && (e.key === "V" || e.key === "v")) {
                     // ctrl+v
+                    let contentToPaste = "";
                     clipboard.paste(text => {
-                        this.$terminal.paste(text);
+                        contentToPaste = text;
                     });
+                    console.log(contentToPaste)
+                    this.$terminal.paste(contentToPaste);
                     return false;
                 } else if (e.ctrlKey && e.keyCode >= 49 && e.keyCode <= 53) {
                     // ctrl+1 to ctrl+5
@@ -554,8 +557,8 @@ class AcodeX {
                         this.changeSession(selectedSession.name);
                         return false;
                     }
-                } else if (e.ctrlKey && e.keyCode === 37) {
-                    // Ctrl+Left Arrow
+                } else if (e.ctrlKey && e.key === "ArrowLeft") {
+                    // Ctrl+ArrowLeft
                     const currentIndex = sessionsData.findIndex(
                         session =>
                             session.name ===
@@ -566,8 +569,8 @@ class AcodeX {
                         this.changeSession(previousSession.name);
                         return false;
                     }
-                } else if (e.ctrlKey && e.keyCode === 39) {
-                    // Ctrl+Right Arrow
+                } else if (e.ctrlKey && e.key === "ArrowRight") {
+                    // Ctrl+ArrowRight
                     const currentIndex = sessionsData.findIndex(
                         session =>
                             session.name ===
@@ -578,19 +581,33 @@ class AcodeX {
                         this.changeSession(nextSession.name);
                         return false;
                     }
-                } else if (e.ctrlKey && e.keyCode === 107) {
+                } else if (e.ctrlKey && e.key === "+") {
                     // Ctrl + Plus(+)
-                    const fontSize = this.$terminal.options.fontSize;
-                } else if (e.ctrlKey && e.keyCode === 109) {
+                    this.$terminal.options.fontSize = this.$terminal.options.fontSize + 1;
+                    this.$terminal.refresh(0, this.$terminal.rows - 1);
+                    this.settings.fontSize = this.$terminal.options.fontSize;
+                    appSettings.update(false)
+                    return false
+                } else if (e.ctrlKey && e.key === "-") {
                     // Ctrl + Minus(-)
-                    const fontSize = this.$terminal.options.fontSize;
-                } else if (e.ctrlKey && e.keyCode === 88) {
+                    const newFontSize = this.$terminal.options.fontSize - 1;
+                    if (newFontSize < 1) return;
+                    this.$terminal.options.fontSize = newFontSize;
+                    this.$terminal.refresh(0, this.$terminal.rows - 1);
+                    this.settings.fontSize = this.$terminal.options.fontSize;
+                    appSettings.update(false)
+                    return false
+                } /*else if (e.ctrlKey && (e.key === "X" || e.key === "x")) {
+                    // currently its not added because acode ctrl key remove focus from terminal while using ctrl key
                     // Ctrl + x
-                    const selectedStr = this.$terminal.getSelection();
+                    if(!this.$terminal?.hasSelection()) return;
+                    const selectedStr = this.$terminal?.getSelection();
                     if(selectedStr)
                         clipboard.copy(selectedStr);
                         window.toast('Copied ✅', 3000);
-                }
+                        this.$terminal.focus();
+                    return false;
+                }*/
             }
         });
     }
@@ -747,7 +764,7 @@ class AcodeX {
     _saveSetting() {
         appSettings.value[plugin.id] = {
             port: 8767,
-            serverHost: "localhost"
+            serverHost: "localhost",
             transparency: this.ALLOW_TRANSPRANCY,
             showTerminalBtnSize: 35,
             blurValue: "4px",
