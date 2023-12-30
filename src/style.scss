@@ -1,135 +1,89 @@
-.terminal-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    z-index: 107;
+.terminal-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--popup-background-color);
+  width: 100%;
+  border-top: 1px solid var(--popup-border-color);
+  border-bottom: 1px solid var(--popup-border-color);
+  border-radius: 2px;
+  overflow: hidden;
+  z-index: 107;
+  box-shadow: 0px -10px 15px -6px var(--box-shadow-color);
+  box-sizing: border-box;
+  transition: opacity 0.5s ease-in-out; 
+  .terminal-title-bar {
     display: flex;
-    flex-direction: column;
-    box-shadow: 0px -10px 15px -6px var(--box-shadow-color);
-    background-color: var(--popup-background-color);
-    border-top: 1px solid var(--popup-border-color);
-    overflow: hidden;
-    box-sizing: border-box;
-    .terminal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 28px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--primary-color);
+    cursor: row-resize;
+    touch-action: none;
+    height: 28px;
+    .session-info {
+      display: flex;
+      align-items: center;
+      .pointer-indicator {
+        width: 10px;
+        height: 10px;
+        background-color: var(--button-background-color);
+        margin-right: 8px;
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--button-background-color);
+      }
+      .session-name {
+        font-size: 16px;
+        font-weight: bold;
+      }
+    }
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      .action-button {
+        background-color: transparent;
+        color: var(--primary-text-color);
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
         padding: 5px;
-        cursor: move;
-        touch-action: none;
-        border-top: 1px solid var(--border-color);
-        background: var(--primary-color);
-        box-shadow: 0 1px 6px var(--box-shadow-color);
-        .terminal-title {
-            margin: 0;
-            position: relative;
-            padding-right: 20px; /* Space for the triangle */
-            cursor: pointer;
-            &:after {
-                content: "";
-                position: absolute;
-                top: 50%;
-                right: 0;
-                transform: translateY(-50%);
-                border-style: solid;
-                border-width: 8px 8px 0 8px; /* Adjust the size of the triangle */
-                border-color: var(--border-color) transparent transparent
-                    transparent; /* Adjust the color */
-            }
+        border-radius: 4px;
+        transition: background-color 0.3s ease, color 0.3s ease,
+          transform 0.2s ease;
+        &:hover {
+          background-color: var(--active-icon-color);
         }
-        .control-btn {
-            display: flex;
-            justify-content: center;
-            align-content: center;
-            margin: 0;
-            box-sizing: border-box;
-            height: 100%;
-            .add-session-btn {
-                height: 100%;
-                width: 30px;
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                margin-right: 8px;
-                border-radius: 10px;
-                transition: all 0.3s ease-in-out;
-                color: var(--primary-text-color);
-                &:active {
-                    background: limegreen;
-                }
-            }
-            .cd-btn {
-                height: 100%;
-                width: 30px;
-                border-radius: 10px;
-                background: transparent;
-                border: none;
-                margin-right: 8px;
-                color: var(--primary-text-color);
-                transition: all 0.3s ease-in-out;
-                &:active {
-                    background: var(--active-icon-color);
-                }
-            }
-            .hide-terminal-btn {
-                font-size: 22px;
-                height: 100%;
-                width: 30px;
-                border-radius: 10px;
-                background: transparent;
-                border: none;
-                color: var(--primary-text-color);
-                margin-right: 8px;
-                transition: all 0.3s ease-in-out;
-                &:active {
-                    background: var(--active-icon-color);
-                }
-            }
-            .close-terminal-btn {
-                font-size: 19px;
-                font-weight: 700;
-                height: 100%;
-                width: 30px;
-                border-radius: 10px;
-                background: transparent;
-                border: none;
-                color: var(--primary-text-color);
-                transition: all 0.3s ease-in-out;
-                &:active {
-                    background: var(--error-text-color);
-                }
-            }
-        }
+      }
     }
-    .terminal-content {
-        flex-grow: 1;
-        overflow-y: auto;
-        box-sizing: border-box;
-        max-height: 80vh;
-        background: inherit;
-        width: 100%;
-    }
+  }
+  .terminal-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    box-sizing: border-box;
+    background: inherit;
+    width: 100%;
+  }
 }
 .show-terminal-btn {
-    height: 35px;
-    width: 35px;
-    background: var(--button-background-color);
-    border: none;
-    outline: none;
-    color: var(--primary-text-color);
-    position: fixed;
-    bottom: 70px;
-    left: 29px;
-    z-index: 115;
-    border-radius: 50%;
-    place-items: center;
-    touch-action: none;
-    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
-        rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
-        rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+  height: 35px;
+  width: 35px;
+  background: var(--button-background-color);
+  border: none;
+  outline: none;
+  color: var(--primary-text-color);
+  position: fixed;
+  bottom: 70px;
+  left: 29px;
+  z-index: 115;
+  border-radius: 50%;
+  place-items: center;
+  touch-action: none;
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 .hide {
-    display: none;
+  display: none;
+  opacity: 0;
 }

@@ -1,12 +1,12 @@
 # AcodeX - Terminal Emulator
 
 
-> **Warning**
+> [!Warning]
 > This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
 
 [AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful plugin for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
-> **Note**
+> [!Note]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
 
 <a href="https://www.buymeacoffee.com/bajrangCoder" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="40" width="170"/></a>
@@ -94,7 +94,7 @@ npm i -g acodex-server
 
 Basically just install `python` & `nodejs` and then just install `acodex-server` npm package globally
 
-> **Note:**
+> [!Note]
 > You can uninstall python after successful installation of `acodex-server`
 
 ## How to Use
@@ -245,7 +245,7 @@ pnpm install
 pnpm build
 ```
 
-> **Warning**
+> [!Warning]
 > You will need [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev) to test the plugin.
 
 
