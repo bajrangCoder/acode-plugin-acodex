@@ -132,7 +132,8 @@ class AcodeX {
         className: "action-button minimize",
         title: "Minimize",
       });
-      this.$minimizeBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M15.5 25.5q-.65 0-1.075-.425Q14 24.65 14 24q0-.65.425-1.075.425-.425 1.075-.425h17q.65 0 1.075.425Q34 23.35 34 24q0 .65-.425 1.075-.425.425-1.075.425Z"/></svg>`;
+      this.$minimizeBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 24.75q-.3 0-.55-.1-.25-.1-.5-.35l-9.9-9.9q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.15l8.85-8.85q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05l-9.9 9.9q-.25.25-.5.35-.25.1-.55.1Zm0 12.65q-.3 0-.55-.1-.25-.1-.5-.35l-9.9-9.9q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 33.8l8.85-8.85q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05l-9.9 9.9q-.25.25-.5.35-.25.1-.55.1Z"/></svg>`
+      //this.$minimizeBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M15.5 25.5q-.65 0-1.075-.425Q14 24.65 14 24q0-.65.425-1.075.425-.425 1.075-.425h17q.65 0 1.075.425Q34 23.35 34 24q0 .65-.425 1.075-.425.425-1.075.425Z"/></svg>`;
       this.$closeTermBtn = tag("button", {
         className: "action-button close",
         title: "Close Terminal",
@@ -755,7 +756,7 @@ class AcodeX {
 
   _updateTerminalHeight() {
     const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
-    this.$terminalContent.style.height = `calc(100vh - ${terminalHeaderHeight}px)`;
+    this.$terminalContent.style.height = `calc(100vh - ${terminalHeaderHeight + 1}px)`;
     localStorage.setItem(
       "AcodeX_Terminal_Cont_Height",
       this.$terminalContainer.offsetHeight
@@ -800,7 +801,6 @@ class AcodeX {
         */
     let confirmation = await confirm("Warning", "Are you sure ?");
     if (!confirmation) return;
-    //this.$terminalContainer.style.opacity = 0;
 
     if (
       this.$terminal != null &&
@@ -836,13 +836,10 @@ class AcodeX {
               this.changeSession(nextSessionName);
             } else {
               this._hideTerminalSession();
-            //   setTimeout(async () => {
                 if (!this.$terminalContainer.classList.contains("hide"))
-                  //this.$terminalContainer.style.opacity = 1;
                 this.$terminalContainer.classList.add("hide");
                 if (!this.$showTermBtn.classList.contains("hide"))
                   this.$showTermBtn.classList.add("hide");
-            //   }, 500);
               this.isTerminalMinimized = false;
               this.isTerminalOpened = false;
               localStorage.removeItem("AcodeX_Current_Session");
@@ -935,7 +932,7 @@ class AcodeX {
       let buttonLeft = this.$showTermBtn.offsetLeft - newX;
       let totalHeaderHeight =
         document.querySelector("#root header")?.offsetHeight +
-        document.querySelector("#root ul")?.offsetHeight;
+        document.querySelector("#root ul")?.offsetHeight || 0;
       let maxX = window.innerWidth - this.$showTermBtn.offsetWidth;
       let maxY =
         window.innerHeight - totalHeaderHeight - this.$showTermBtn.offsetHeight;
@@ -988,7 +985,7 @@ class AcodeX {
 
     const totalHeaderHeight =
       document.querySelector("#root header")?.offsetHeight +
-      document.querySelector("#root ul")?.offsetHeight;
+      document.querySelector("#root ul")?.offsetHeight || 0;
     const totalFooterHeight =
       document.querySelector("#quick-tools")?.offsetHeight;
     const maximumHeight =
