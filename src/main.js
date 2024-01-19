@@ -20,11 +20,12 @@ import {
 // xtermjs
 import { Terminal } from "xterm";
 // xtermjs addons
-import { FitAddon } from "xterm-addon-fit";
-import { WebglAddon } from "xterm-addon-webgl";
-import { WebLinksAddon } from "xterm-addon-web-links";
-import { Unicode11Addon } from "xterm-addon-unicode11";
-import { AttachAddon } from "xterm-addon-attach";
+import { FitAddon } from "@xterm/addon-fit";
+import { WebglAddon } from "@xterm/addon-webgl";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { Unicode11Addon } from "@xterm/addon-unicode11";
+import { AttachAddon } from "@xterm/addon-attach";
+import { SearchAddon } from "@xterm/addon-search";
 
 // acode commopents & api
 const confirm = acode.require("confirm");
@@ -123,6 +124,11 @@ class AcodeX {
         title: "New Session",
       });
       newSessionBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 38q-.65 0-1.075-.425-.425-.425-.425-1.075v-11h-11q-.65 0-1.075-.425Q10 24.65 10 24q0-.65.425-1.075.425-.425 1.075-.425h11v-11q0-.65.425-1.075Q23.35 10 24 10q.65 0 1.075.425.425.425.425 1.075v11h11q.65 0 1.075.425Q38 23.35 38 24q0 .65-.425 1.075-.425.425-1.075.425h-11v11q0 .65-.425 1.075Q24.65 38 24 38Z"/></svg>`;
+      this.$searchBtn = tag("button", {
+        className: "action-button search-btn",
+        title: "Search",
+      });
+      this.$searchBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-code"><path d="m9 9-2 2 2 2"/><path d="m13 13 2-2-2-2"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
       this.$cdBtn = tag("button", {
         className: "action-button folder-icon",
         title: "Navigate to Folder",
@@ -139,16 +145,45 @@ class AcodeX {
         title: "Close Terminal",
       });
       this.$closeTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 26.1 13.5 36.6q-.45.45-1.05.45-.6 0-1.05-.45-.45-.45-.45-1.05 0-.6.45-1.05L21.9 24 11.4 13.5q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.9l10.5-10.5q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05L26.1 24l10.5 10.5q.45.45.45 1.05 0 .6-.45 1.05-.45.45-1.05.45-.6 0-1.05-.45Z"/></svg>`;
+      this.$searchInputContainer = tag("div", {
+        className: "search-input-container"
+      });
+      this.$searchInputContainer.append(
+        tag("button", {
+          className: "action-button find-previous",
+          title: "Find Previous",
+          innerHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`,
+          onclick: this._findPreviousMatchofSearch.bind(this)
+        }),
+        tag("input", {
+          type: "text",
+          placeholder: "Find...",
+          oninput: (e) => {
+            this.$searchAddon?.findNext(e.target.value);
+          }
+        }),
+        tag("button", {
+          className: "action-button find-next",
+          title: "Find Next",
+          innerHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`,
+          onclick: this._findNextMatchofSearch.bind(this)
+        })
+      );
       $actionBtns.append(
         newSessionBtn,
+        this.$searchBtn,
         this.$cdBtn,
         this.$minimizeBtn,
-        this.$closeTermBtn
+        this.$closeTermBtn,
+        this.$searchInputContainer,
       );
+      
       this.$terminalHeader.append(sessionInfo, $actionBtns);
+      
       this.$terminalContent = tag("div", {
         className: "terminal-content",
       });
+      
       this.$terminalContainer.append(
         this.$terminalHeader,
         this.$terminalContent
@@ -156,8 +191,8 @@ class AcodeX {
       // show terminal button
       this.$showTermBtn = tag("button", {
         className: "show-terminal-btn",
+        innerHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>`
       });
-      this.$showTermBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-terminal" viewBox="0 0 16 16"><path d="M6 9a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 9zM3.854 4.146a.5.5 0 1 0-.708.708L4.793 6.5 3.146 8.146a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2z"/><path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/></svg>`;
       // append Terminal panel to app main
       if (app.get("main")) {
         app.get("main").append(this.$terminalContainer, this.$showTermBtn);
@@ -185,6 +220,31 @@ class AcodeX {
       );
 
       newSessionBtn.addEventListener("click", this.createSession.bind(this));
+      this.$searchBtn.addEventListener("click", () => {
+        const searchInput = this.$searchInputContainer.querySelector('input');
+        this.$searchInputContainer.classList.toggle('show');
+        
+        // Toggle visibility based on the presence of 'show' class in the search input
+        if (this.$searchInputContainer.classList.contains('show')) {
+          searchInput.style.maxWidth = "150px";
+          newSessionBtn.style.display = "none";
+          this.$cdBtn.style.display = "none";
+          this.$minimizeBtn.style.display = "none";
+          this.$closeTermBtn.style.display = "none";
+          searchInput.addEventListener("click", () => {
+            searchInput.focus();
+          });
+        } else {
+          searchInput.style.maxWidth = "0";
+          this.$searchAddon?.clearDecorations();
+          this.$searchAddon?.clearActiveDecoration();
+          newSessionBtn.style.display = "block";
+          this.$cdBtn.style.display = "block";
+          this.$minimizeBtn.style.display = "block";
+          this.$closeTermBtn.style.display = "block";
+        }
+      });
+
       this.$terminalTitle.addEventListener("click", async (e) => {
         let sessionNames;
         const jsonData = await this.$cacheFile.readFile("utf8");
@@ -245,10 +305,11 @@ class AcodeX {
       window.addEventListener("resize", () => {
         if (this.$terminalContainer) {
           if (!this.$terminalContainer.classList.contains("hide")) {
-            const totalHeaderHeight =
-              document.querySelector("#root header")?.offsetHeight;
+            let headerHeight = document.querySelector("#root header")?.offsetHeight;
+            let fileTabHeight = document.querySelector("#root ul")?.offsetHeight || 0;
+            const totalHeaderHeight = headerHeight + fileTabHeight
             const totalFooterHeight =
-              document.querySelector("#quick-tools")?.offsetHeight;
+              document.querySelector("#quick-tools")?.offsetHeight || 0;
             const screenHeight =
               window.innerHeight - (totalHeaderHeight + totalFooterHeight);
 
@@ -266,8 +327,9 @@ class AcodeX {
 
         if (this.$showTermBtn) {
           if (!this.$showTermBtn.classList.contains("hide")) {
-            let totalHeaderHeight =
-              document.querySelector("#root header")?.offsetHeight;
+            let headerHeight = document.querySelector("#root header")?.offsetHeight;
+            let fileTabHeight = document.querySelector("#root ul")?.offsetHeight || 0;
+            const totalHeaderHeight = headerHeight + fileTabHeight;
             let maxY =
               window.innerHeight -
               totalHeaderHeight -
@@ -412,9 +474,11 @@ class AcodeX {
         system.openInBrowser(uri);
       }
     });
+    this.$searchAddon = new SearchAddon();
     this.$terminal.loadAddon(this.$fitAddon);
     this.$terminal.loadAddon(this.$unicode11Addon);
     this.$terminal.loadAddon(this.$webLinkAddon);
+    this.$terminal.loadAddon(this.$searchAddon);
 
     this.fitTerminal();
     if (this.$webglAddon) {
@@ -436,13 +500,19 @@ class AcodeX {
   }
 
   async attachSocketToXterm(port, pid) {
-    this.$terminal.onResize((size) => {
+    this.$terminal.onResize(async (size) => {
       if (!pid) return;
-      const cols = size.cols;
-      const rows = size.rows;
-      const url = `http://${this.settings.serverHost}:${port}/terminals/${pid}/size?cols=${cols}&rows=${rows}`;
+      const cols = size.cols.toString();
+      const rows = size.rows.toString();
+      const url = `http://${this.settings.serverHost}:${port}/terminals/${pid}/resize`;
 
-      fetch(url, { method: "POST" });
+      await fetch(url,{
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ cols, rows }),
+        });
     });
     this.socket = new WebSocket(
       `ws://${this.settings.serverHost}:${port}/terminals/${pid}`
@@ -479,15 +549,10 @@ class AcodeX {
           // ctrl+w
           this.closeTerminal();
           return false;
-        } else if (e.ctrlKey && (e.key === "V" || e.key === "v")) {
-          // ctrl+v
+        } else if (e.ctrlKey && e.shiftKey && (e.key === "V" || e.key === "v")) {
+          // ctrl+shift+v
           clipboard.paste((text) => {
-            // Start paste mode(escape codes)
-            this.$terminal.write("\x1b[200~");
-            // write pasted text to terminal
-            this.$terminal.write(text);
-            // End paste mode(escape codes)
-            this.$terminal.write("\x1b[201~");
+            this.$terminal?.paste(text);
           });
           return false;
         } else if (e.ctrlKey && e.keyCode >= 49 && e.keyCode <= 53) {
@@ -537,17 +602,17 @@ class AcodeX {
           this.settings.fontSize = this.$terminal.options.fontSize;
           appSettings.update(false);
           return false;
-        } /*else if (e.ctrlKey && (e.key === "X" || e.key === "x")) {
-                    // currently its not added because acode ctrl key remove focus from terminal while using ctrl key
-                    // Ctrl + x
-                    if(!this.$terminal?.hasSelection()) return;
-                    const selectedStr = this.$terminal?.getSelection();
-                    if(selectedStr)
-                        clipboard.copy(selectedStr);
-                        window.toast('Copied ✅', 3000);
-                        this.$terminal.focus();
-                    return false;
-                }*/
+        } else if (e.ctrlKey && e.shiftKey && (e.key === "c" || e.key === "C")) {
+          // currently its not added because acode ctrl key remove focus from terminal while using ctrl key
+          // Ctrl + shift + c
+          if(!this.$terminal?.hasSelection()) return;
+          const selectedStr = this.$terminal?.getSelection();
+          if(selectedStr)
+            clipboard.copy(selectedStr);
+            window.toast('Copied ✅', 3000);
+            this.$terminal.focus();
+          return false;
+        }
       }
     });
   }
@@ -610,6 +675,7 @@ class AcodeX {
     this.$fitAddon.dispose();
     this.$unicode11Addon.dispose();
     this.$webLinkAddon.dispose();
+    this.$searchAddon.dispose();
     this.$webglAddon.dispose();
     this.$terminal.dispose();
     this.socket.close();
@@ -619,16 +685,28 @@ class AcodeX {
     this.$fitAddon = undefined;
     this.$unicode11Addon = undefined;
     this.$webLinkAddon = undefined;
+    this.$searchAddon = undefined;
     this.$webglAddon = undefined;
     this.$terminalContent.innerHTML = "";
   }
 
   async _generateProcessId() {
     try {
+      const cols = this.$terminal.cols.toString();
+      const rows = this.$terminal.rows.toString();
       const res = await fetch(
-        `http://${this.settings.serverHost}:${this.settings.port}/terminals?cols=${this.$terminal.cols}&rows=${this.$terminal.rows}`,
-        { method: "POST" }
+        `http://${this.settings.serverHost}:${this.settings.port}/terminals`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ cols, rows }),
+        }
       );
+      if (!res.ok) {
+        throw new Error("Failed to create terminal");
+      }
       return await res.text();
     } catch (err) {
       if (!this.$terminalContainer.classList.contains("hide"))
@@ -762,7 +840,6 @@ class AcodeX {
       this.$terminalContainer.offsetHeight
     );
     this.fitTerminal();
-    this.$terminal.refresh(0, this.$terminal.rows - 1);
   }
 
   fitTerminal() {
@@ -930,9 +1007,9 @@ class AcodeX {
         (this.$showTermBtn.offsetTop + this.$showTermBtn.offsetHeight) +
         newY;
       let buttonLeft = this.$showTermBtn.offsetLeft - newX;
-      let totalHeaderHeight =
-        document.querySelector("#root header")?.offsetHeight +
-        document.querySelector("#root ul")?.offsetHeight || 0;
+      let headerHeight = document.querySelector("#root header")?.offsetHeight;
+      let fileTabHeight = document.querySelector("#root ul")?.offsetHeight || 0;
+      const totalHeaderHeight = headerHeight + fileTabHeight;
       let maxX = window.innerWidth - this.$showTermBtn.offsetWidth;
       let maxY =
         window.innerHeight - totalHeaderHeight - this.$showTermBtn.offsetHeight;
@@ -965,7 +1042,7 @@ class AcodeX {
     this.startHeight = this.$terminalContainer.clientHeight;
     this.isDragging = true;
     this.$terminalContainer.style.borderTop =
-      "2px solid var(--link-text-color)";
+      "1px solid var(--link-text-color)";
   }
 
   drag(e) {
@@ -982,12 +1059,11 @@ class AcodeX {
     const diffY = currentY - this.startY;
 
     let newHeight = this.startHeight - diffY;
-
-    const totalHeaderHeight =
-      document.querySelector("#root header")?.offsetHeight +
-      document.querySelector("#root ul")?.offsetHeight || 0;
+    let headerHeight = document.querySelector("#root header")?.offsetHeight;
+    let fileTabHeight = document.querySelector("#root ul")?.offsetHeight || 0;
+    const totalHeaderHeight = headerHeight + fileTabHeight;
     const totalFooterHeight =
-      document.querySelector("#quick-tools")?.offsetHeight;
+      document.querySelector("#quick-tools")?.offsetHeight || 0;
     const maximumHeight =
       window.innerHeight - (totalHeaderHeight + totalFooterHeight);
     const minimumHeight = 100;
@@ -1057,6 +1133,16 @@ class AcodeX {
       );
       this._updateTerminalHeight();
     }
+  }
+  
+  _findPreviousMatchofSearch() {
+    const searchInput = document.querySelector(".search-input-container input").value;
+    this.$searchAddon?.findPrevious(searchInput);
+  }
+  
+  _findNextMatchofSearch() {
+    const searchInput = document.querySelector(".search-input-container input").value;
+    this.$searchAddon?.findNext(searchInput);
   }
 
   _convertPath(path) {

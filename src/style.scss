@@ -22,6 +22,7 @@
     background-color: var(--primary-color);
     cursor: row-resize;
     touch-action: none;
+    border-bottom: 1px solid var(--popup-border-color);
     height: 28px;
     .session-info {
       display: flex;
@@ -42,6 +43,25 @@
     .action-buttons {
       display: flex;
       gap: 10px;
+      transition: opacity 0.3s ease;
+    
+      .search-input-container {
+        position: relative;
+        align-items: center;
+        display: none;
+    
+        input {
+          max-width: 0;
+          padding: 8px;
+          margin-bottom: 8px;
+          border: none;
+          border-bottom: 1px solid var(--button-background-color);
+          transition: max-width 0.3s ease, display 0.3s ease;
+        }
+        &.show {
+          display: flex;
+        }
+      }
       .action-button {
         background-color: transparent;
         color: var(--primary-text-color);
@@ -52,7 +72,8 @@
         border-radius: 4px;
         transition: background-color 0.3s ease, color 0.3s ease,
           transform 0.2s ease;
-        &:hover {
+    
+        &:active {
           background-color: var(--active-icon-color);
         }
       }

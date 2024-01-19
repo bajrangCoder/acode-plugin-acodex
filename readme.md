@@ -1,5 +1,7 @@
 # AcodeX - Terminal Emulator
 
+> [!Danger]
+> AcodeX `v3.1.0` needs server `v1.1.0` to work otherwise you will face a tones pf issues
 
 > [!Warning]
 > This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
@@ -18,23 +20,20 @@
 
 <details>
     <summary>
-        <h3 style="display:inline">Update v3.0.0 & v3.0.1</h3>
+      <h3 style="display:inline">Update v3.1.0</h3>
     </summary>
 
-- fixed [#38](https://github.com/bajrangCoder/acode-plugin-acodex/issues/38) in `v3.0.1`
-
-- no need to update the acodeX-server
-- updated xtermjs and its addons
-- added a `fontWeight` option in plugin settings
-- added a `cursorInactiveStyle` option in plugin settings
-- internal changes and improvement
-- fixed transparent terminal Bug
-- fixed resizing issue
-- fixed minimising and maximising issue
-- added a setting to change show terminal button/maximise button size from plugin settings
-- fixed settings page issue
-- now no any need of restarting terminal after changing its settings (except: transparency option and scroll option)
-- added some additional keybindings for terminal for easy usability(read Additional Keybindings section in description for more)
+- Fixed panel issue when changing the file tab position [#44](https://github.com/bajrangCoder/acode-plugin-acodex/pull/44)
+- fixed plugin api problem of `acodex.openTerminal()` which was using deprecated method
+- Added option to modify server host name from settings
+- Added new keybindings such as <kbd>Ctrl-+</kbd>, <kbd>Ctrl--</kbd>, <kbd>Ctrl-Shift-C</kbd>
+- Modified paste shortcut to <kbd>Ctrl+Shift+V</kbd>
+- And in shortcuts you can use either capital letter or small for eg: <kbd>Ctrl-Shift-c</kbd> and <kbd>Ctrl-Shift-C</kbd> both will work fine
+- redesigned the panel ui and chnaged icons
+- lots of inner improvement, to improve overall performance and stability
+- Added a Search functionality to search inside terminal
+- fixed ui bug (of transparent mode)
+- Fixed all known issues
 
 </details>
 <br/>
@@ -177,7 +176,8 @@ Following are the supported Keybindings :
 
 - <kbd>Ctrl+N</kbd> : opens a new terminal session 
 - <kbd>Ctrl+W</kbd> : close opened terminal session 
-- <kbd>Ctrl+V</kbd> : paste something from clipboard inside your terminal
+- <kbd>Ctrl+Shift+V</kbd> : paste something from clipboard inside your terminal
+- <kbd>Ctrl+Shift+C</kbd> : copy selected text from terminal
 - <kbd>Ctrl+Left Arrow</kbd> : open previous session corresponding to current one like if current one is session 2 then it will open session 1(if exists)
 - <kbd>Ctrl+Right Arrow</kbd> : open next session corresponding to current one like if current one is session 2 then it will open session 2(if exists)
 - <kbd>Ctrl+1</kbd> : opens session 1
