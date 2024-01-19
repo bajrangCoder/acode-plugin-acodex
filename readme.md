@@ -1,7 +1,7 @@
 # AcodeX - Terminal Emulator
 
-> [!Danger]
-> AcodeX `v3.1.0` needs server `v1.1.0` to work otherwise you will face a tones pf issues
+> [!CAUTION]
+> AcodeX `v3.1.0` needs server `v1.1.0` to work otherwise you will face a tones of issues
 
 > [!Warning]
 > This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
