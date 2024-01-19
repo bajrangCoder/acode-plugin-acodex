@@ -7,13 +7,14 @@
   "author": "Raunak Raj <bajrangcoders@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@xterm/addon-attach": "0.10.0-beta.1",
+    "@xterm/addon-fit": "0.9.0-beta.1",
+    "@xterm/addon-search": "0.14.0-beta.1",
+    "@xterm/addon-unicode11": "0.7.0-beta.1",
+    "@xterm/addon-web-links": "0.10.0-beta.1",
+    "@xterm/addon-webgl": "0.17.0-beta.1",
     "html-tag-js": "^1.1.41",
-    "xterm": "^5.3.0",
-    "xterm-addon-attach": "^0.9.0",
-    "xterm-addon-fit": "^0.8.0",
-    "xterm-addon-unicode11": "^0.6.0",
-    "xterm-addon-web-links": "^0.9.0",
-    "xterm-addon-webgl": "^0.16.0"
+    "xterm": "^5.3.0"
   },
   "devDependencies": {
     "esbuild": "^0.19.3",

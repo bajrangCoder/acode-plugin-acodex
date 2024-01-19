@@ -1,5 +1,8 @@
 # Change Logs
 
+## `Update v3.0.1`
+- fixed [#38](https://github.com/bajrangCoder/acode-plugin-acodex/issues/38) in `v3.0.1`
+
 ## `Update v3.0.0`
 
 - updated xtermjs and its addons
