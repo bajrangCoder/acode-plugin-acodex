@@ -68,6 +68,7 @@
 
 - **Extensible**: AcodeX is highly pluggable, allowing other plugins to harness its API for creating innovative extensions and enhancing functionality.
 
+- **Easy Search**: Easily search inside the terminal 
 
 ## Prerequisites
 

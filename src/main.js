@@ -734,23 +734,43 @@ class AcodeX {
     if (isFirst) {
       this.createXtermTerminal(this.settings.port);
       const pid = await this._getPidBySessionName(sessionName);
-      if (!pid) return;
+      if (!pid) { 
+        if (!this.$terminalContainer.classList.contains("hide"))
+          this.$terminalContainer.classList.add("hide");
+        if (!this.$showTermBtn.classList.contains("hide"))
+          this.$showTermBtn.classList.add("hide");
+        this.isTerminalMinimized = false;
+        this.isTerminalOpened = false;
+        localStorage.setItem(
+          "AcodeX_Terminal_Is_Minimised",
+          this.isTerminalMinimized
+        );
+        localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+        this.$terminalContainer.style.height = this.previousTerminalHeight;
+        localStorage.setItem(
+          "AcodeX_Terminal_Cont_Height",
+          this.$terminalContainer.offsetHeight
+        );
+        localStorage.removeItem("AcodeX_Current_Session");
+        window.toast("Oops! Something went wrong in the Core 😔", 4000);
+        return;
+      }
       this.attachSocketToXterm(this.settings.port, pid);
       localStorage.setItem("AcodeX_Current_Session", sessionName);
       this.$terminalTitle.textContent = sessionName;
     } else {
       if (sessionName === localStorage.getItem("AcodeX_Current_Session"))
         return;
-      this._hideTerminalSession();
-      this.createXtermTerminal(this.settings.port);
       const pid = await this._getPidBySessionName(sessionName);
       if (!pid) return;
+      this._hideTerminalSession();
+      this.createXtermTerminal(this.settings.port);
       this.attachSocketToXterm(this.settings.port, pid);
       localStorage.setItem("AcodeX_Current_Session", sessionName);
       this.$terminalTitle.textContent = sessionName;
     }
   }
-
+  
   async _getPidBySessionName(sessionName) {
     const jsonData = await this.$cacheFile.readFile("utf8");
     let sessionsData = jsonData ? JSON.parse(jsonData) : [];
@@ -886,6 +906,7 @@ class AcodeX {
       const pidOfCurrentSession = await this._getPidBySessionName(
         localStorage.getItem("AcodeX_Current_Session")
       );
+      if(!pidOfCurrentSession) return;
       fetch(
         `http://${this.settings.serverHost}:${this.settings.port}/terminals/${pidOfCurrentSession}/terminate`,
         {
@@ -1181,12 +1202,14 @@ class AcodeX {
 
   async _cdToActiveDir() {
     const { activeFile } = editorManager;
-    const realPath = this._convertPath(activeFile.uri);
-    if (!realPath) {
-      window.toast("unsupported path type.", 3000);
-      return;
+    if(activeFile.uri){
+      const realPath = this._convertPath(activeFile.uri);
+      if (!realPath) {
+        window.toast("unsupported path type.", 3000);
+        return;
+      }
+      this.socket.send(`cd "${realPath}"\r`);
     }
-    this.socket.send(`cd "${realPath}"\r`);
   }
 
   async destroy() {
