@@ -1,7 +1,7 @@
 # AcodeX - Terminal Emulator
 
 > [!CAUTION]
-> AcodeX `v3.1.0` needs server `v1.1.0` to work otherwise you will face a tones of issues
+> AcodeX `v3.1.1` needs server `v1.1.2` to work otherwise you will face a tones of issues
 
 > [!Warning]
 > This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
@@ -20,7 +20,7 @@
 
 <details>
     <summary>
-      <h3 style="display:inline">Update v3.1.0</h3>
+      <h3 style="display:inline">Update v3.1.0 and v3.1.1</h3>
     </summary>
 
 - Fixed panel issue when changing the file tab position [#44](https://github.com/bajrangCoder/acode-plugin-acodex/pull/44)
@@ -34,6 +34,8 @@
 - Added a Search functionality to search inside terminal
 - fixed ui bug (of transparent mode)
 - Fixed all known issues
+- Fixed Font issue(v3.1.1)
+- Fized the acodex not opening bug (v3.1.1)
 
 </details>
 <br/>
