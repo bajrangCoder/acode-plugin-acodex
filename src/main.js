@@ -363,13 +363,10 @@ class AcodeX {
 
       // acodex terminal api
       acode.define("acodex", {
-        execute: cmd => {
-          /*
-                    {cmd}: command to run in terminal
-                    */
+        execute: (cmd, withEnter = true) => {
           try {
             if (!this.isTerminalOpened) return;
-            this.socket.send(cmd + "\r");
+            this.socket?.send(withEnter ? cmd + "\r" : cmd);
           } catch (error) {
             throw Error(error);
           }
@@ -385,17 +382,55 @@ class AcodeX {
             this.maxmise();
           }
         },
-        openTerminal: (
+        openTerminal: async (
           termContainerHeight = 270,
           port = this.settings.port
         ) => {
           if (!this.isTerminalOpened) {
-            this.openTerminalPanel(termContainerHeight, port);
+            let socket = await this.openTerminalPanel(termContainerHeight, port);
+            return {
+              onmessage: (cb) => {
+                if (socket) {
+                  socket.onmessage = (event) => cb(typeof event.data === "string" ? event.data : new Uint8Array(event.data));
+                }
+              },
+              write: (cmd, withEnter = true) => {
+                let command = withEnter ? cmd + "\r" : cmd;
+                socket.send(command);
+              }
+            }
           }
         },
-        createSession: () => {
+        createSession: async () => {
           if (this.isTerminalOpened) {
-            this.createSession();
+            let socket = await this.createSession();
+            return {
+              onmessage: (cb) => {
+                if (socket) {
+                  socket.onmessage = (event) => cb(typeof event.data === "string" ? event.data : new Uint8Array(event.data));
+                }
+              },
+              write: (cmd, withEnter = true) => {
+                let command = withEnter ? cmd + "\r" : cmd;
+                socket.send(command);
+              }
+            }
+          }
+        },
+        changeSession: async (sessionName) => {
+          if(this.isTerminalOpened){
+            let socket = await this.changeSession(sessionName);
+            return {
+              onmessage: (cb) => {
+                if (socket) {
+                  socket.onmessage = (event) => cb(typeof event.data === "string" ? event.data : new Uint8Array(event.data));
+                }
+              },
+              write: (cmd, withEnter = true) => {
+                let command = withEnter ? cmd + "\r" : cmd;
+                socket.send(command);
+              }
+            }
           }
         },
         closeTerminal: () => {
@@ -543,13 +578,14 @@ class AcodeX {
         "var(--popup-background-color)";
       this.$terminalHeader.style.background = "var(--primary-color)";
     }
-
+    let socket;
     if (localStorage.getItem("AcodeX_Current_Session")) {
-      this.changeSession(localStorage.getItem("AcodeX_Current_Session"), true);
+      socket = await this.changeSession(localStorage.getItem("AcodeX_Current_Session"), true);
     } else {
       this.$terminalContent.innerHTML = "";
-      this.createSession();
+      socket = await this.createSession();
     }
+    return socket;
   }
 
   transparentColor(element) {
@@ -735,7 +771,7 @@ class AcodeX {
     let sessionsData = jsonData ? JSON.parse(jsonData) : [];
 
     if (sessionsData.length === 0) {
-      this.createXtermTerminal(this.settings.port);
+      await this.createXtermTerminal(this.settings.port);
       pid = await this._generateProcessId();
       if (!pid) return;
       sessionsData = [{ name: "AcodeX1", pid: pid }];
@@ -756,7 +792,7 @@ class AcodeX {
       const nextSessionNumber = highestSessionNumber + 1;
       const nextSessionName = `AcodeX${nextSessionNumber}`;
 
-      this.createXtermTerminal(this.settings.port);
+      await this.createXtermTerminal(this.settings.port);
       pid = await this._generateProcessId();
       if (!pid) return;
       sessionsData.push({ name: nextSessionName, pid });
@@ -777,6 +813,7 @@ class AcodeX {
       `Created Session: ${sessionsData[sessionsData.length - 1].name}`,
       3000
     );
+    return this.socket;
   }
 
   _hideTerminalSession() {
@@ -841,7 +878,7 @@ class AcodeX {
 
   async changeSession(sessionName, isFirst = false) {
     if (isFirst) {
-      this.createXtermTerminal(this.settings.port);
+      await this.createXtermTerminal(this.settings.port);
       const pid = await this._getPidBySessionName(sessionName);
       if (!pid) {
         if (!this.$terminalContainer.classList.contains("hide"))
@@ -864,19 +901,21 @@ class AcodeX {
         window.toast("Oops! Something went wrong in the Core 😔", 4000);
         return;
       }
-      this.attachSocketToXterm(this.settings.port, pid);
+      await this.attachSocketToXterm(this.settings.port, pid);
       localStorage.setItem("AcodeX_Current_Session", sessionName);
       this.$terminalTitle.textContent = sessionName;
+      return this.socket;
     } else {
       if (sessionName === localStorage.getItem("AcodeX_Current_Session"))
         return;
       const pid = await this._getPidBySessionName(sessionName);
       if (!pid) return;
       this._hideTerminalSession();
-      this.createXtermTerminal(this.settings.port);
-      this.attachSocketToXterm(this.settings.port, pid);
+      await this.createXtermTerminal(this.settings.port);
+      await this.attachSocketToXterm(this.settings.port, pid);
       localStorage.setItem("AcodeX_Current_Session", sessionName);
       this.$terminalTitle.textContent = sessionName;
+      return this.socket;
     }
   }
 

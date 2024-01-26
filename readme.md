@@ -36,6 +36,7 @@
 - Fixed all known issues
 - Fixed Font issue(v3.1.1)
 - Fized the acodex not opening bug (v3.1.1)
+- added new api and there are some api changes , check Api section (v3.1.2)
 
 </details>
 <br/>
@@ -112,37 +113,131 @@ Basically just install `python` & `nodejs` and then just install `acodex-server`
 - The `✗` button is for closing the terminal.
 - The folder icon button on the terminal header is for navigating to opened files (in the editor) directory.
 
-### API Docs
+## API Docs
+The `acodex` plugin provides a set of api to interact with the AcodeX terminal.
 
-```javascript
-const termController = acode.require("acodex");
-```
+#### `execute(cmd: string, withEnter?: boolean = true) => void`
 
-**Methods**:
+Executes a command in the AcodeX terminal.
 
-1. `.execute(command)`: Execute the given command in the terminal.
-2. `.isMinimized()`: Check if the terminal is minimized.
-3. `.isTerminalOpened()`: Check if the terminal is opened.
-4. `.maximizeTerminal()`: Maximize the terminal if it's minimized.
-5. `.openTerminal(termContainerHeight, port)`: Open a new terminal (both `termContainerHeight` and `port` are optional).
-6. `.createSession()`: creates a sessionif terminal is opened 
-7. `.closeTerminal()`: Close the opened terminal.
-8. `.convertAcodeUriToTermReadable(path)`: Convert Acode file URI to an actual path.
-9. `.addTheme(themeName: string, colorSchema: IXtermTheme)`: Add a new theme to AcodeX's theme list.
-10. `.applyTheme(themeName: string)`: Apply the given theme to the terminal.
+- **Parameters:**
+  - `cmd` (string): The command to be executed.
+  - `withEnter` (boolean, optional): Whether to append an Enter keypress. Defaults to `true`.
 
-Example of addTheme & applyTheme:
+#### `isMinimized() => boolean`
+
+Returns a boolean indicating whether the AcodeX terminal is currently minimized or not.
+
+#### `isTerminalOpened() => boolean`
+
+Returns a boolean indicating whether the AcodeX terminal is currently opened or not.
+
+#### `maximiseTerminal() => void`
+
+Maximizes the AcodeX terminal if it is opened and minimized.
+
+#### `openTerminal(termContainerHeight: number = 270, port: number = this.settings.port) => Promise<SessionAPI>`
+
+Opens the AcodeX terminal.
+
+- **Parameters:**
+  - `termContainerHeight` (number, optional): Height of the terminal container. Defaults to `270`.
+  - `port` (number, optional): Port number for the terminal server. Defaults to the value from `this.settings.port`.
+
+- **Returns:**
+  - A `Promise` resolving to a `SessionAPI` object.
+
+#### `createSession() => Promise<SessionAPI>`
+
+Creates a new terminal session.
+
+- **Returns:**
+  - A `Promise` resolving to a `SessionAPI` object.
+
+#### `changeSession(sessionName: string) => Promise<SessionAPI>`
+
+Changes the active terminal session.
+
+- **Parameters:**
+  - `sessionName` (string): Name of the session to switch to.
+
+- **Returns:**
+  - A `Promise` resolving to a `SessionAPI` object.
+
+#### `closeTerminal() => void`
+
+Closes the AcodeX terminal if it is opened.
+
+#### `convertAcodeUriToTermReadable(path: string) => string`
+
+Converts an Acode URI to a format readable by the terminal.
+
+- **Parameters:**
+  - `path` (string): Acode URI path.
+
+- **Returns:**
+  - A string representing the converted path.
+
+#### `addTheme(themeName: string, colorSchema: object) => void`
+
+Adds a new theme to the AcodeX terminal.
+
+- **Parameters:**
+  - `themeName` (string): Name of the theme.
+  - `colorSchema` (object): Color schema object for the theme.
+
+#### `applyTheme(themeName: string) => void`
+
+Applies a theme to the AcodeX terminal.
+
+- **Parameters:**
+  - `themeName` (string): Name of the theme to apply.
+
+### SessionAPI Object
+
+The `SessionAPI` object provides methods for interacting with the terminal session.
+
+#### `onmessage(callback: (data: string | Uint8Array) => void) => void`
+
+Registers a callback function to be called when a message is received form server.
+
+- **Parameters:**
+  - `callback` ((data: string | Uint8Array) => void): Callback function to handle incoming messages.
+
+#### `write(cmd: string, withEnter: boolean = true) => void`
+
+Writes/Executes a command to the terminal.
+
+- **Parameters:**
+  - `cmd` (string): The command to write.
+  - `withEnter` (boolean, optional): Whether to append an Enter keypress. Defaults to `true`.
+
+### Example Usage
 
 ```javascript
 const acodex = acode.require("acodex");
-const themeName = "Test"; // name of theme
-const colorSchema  = {
-    // Theme colors here, you can find colors in themes.js
-}
-// Add theme
-acodex.addTheme(themeName, colorSchema);
-// Apply theme 
-acodex.applyTheme(themeName);
+
+acodex.execute("ls"); // execute the ls command in terminal
+const isMinimized = acodex.isMinimized();
+const isOpened = acodex.isTerminalOpened();
+acodex.maximiseTerminal();
+
+const session = await acodex.openTerminal();
+session.onmessage(data => console.log(data));
+session.write("ls");
+
+const sessionSocket = await acodex.createSession();
+sessionSocket.onmessage(data => console.log(data));
+sessionSocket.write("ls");
+
+const changeSessionSocket = await acodex.changeSession("AcodeX2");
+changeSessionSocket.onmessage(data => console.log(data));
+changeSessionSocket.write("ls");
+
+acodex.closeTerminal();
+const termReadablePath = acodex.convertAcodeUriToTermReadable("file://storage/emulated/0/myTheme/acode/file/path");
+acodex.addTheme("myTheme", { background: "#fff", text: "#000" }); // you can find more colors in themes.js
+acodex.applyTheme("myTheme");
 ```
 
 ## Custom Fonts
