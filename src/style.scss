@@ -108,3 +108,15 @@
   display: none;
   opacity: 0;
 }
+
+#acodeXAiPromptBox {
+  background: inherit;
+  width: 100%;
+  outline: none;
+  padding: 5px;
+  border-radius: 8px;
+  color: var(--popup-text-color);
+  font-size: 0.8em;
+  resize: none;
+  border: 1px solid var(--box-shadow-color);
+}

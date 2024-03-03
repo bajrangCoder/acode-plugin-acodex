@@ -1,5 +1,10 @@
 const appSettings = acode.require("settings");
 
+// ai models logo
+acode.addIcon("deepseek-coder", "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-Coder/main/pictures/home.png");
+acode.addIcon("chatgpt", "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg");
+acode.addIcon("gemini", "https://upload.wikimedia.org/wikipedia/commons/4/45/Gemini_language_model_logo.png");
+
 export const ALLOW_TRANSPRANCY = false;
 export const CURSOR_BLINK = true;
 export const SHOW_ARROW_BTN = false;
@@ -124,4 +129,32 @@ export const FONTS_LIST = [
   ["MesloLGS NF Bold", "MesloLGS NF Bold", "file file_type_font", true],
   ["MesloLGS NF Italic", "MesloLGS NF Italic", "file file_type_font", true],
   ["MesloLGS NF Regular", "MesloLGS NF Regular", "file file_type_font", true],
+];
+
+export const AI_MODEL = "deepseek-coder";
+export const AVAILABLE_AI_MODELS = [
+  [
+    "deepseek-coder",
+    "Deepseek-Coder",
+    "deepseek-coder",
+    true
+  ],
+  [
+    "chatgpt",
+    "ChatGPT",
+    "chatgpt",
+    true
+  ],
+  [
+    "gemini-pro",
+    "Gemini Pro",
+    "gemini",
+    true
+  ],
+  [
+    "local-llm",
+    "Local LLM",
+    "icon phone_android",
+    false
+  ]
 ];
