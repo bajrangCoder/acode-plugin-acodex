@@ -8,9 +8,9 @@ class AIResponseHandler {
 
   async generateDeepseekResponse(prompt) {
     const data = {
-      model: "deepseek-coder",
+      model: "deepseek-chat",
       messages: [
-        { role: "system", content: "You are a helpful terminal assistant. You have to return terminal commands only when user give prompt, no explanation, just return command in response, if user ask any irrelevant questions or query which are not related to terminal or terminal commands then ignore it, for eg: how to get path of current directory: pwd and Also return response in plain text format, not in markdowns, etc. No any explanation of commands" },
+        { role: "system", content: "You are a helpful terminal assistant. You have to return terminal commands only when user give prompt, no explanation, just return command in response, if user ask any irrelevant questions or query which are not related to terminal or terminal commands then ignore it, for eg: how to get path of current directory: pwd and Also return response in plain text format, not in markdowns, etc." },
         { role: "user", content: prompt }
       ]
     };

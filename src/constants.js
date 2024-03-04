@@ -1,13 +1,12 @@
 const appSettings = acode.require("settings");
 
 // ai models logo
-acode.addIcon("deepseek-coder", "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-Coder/main/pictures/home.png");
+acode.addIcon("deepseek", "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-Coder/main/pictures/home.png");
 acode.addIcon("chatgpt", "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg");
 acode.addIcon("gemini", "https://upload.wikimedia.org/wikipedia/commons/4/45/Gemini_language_model_logo.png");
 
 export const ALLOW_TRANSPRANCY = false;
 export const CURSOR_BLINK = true;
-export const SHOW_ARROW_BTN = false;
 export const CURSOR_STYLE = ["block", "underline", "bar"];
 export const CURSOR_INACTIVE_STYLE = [
   "outline",
@@ -17,7 +16,7 @@ export const CURSOR_INACTIVE_STYLE = [
   "none",
 ];
 export const FONT_SIZE = 11;
-export const FONT_FAMILY = appSettings.get("editorFont");
+export const FONT_FAMILY = "MesloLGS NF Regular";
 export const FONT_WEIGHT = [
   "normal",
   "bold",
@@ -131,12 +130,12 @@ export const FONTS_LIST = [
   ["MesloLGS NF Regular", "MesloLGS NF Regular", "file file_type_font", true],
 ];
 
-export const AI_MODEL = "deepseek-coder";
+export const AI_MODEL = "deepseek";
 export const AVAILABLE_AI_MODELS = [
   [
-    "deepseek-coder",
-    "Deepseek-Coder",
-    "deepseek-coder",
+    "deepseek",
+    "Deepseek",
+    "deepseek",
     true
   ],
   [

@@ -701,6 +701,7 @@ class AcodeX {
 			acode.alert("AcodeX Error", JSON.stringify(error));
 		};
 
+		// custom Keybindings
 		this.$terminal.attachCustomKeyEventHandler(async e => {
 			if (e.type === "keydown") {
 				const jsonData = await this.$cacheFile.readFile("utf8");
@@ -787,27 +788,78 @@ class AcodeX {
 			}
 		});
 
-		let isHashAtStartOfLine = false;
+		// listener on terminal data for ai integration and exit command handling
+		let userInputBuffer = "";
+		let isCursorAtStartOfLine = true;
 		this.$terminal.onData(data => {
-			const input = data.trim();
-			if (input.startsWith("#") && isHashAtStartOfLine) {
+			// Handle backspace (\x7F)
+			if (data === "\x7F") {
+				if (userInputBuffer.trim() === "") {
+					// If the buffer is empty, the cursor is still at the start of the line
+					isCursorAtStartOfLine = true;
+				} else {
+					// Remove the last character from the buffer
+					userInputBuffer = userInputBuffer.slice(0, -1);
+					// Update the cursor position based on the content of the buffer
+					isCursorAtStartOfLine = userInputBuffer.trim() === "";
+				}
+				return;
+			}
+
+			// Filter out non-printable characters and control sequences
+			const filteredData = this.filterTermInputData(data);
+			userInputBuffer += filteredData;
+
+			// Check if the input starts with '#' and it's at the beginning of a line
+			if (filteredData.startsWith("#") && isCursorAtStartOfLine) {
 				this.openAIPromptPopup();
 			}
 
-			// Reset the flag when a new line is entered or characters are deleted
-			if (data === "\r" || data === "\x7f") {
-				// '\x7f' is the ASCII code for the delete/backspace key
-				isHashAtStartOfLine = true;
-			} else {
-				isHashAtStartOfLine = false;
+			if (data === "\r") {
+				if (userInputBuffer.trim().toLowerCase() === "exit") {
+					console.log("Exiting current session...");
+					// Handle "exit" command
+					this.terminalCloseHandler();
+				}
+				userInputBuffer = "";
+				// Reset cursor position when Enter is pressed
+				isCursorAtStartOfLine = true;
 			}
+
+			// Update cursor position based on the content of the buffer
+			isCursorAtStartOfLine = userInputBuffer.trim() === "";
 		});
+	}
+
+	filterTermInputData(data) {
+		/**
+		 * Function to filter out non-printable characters and control sequences
+		 **/
+		let filteredData = "";
+		for (let i = 0; i < data.length; i++) {
+			const charCode = data.charCodeAt(i);
+			if (
+				(charCode >= 32 && charCode <= 126) ||
+				charCode === 13 || // Carriage return (Enter)
+				charCode === 8 // Backspace
+			) {
+				filteredData += data[i];
+			}
+		}
+		return filteredData;
 	}
 
 	async openAIPromptPopup() {
 		const promptBox = DialogBox(
 			"⚡ Ask  AcodeX Ai",
-			`<textarea id="acodeXAiPromptBox" rows="2" placeholder="for eg: delete sample.txt file"></textarea>`,
+			`<textarea id="acodeXAiPromptBox" rows="2" placeholder="for eg: delete sample.txt file"></textarea>
+			<div class="ai-loader-container">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+			</div>`,
 			"Start Magic ✨"
 		);
 		promptBox.ok(async () => {
@@ -816,15 +868,17 @@ class AcodeX {
 				promptBox.hide();
 				return;
 			}
+			document.querySelector(".ai-loader-container").style.display = "flex";
 			window.toast("Wait! To see the magic of AcodeX AI ✨", 2000);
 			try {
 				const aiResponseHandler = new AIResponseHandler(this.settings.aiApiKey);
 				let aiGeneratedCmd = "";
 				switch (this.settings.aiModel) {
-					case "deepseek-coder":
+					case "deepseek":
 						const { response, error } =
 							await aiResponseHandler.generateDeepseekResponse(prompt);
 						if (error) {
+						  document.querySelector(".ai-loader-container").style.display = "none";
 							promptBox.hide();
 							acode.alert("AcodeX AI Error", error.toString());
 							console.error("AcodeX AI Error:", error);
@@ -837,6 +891,7 @@ class AcodeX {
 						const { response: chatgptResponse, error: chatgptError } =
 							await aiResponseHandler.generateChatgptResponse(prompt);
 						if (chatgptError) {
+						  document.querySelector(".ai-loader-container").style.display = "none";
 							promptBox.hide();
 							acode.alert("AcodeX AI Error", chatgptError.toString());
 							console.error("AcodeX AI Error:", chatgptError);
@@ -849,6 +904,7 @@ class AcodeX {
 						const { response: geminiResponse, error: geminiError } =
 							await aiResponseHandler.generateGeminiResponse(prompt);
 						if (geminiError) {
+						  document.querySelector(".ai-loader-container").style.display = "none";
 							promptBox.hide();
 							acode.alert("AcodeX AI Error", geminiError.toString());
 							console.error("AcodeX AI Error:", geminiError);
@@ -858,13 +914,16 @@ class AcodeX {
 						break;
 				}
 				if (!aiGeneratedCmd) {
+				  document.querySelector(".ai-loader-container").style.display = "none";
 					promptBox.hide();
 					return;
 				}
 				this.socket?.send("\b");
 				this.socket?.send(aiGeneratedCmd.trim());
+				document.querySelector(".ai-loader-container").style.display = "none";
 				promptBox.hide();
 			} catch (error) {
+			  document.querySelector(".ai-loader-container").style.display = "none";
 				promptBox?.hide();
 				console.error(error);
 			}
@@ -1153,6 +1212,45 @@ class AcodeX {
 		}
 	}
 
+	async terminalCloseHandler() {
+		const jsonData = await this.$cacheFile.readFile("utf8");
+		let sessionsData = jsonData ? JSON.parse(jsonData) : [];
+
+		// Filter out the session to delete
+		sessionsData = sessionsData.filter(
+			session => session.name !== localStorage.getItem("AcodeX_Current_Session")
+		);
+
+		// Save the updated sessionsData back to the JSON file
+		await this.$cacheFile.writeFile(sessionsData);
+
+		// Check if there are any remaining sessions
+		if (sessionsData.length > 0) {
+			// Get the next session name
+			const nextSessionName = await this._getLastSessionName();
+			this.changeSession(nextSessionName);
+		} else {
+			this._hideTerminalSession();
+			if (!this.$terminalContainer.classList.contains("hide"))
+				this.$terminalContainer.classList.add("hide");
+			if (!this.$showTermBtn.classList.contains("hide"))
+				this.$showTermBtn.classList.add("hide");
+			this.isTerminalMinimized = false;
+			this.isTerminalOpened = false;
+			localStorage.removeItem("AcodeX_Current_Session");
+			localStorage.setItem(
+				"AcodeX_Terminal_Is_Minimised",
+				this.isTerminalMinimized
+			);
+			localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+			this.$terminalContainer.style.height = this.previousTerminalHeight;
+			localStorage.setItem(
+				"AcodeX_Terminal_Cont_Height",
+				this.$terminalContainer.offsetHeight
+			);
+		}
+	}
+
 	async closeTerminal() {
 		/*
         remove terminal from  app
@@ -1176,44 +1274,7 @@ class AcodeX {
 			)
 				.then(async response => {
 					if (response.ok) {
-						const jsonData = await this.$cacheFile.readFile("utf8");
-						let sessionsData = jsonData ? JSON.parse(jsonData) : [];
-
-						// Filter out the session to delete
-						sessionsData = sessionsData.filter(
-							session =>
-								session.name !== localStorage.getItem("AcodeX_Current_Session")
-						);
-
-						// Save the updated sessionsData back to the JSON file
-						await this.$cacheFile.writeFile(sessionsData);
-
-						// Check if there are any remaining sessions
-						if (sessionsData.length > 0) {
-							// Get the next session name
-							const nextSessionName = await this._getLastSessionName();
-							this.changeSession(nextSessionName);
-						} else {
-							this._hideTerminalSession();
-							if (!this.$terminalContainer.classList.contains("hide"))
-								this.$terminalContainer.classList.add("hide");
-							if (!this.$showTermBtn.classList.contains("hide"))
-								this.$showTermBtn.classList.add("hide");
-							this.isTerminalMinimized = false;
-							this.isTerminalOpened = false;
-							localStorage.removeItem("AcodeX_Current_Session");
-							localStorage.setItem(
-								"AcodeX_Terminal_Is_Minimised",
-								this.isTerminalMinimized
-							);
-							localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
-							this.$terminalContainer.style.height =
-								this.previousTerminalHeight;
-							localStorage.setItem(
-								"AcodeX_Terminal_Cont_Height",
-								this.$terminalContainer.offsetHeight
-							);
-						}
+					  this.terminalCloseHandler();
 					} else {
 						acode.alert(
 							"AcodeX Error",
