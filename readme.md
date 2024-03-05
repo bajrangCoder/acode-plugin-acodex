@@ -1,12 +1,9 @@
 # AcodeX - Terminal Emulator
 
-> [!CAUTION]
-> AcodeX `v3.1.1` needs server `v1.1.2` to work otherwise you will face a tones of issues
-
 > [!Warning]
 > This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
 
-[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful plugin for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **45k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
 > [!Note]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
@@ -15,28 +12,17 @@
 
 <a href='https://ko-fi.com/M4M3QPI7K' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
-### Support this project with your small contribution - [Click Me 💗](https://www.buymeacoffee.com/bajrangCoder)
+### If you can then support this project financially with any of the payment method ☺️ - [Click Me 💗](https://www.buymeacoffee.com/bajrangCoder)
 
 
 <details>
     <summary>
-      <h3 style="display:inline">Update v3.1.0 and v3.1.1</h3>
+      <h3 style="display:inline">Update v3.1.3</h3>
     </summary>
-
-- Fixed panel issue when changing the file tab position [#44](https://github.com/bajrangCoder/acode-plugin-acodex/pull/44)
-- fixed plugin api problem of `acodex.openTerminal()` which was using deprecated method
-- Added option to modify server host name from settings
-- Added new keybindings such as <kbd>Ctrl-+</kbd>, <kbd>Ctrl--</kbd>, <kbd>Ctrl-Shift-C</kbd>
-- Modified paste shortcut to <kbd>Ctrl+Shift+V</kbd>
-- And in shortcuts you can use either capital letter or small for eg: <kbd>Ctrl-Shift-c</kbd> and <kbd>Ctrl-Shift-C</kbd> both will work fine
-- redesigned the panel ui and chnaged icons
-- lots of inner improvement, to improve overall performance and stability
-- Added a Search functionality to search inside terminal
-- fixed ui bug (of transparent mode)
-- Fixed all known issues
-- Fixed Font issue(v3.1.1)
-- Fized the acodex not opening bug (v3.1.1)
-- added new api and there are some api changes , check Api section (v3.1.2)
+    
+- Enhanced AcodeX by integrating AI into the terminal, making it a standout option in the modern era. (Check `How to use AI section` for refrence)
+- Updated the default font family for the Terminal to `Meslo NF Regular`.
+- Resolved the issue with the `exit` command; now, typing `exit` in the terminal will promptly close the current session. 
 
 </details>
 <br/>
@@ -46,6 +32,8 @@
 ## 💥 Features
 
 - **User-Friendly Terminal**: AcodeX provides a seamless terminal experience within Acode. You can open the terminal panel with a simple `Ctrl+K` shortcut or by searching for "Open Terminal" in the command palette.
+
+- **Integrated AI**: if you don't know any command, just ask the ai and ai will weite it
 
 - **Enhanced Productivity**: With AcodeX, developers can save time by executing commands directly within Acode, eliminating the need to switch between multiple applications.
 
@@ -73,6 +61,11 @@
 
 - **Easy Search**: Easily search inside the terminal 
 
+## Comming Soon ❄️
+
+- Ide style autocompletion
+- A light weight, independent version of acodex server without compromising features
+
 ## Prerequisites
 
 To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) installed on your Android device. However, you don't need to switch between apps to use the terminal, as AcodeX offers a convenient way to access the terminal directly within the Acode app with the help of Termux.
@@ -88,6 +81,8 @@ curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main
 ```
 
 or 
+
+> Falling on Termux 
 
 ```bash
 pkg update && pkg upgrade -y
@@ -112,6 +107,51 @@ Basically just install `python` & `nodejs` and then just install `acodex-server`
 - You can also drag the terminal panel around by clicking and dragging through the terminal header area.
 - The `✗` button is for closing the terminal.
 - The folder icon button on the terminal header is for navigating to opened files (in the editor) directory.
+
+## Additional Terminal Keybindings
+
+AcodeX provides some additional Keybindings for easy usability of terminal features.
+
+> Note: These keybindings will only work if you will use these inside terminal only.
+
+Following are the supported Keybindings :
+
+- <kbd>Ctrl+N</kbd> : opens a new terminal session 
+- <kbd>Ctrl+W</kbd> : close opened terminal session 
+- <kbd>Ctrl+Shift+V</kbd> : paste something from clipboard inside your terminal
+- <kbd>Ctrl+Shift+C</kbd> : copy selected text from terminal
+- <kbd>Ctrl+Left Arrow</kbd> : open previous session corresponding to current one like if current one is session 2 then it will open session 1(if exists)
+- <kbd>Ctrl+Right Arrow</kbd> : open next session corresponding to current one like if current one is session 2 then it will open session 2(if exists)
+- <kbd>Ctrl+1</kbd> : opens session 1
+- <kbd>Ctrl+2</kbd> : opens session 2 if exists
+- <kbd>Ctrl+3</kbd> : opens session 3 if exists
+- <kbd>Ctrl+4</kbd> : opens session 4 if exists
+- <kbd>Ctrl+5</kbd> : opens session 5 if exists
+
+### How to Use AI
+
+To leverage the power of artificial intelligence within `AcodeX Terminal` Plugin, follow these steps:
+
+1. **Obtain API Key**: Before using the AI capabilities, you need to acquire an API key for the respective model you wish to utilize. Visit the website of your chosen model and obtain the API key. Once obtained, navigate to the AcodeX settings and input the API key. Additionally, you can select your preferred model from the list of currently supported models, which include:
+   - Deepseek : [Get API key 🚀](https://platform.deepseek.com/api_keys)
+   - Chatgpt : [Get API key 🚀](https://platform.openai.com/account/api-keys)
+   - Gemini-Pro(default) : [Get API key 🚀](https://aistudio.google.com/app/apikey)
+
+2. **Accessing AI in the Terminal**:
+   - To access the AI functionality within the terminal, simply type `#`. This action will prompt a popup window to appear.
+   - Within the popup window, you can input your prompt or query.
+   - Upon entering your prompt, click the button provided to prompt the AI to generate a command based on your input.
+   - The generated command will be written into the terminal. From there, you have the option to execute the command as is or modify it according to your requirements.
+
+> [!Warning]
+> Avoid prompts that may lead the AI to provide descriptive or explanatory responses instead of actionable commands.
+
+> [!Note]
+> Use AI wisely, as there may be token limits associated with your API key. Be mindful of your usage to avoid exceeding token limits and potential interruptions in service.
+
+We value your feedback! Please provide any suggestions or feedback to help us improve the AI integration and suggest additional AI models for future enhancements.
+
+Stay tuned for more AI integrations and improvements coming soon 😊!
 
 ## API Docs
 The `acodex` plugin provides a set of api to interact with the AcodeX terminal.
@@ -263,26 +303,6 @@ To load a custom font:
 5. Select your CSS file created in step 3.
 6. Enter the font name in the Font Family option.
 7. Restart the terminal.
-
-## Additional Terminal Keybindings
-
-AcodeX provides some additional Keybindings for easy usability of terminal features.
-
-> Note: These keybindings will only work if you will use these inside terminal only.
-
-Following are the supported Keybindings :
-
-- <kbd>Ctrl+N</kbd> : opens a new terminal session 
-- <kbd>Ctrl+W</kbd> : close opened terminal session 
-- <kbd>Ctrl+Shift+V</kbd> : paste something from clipboard inside your terminal
-- <kbd>Ctrl+Shift+C</kbd> : copy selected text from terminal
-- <kbd>Ctrl+Left Arrow</kbd> : open previous session corresponding to current one like if current one is session 2 then it will open session 1(if exists)
-- <kbd>Ctrl+Right Arrow</kbd> : open next session corresponding to current one like if current one is session 2 then it will open session 2(if exists)
-- <kbd>Ctrl+1</kbd> : opens session 1
-- <kbd>Ctrl+2</kbd> : opens session 2 if exists
-- <kbd>Ctrl+3</kbd> : opens session 3 if exists
-- <kbd>Ctrl+4</kbd> : opens session 4 if exists
-- <kbd>Ctrl+5</kbd> : opens session 5 if exists
 
 ## Acknowledgments
 

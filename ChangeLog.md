@@ -1,5 +1,25 @@
 # Change Logs
 
+## `Update v3.1.2`
+- added new api and there are some api changes , check Api section
+
+## `Update v3.1.1`
+- Fixed Font issue
+- Fized the acodex not opening bug
+
+## `Update v3.1.0`
+- Fixed panel issue when changing the file tab position [#44](https://github.com/bajrangCoder/acode-plugin-acodex/pull/44)
+- fixed plugin api problem of `acodex.openTerminal()` which was using deprecated method
+- Added option to modify server host name from settings
+- Added new keybindings such as <kbd>Ctrl-+</kbd>, <kbd>Ctrl--</kbd>, <kbd>Ctrl-Shift-C</kbd>
+- Modified paste shortcut to <kbd>Ctrl+Shift+V</kbd>
+- And in shortcuts you can use either capital letter or small for eg: <kbd>Ctrl-Shift-c</kbd> and <kbd>Ctrl-Shift-C</kbd> both will work fine
+- redesigned the panel ui and chnaged icons
+- lots of inner improvement, to improve overall performance and stability
+- Added a Search functionality to search inside terminal
+- fixed ui bug (of transparent mode)
+- Fixed all known issues
+
 ## `Update v3.0.1`
 - fixed [#38](https://github.com/bajrangCoder/acode-plugin-acodex/issues/38) in `v3.0.1`
 
