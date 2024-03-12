@@ -80,9 +80,7 @@ To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) install
 curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash
 ```
 
-or 
-
-> Falling on Termux 
+or
 
 ```bash
 pkg update && pkg upgrade -y
@@ -91,6 +89,12 @@ npm i -g acodex-server
 ```
 
 Basically just install `python` & `nodejs` and then just install `acodex-server` npm package globally
+
+But if you are installing it on termux then make sure to run this command first to bypass the termux specific issue:
+
+```bash
+cd $HOME && mkdir -p .gyp && echo "{'variables': {'android_ndk_path': ''}}" > .gyp/include.gypi
+```
 
 > [!Note]
 > You can uninstall python after successful installation of `acodex-server`
