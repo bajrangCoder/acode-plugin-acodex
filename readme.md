@@ -17,12 +17,14 @@
 
 <details>
     <summary>
-      <h3 style="display:inline">Update v3.1.3</h3>
+      <h3 style="display:inline">Update v3.1.3 & v3.1.4</h3>
     </summary>
     
 - Enhanced AcodeX by integrating AI into the terminal, making it a standout option in the modern era. (Check `How to use AI section` for refrence)
 - Updated the default font family for the Terminal to `Meslo NF Regular`.
 - Resolved the issue with the `exit` command; now, typing `exit` in the terminal will promptly close the current session. 
+- fixed settings issue (v3.1.4)
+
 
 </details>
 <br/>

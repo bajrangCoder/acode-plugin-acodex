@@ -63,7 +63,7 @@ class AcodeX {
 		if (!appSettings.value[plugin.id]) {
 			this._saveSetting();
 		} else {
-			if (!this.settings.aiApiKey) {
+			if (!this.settings.aiModel) {
 				delete appSettings.value[plugin.id];
 				appSettings.update(false);
 				this._saveSetting();
