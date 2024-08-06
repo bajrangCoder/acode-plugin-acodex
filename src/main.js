@@ -21,7 +21,7 @@ import {
 } from "./constants.js";
 
 // xtermjs
-import { Terminal } from "xterm";
+import { Terminal } from "@xterm/xterm";
 // xtermjs addons
 import { FitAddon } from "@xterm/addon-fit";
 import { WebglAddon } from "@xterm/addon-webgl";
@@ -149,7 +149,6 @@ class AcodeX {
 				title: "Minimize"
 			});
 			this.$minimizeBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 24.75q-.3 0-.55-.1-.25-.1-.5-.35l-9.9-9.9q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.15l8.85-8.85q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05l-9.9 9.9q-.25.25-.5.35-.25.1-.55.1Zm0 12.65q-.3 0-.55-.1-.25-.1-.5-.35l-9.9-9.9q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 33.8l8.85-8.85q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05l-9.9 9.9q-.25.25-.5.35-.25.1-.55.1Z"/></svg>`;
-			//this.$minimizeBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M15.5 25.5q-.65 0-1.075-.425Q14 24.65 14 24q0-.65.425-1.075.425-.425 1.075-.425h17q.65 0 1.075.425Q34 23.35 34 24q0 .65-.425 1.075-.425.425-1.075.425Z"/></svg>`;
 			this.$closeTermBtn = tag("button", {
 				className: "action-button close",
 				title: "Close Terminal"
@@ -697,6 +696,40 @@ class AcodeX {
 			this.$terminal.focus();
 			this._updateTerminalHeight();
 		};
+		this.socket.onclose = async(event) => {
+		  try {
+        const response = await fetch(`http://${this.settings.serverHost}:${port}/`);
+        if (!response.ok) {
+          console.warn('Server responded with an error:', response.status, response.statusText);
+        }
+        return;
+      } catch (error) {
+        // server closed
+        if (!this.$terminalContainer.classList.contains("hide"))
+				  this.$terminalContainer.style.opacity = 1;
+  			this.$terminalContainer.classList.add("hide");
+  			if (!this.$showTermBtn.classList.contains("hide"))
+  				this.$showTermBtn.classList.add("hide");
+  			this.isTerminalMinimized = false;
+  			this.isTerminalOpened = false;
+  			localStorage.setItem(
+  				"AcodeX_Terminal_Is_Minimised",
+  				this.isTerminalMinimized
+  			);
+  			localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+  			this.$terminalContainer.style.height = this.previousTerminalHeight;
+  			localStorage.setItem(
+  				"AcodeX_Terminal_Cont_Height",
+  				this.$terminalContainer.offsetHeight
+  			);
+  			localStorage.removeItem("AcodeX_Current_Session");
+  			await this.$cacheFile.writeFile("");
+  			acode.alert(
+  				"AcodeX Server",
+  				"Disconnected from server because server gets closed 😞!"
+  			);
+      }
+		}
 		this.socket.onerror = error => {
 			acode.alert("AcodeX Error", JSON.stringify(error));
 		};
@@ -784,6 +817,14 @@ class AcodeX {
 					window.toast("Copied ✅", 3000);
 					this.$terminal.focus();
 					return false;
+				} else if (
+					e.ctrlKey &&
+					e.shiftKey &&
+					(e.key === "i" || e.key === "I")
+				) {
+				  this.$terminal?.clear();
+				  this.socket?.send("clear\r");
+				  return false;
 				}
 			}
 		});

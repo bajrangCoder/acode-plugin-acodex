@@ -17,15 +17,14 @@
 
 <details>
     <summary>
-      <h3 style="display:inline">Update v3.1.3 & v3.1.4</h3>
+      <h3 style="display:inline">Update v3.1.5</h3>
     </summary>
     
-- Enhanced AcodeX by integrating AI into the terminal, making it a standout option in the modern era. (Check `How to use AI section` for refrence)
-- Updated the default font family for the Terminal to `Meslo NF Regular`.
-- Resolved the issue with the `exit` command; now, typing `exit` in the terminal will promptly close the current session. 
-- fixed settings issue (v3.1.4)
+- Now it will handle automatically closing of server
+- 🆕 key-bindings `Ctrl+Shift+I` to clear the terminal 
+- updated xterm and its styling
 
-
+This is a LTS version.
 </details>
 <br/>
 
@@ -63,10 +62,6 @@
 
 - **Easy Search**: Easily search inside the terminal 
 
-## Comming Soon ❄️
-
-- Ide style autocompletion
-- A light weight, independent version of acodex server without compromising features
 
 ## Prerequisites
 
@@ -133,6 +128,7 @@ Following are the supported Keybindings :
 - <kbd>Ctrl+3</kbd> : opens session 3 if exists
 - <kbd>Ctrl+4</kbd> : opens session 4 if exists
 - <kbd>Ctrl+5</kbd> : opens session 5 if exists
+- <kbd>Ctrl+Shift+I</kbd> : clear the terminal 
 
 ### How to Use AI
 

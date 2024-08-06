@@ -1,5 +1,11 @@
 # Change Logs
 
+## `Update v3.1.3 & v3.1.4`
+- Enhanced AcodeX by integrating AI into the terminal, making it a standout option in the modern era. (Check `How to use AI section` for refrence)
+- Updated the default font family for the Terminal to `Meslo NF Regular`.
+- Resolved the issue with the `exit` command; now, typing `exit` in the terminal will promptly close the current session. 
+- fixed settings issue (v3.1.4)
+
 ## `Update v3.1.2`
 - added new api and there are some api changes , check Api section
 
