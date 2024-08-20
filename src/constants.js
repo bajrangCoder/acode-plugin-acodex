@@ -5,6 +5,7 @@ acode.addIcon("deepseek", "https://raw.githubusercontent.com/deepseek-ai/DeepSee
 acode.addIcon("chatgpt", "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg");
 acode.addIcon("gemini", "https://upload.wikimedia.org/wikipedia/commons/4/45/Gemini_language_model_logo.png");
 
+export const IMAGE_RENDERING = false;
 export const ALLOW_TRANSPRANCY = false;
 export const CURSOR_BLINK = true;
 export const CURSOR_STYLE = ["block", "underline", "bar"];

@@ -17,7 +17,8 @@ import {
 	FONTS_LIST,
 	showTerminalBtnSize,
 	AI_MODEL,
-	AVAILABLE_AI_MODELS
+	AVAILABLE_AI_MODELS,
+	IMAGE_RENDERING
 } from "./constants.js";
 
 // xtermjs
@@ -29,6 +30,7 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { AttachAddon } from "@xterm/addon-attach";
 import { SearchAddon } from "@xterm/addon-search";
+import { ImageAddon } from '@xterm/addon-image';
 
 // acode commopents & api
 const confirm = acode.require("confirm");
@@ -63,7 +65,7 @@ class AcodeX {
 		if (!appSettings.value[plugin.id]) {
 			this._saveSetting();
 		} else {
-			if (!this.settings.aiModel) {
+			if (!this.settings.imageRendering) {
 				delete appSettings.value[plugin.id];
 				appSettings.update(false);
 				this._saveSetting();
@@ -637,6 +639,10 @@ class AcodeX {
 			}
 		});
 		this.$searchAddon = new SearchAddon();
+		if(this.settings.imageRendering) {
+    		this.$imageAddon = new ImageAddon();
+    		this.$terminal.loadAddon(this.$imageAddon);
+		}
 		this.$terminal.loadAddon(this.$fitAddon);
 		this.$terminal.loadAddon(this.$unicode11Addon);
 		this.$terminal.loadAddon(this.$webLinkAddon);
@@ -1031,6 +1037,7 @@ class AcodeX {
 		this.$unicode11Addon.dispose();
 		this.$webLinkAddon.dispose();
 		this.$searchAddon.dispose();
+		if(this.settings.imageRendering) this.$imageAddon.dispose();
 		this.$webglAddon.dispose();
 		this.$terminal.dispose();
 		this.socket.close();
@@ -1041,6 +1048,7 @@ class AcodeX {
 		this.$unicode11Addon = undefined;
 		this.$webLinkAddon = undefined;
 		this.$searchAddon = undefined;
+		this.$imageAddon = undefined;
 		this.$webglAddon = undefined;
 		this.$terminalContent.innerHTML = "";
 	}
@@ -1158,6 +1166,7 @@ class AcodeX {
 			aiApiKey: "",
 			aiModel: AI_MODEL,
 			transparency: ALLOW_TRANSPRANCY,
+			imageRendering: IMAGE_RENDERING,
 			showTerminalBtnSize: showTerminalBtnSize,
 			blurValue: "4px",
 			cursorBlink: CURSOR_BLINK,
@@ -1878,6 +1887,12 @@ class AcodeX {
 				checkbox: !!this.settings.transparency
 			},
 			{
+				key: "imageRendering",
+				text: "Image Rendering",
+				info: "Enables image rendering inside the terminal but it can reduce performance",
+				checkbox: !!this.settings.imageRendering
+			},
+			{
 				index: 7,
 				key: "customFontStyleSheet",
 				text: "Custom Font Stylesheet file",
@@ -2185,6 +2200,14 @@ class AcodeX {
 					this.$terminal.options.cursorInactiveStyle = value;
 				}
 				this.settings[key] = value;
+				appSettings.update();
+				break;
+		    case "imageRendering":
+		        if(this.$terminal) {
+		            this.$imageAddon = new ImageAddon();
+		            this.$terminal.loadAddon(this.$imageAddon);
+		        }
+		        this.settings[key] = value;
 				appSettings.update();
 				break;
 

@@ -18,6 +18,9 @@ importers:
       '@xterm/addon-fit':
         specifier: 0.9.0-beta.1
         version: 0.9.0-beta.1(xterm@5.3.0)
+      '@xterm/addon-image':
+        specifier: ^0.8.0
+        version: 0.8.0(@xterm/xterm@5.5.0)
       '@xterm/addon-search':
         specifier: 0.14.0-beta.1
         version: 0.14.0-beta.1(xterm@5.3.0)
@@ -34,8 +37,8 @@ importers:
         specifier: ^5.5.0
         version: 5.5.0
       html-tag-js:
-        specifier: ^1.6.0
-        version: 1.6.0
+        specifier: ^1.7.1
+        version: 1.7.1
     devDependencies:
       esbuild:
         specifier: ^0.19.12
@@ -197,6 +200,11 @@ packages:
     peerDependencies:
       xterm: ^5.0.0
 
+  '@xterm/addon-image@0.8.0':
+    resolution: {integrity: sha512-b/dqpFn3jUad2pUP5UpF4scPIh0WdxRQL/1qyiahGfUI85XZTCXo0py9G6AcOR2QYUw8eJ8EowGspT7BQcgw6A==}
+    peerDependencies:
+      '@xterm/xterm': ^5.2.0
+
   '@xterm/addon-search@0.14.0-beta.1':
     resolution: {integrity: sha512-XPY5vn4ML7+W7lYwIeJu3CXh4Pw/oQ853s6gEng9+33VvREuzcPRr3aNBToQ0UMxmEkZmVtcKh2o1hbGl64deQ==}
     peerDependencies:
@@ -269,8 +277,8 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
-  html-tag-js@1.6.0:
-    resolution: {integrity: sha512-G72dPKAEPzSeIizUuxsS/ofg3JpHBkA8nH4r549LYntMZoxVinUXk3cvNRYIZZyY9bu+RdH511E2EphUT9nlOw==}
+  html-tag-js@1.7.1:
+    resolution: {integrity: sha512-dmmz0mumIfaOZtvE5PHs2PNQzsUxgOuiF20Q5lwef3HPcsZHTy5StjsHRfNLjAt0ezCzU9zDjTN1h+GhHYzlkg==}
 
   immediate@3.0.6:
     resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
@@ -450,6 +458,10 @@ snapshots:
     dependencies:
       xterm: 5.3.0
 
+  '@xterm/addon-image@0.8.0(@xterm/xterm@5.5.0)':
+    dependencies:
+      '@xterm/xterm': 5.5.0
+
   '@xterm/addon-search@0.14.0-beta.1(xterm@5.3.0)':
     dependencies:
       xterm: 5.3.0
@@ -542,7 +554,7 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  html-tag-js@1.6.0: {}
+  html-tag-js@1.7.1: {}
 
   immediate@3.0.6: {}
 

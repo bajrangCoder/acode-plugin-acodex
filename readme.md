@@ -62,6 +62,7 @@ This is a LTS version.
 
 - **Easy Search**: Easily search inside the terminal 
 
+- Supports image rendering but by default its disabled
 
 ## Prerequisites
 

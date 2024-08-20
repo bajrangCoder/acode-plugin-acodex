@@ -9,12 +9,13 @@
   "dependencies": {
     "@xterm/addon-attach": "0.10.0-beta.1",
     "@xterm/addon-fit": "0.9.0-beta.1",
+    "@xterm/addon-image": "^0.8.0",
     "@xterm/addon-search": "0.14.0-beta.1",
     "@xterm/addon-unicode11": "0.7.0-beta.1",
     "@xterm/addon-web-links": "0.10.0-beta.1",
     "@xterm/addon-webgl": "0.17.0-beta.1",
     "@xterm/xterm": "^5.5.0",
-    "html-tag-js": "^1.6.0"
+    "html-tag-js": "^1.7.1"
   },
   "devDependencies": {
     "esbuild": "^0.19.12",
