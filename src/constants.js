@@ -34,6 +34,7 @@ export const FONT_WEIGHT = [
 export const SCROLLBACK = 1000;
 export const SCROLL_SENSITIVITY = 1000;
 export const showTerminalBtnSize = 35;
+export const showTerminalBtn = true; // to hide/unhide show terminal button
 export const DEFAULT_THEME = "catppuccin";
 export const THEME_LIST = [
     "ayuDark",

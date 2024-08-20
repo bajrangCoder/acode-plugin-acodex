@@ -18,7 +18,8 @@ import {
 	showTerminalBtnSize,
 	AI_MODEL,
 	AVAILABLE_AI_MODELS,
-	IMAGE_RENDERING
+	IMAGE_RENDERING,
+	showTerminalBtn
 } from "./constants.js";
 
 // xtermjs
@@ -108,6 +109,12 @@ class AcodeX {
 				description: "Close Terminal",
 				bindKey: { win: "Ctrl-J" },
 				exec: this.closeTerminal.bind(this)
+			});
+			editorManager.editor.commands.addCommand({
+				name: "acodex:maximise_terminal",
+				description: "Maximise Terminal",
+				bindKey: { win: "Ctrl-Shift-T" },
+				exec: this.maxmise.bind(this)
 			});
 			// main terminal container
 			this.$terminalContainer = tag("div", {
@@ -206,13 +213,13 @@ class AcodeX {
 			});
 			// append Terminal panel to app main
 			if (app.get("main")) {
-				app.get("main").append(this.$terminalContainer, this.$showTermBtn);
+				app.get("main").append(this.$terminalContainer, this.settings.showTerminalBtn ? this.$showTermBtn : '');
 			}
 
-			this.$showTermBtn.classList.add("hide");
+			this.settings.showTerminalBtn ? this.$showTermBtn.classList.add("hide") : "";
 			this.$terminalContainer.classList.add("hide");
 
-			if (this.settings.showTerminalBtnSize) {
+			if (this.settings.showTerminalBtnSize && this.settings.showTerminalBtn) {
 				this.$showTermBtn.style.height =
 					this.settings.showTerminalBtnSize + "px";
 				this.$showTermBtn.style.width =
@@ -291,22 +298,24 @@ class AcodeX {
 			this.$cdBtn.addEventListener("click", this._cdToActiveDir.bind(this));
 
 			// add event listener for show terminal button
-			this.$showTermBtn.addEventListener(
-				"mousedown",
-				this.startDraggingFlotingBtn.bind(this)
-			);
-			document.addEventListener("mousemove", this.dragFlotButton.bind(this));
-			document.addEventListener("mouseup", this.stopDraggingFlotBtn.bind(this));
-			this.$showTermBtn.addEventListener(
-				"touchstart",
-				this.startDraggingFlotingBtn.bind(this)
-			);
-			document.addEventListener("touchmove", this.dragFlotButton.bind(this));
-			document.addEventListener(
-				"touchend",
-				this.stopDraggingFlotBtn.bind(this)
-			);
-			this.$showTermBtn.addEventListener("click", this.maxmise.bind(this));
+			if(this.settings.showTerminalBtn) {
+    			this.$showTermBtn.addEventListener(
+    				"mousedown",
+    				this.startDraggingFlotingBtn.bind(this)
+    			);
+    			document.addEventListener("mousemove", this.dragFlotButton.bind(this));
+    			document.addEventListener("mouseup", this.stopDraggingFlotBtn.bind(this));
+    			this.$showTermBtn.addEventListener(
+    				"touchstart",
+    				this.startDraggingFlotingBtn.bind(this)
+    			);
+    			document.addEventListener("touchmove", this.dragFlotButton.bind(this));
+    			document.addEventListener(
+    				"touchend",
+    				this.stopDraggingFlotBtn.bind(this)
+    			);
+    			this.$showTermBtn.addEventListener("click", this.maxmise.bind(this));
+			}
 
 			window.addEventListener("mousemove", this.drag.bind(this));
 			window.addEventListener("touchmove", this.drag.bind(this));
@@ -338,7 +347,7 @@ class AcodeX {
 					}
 				}
 
-				if (this.$showTermBtn) {
+				if (this.$showTermBtn && this.settings.showTerminalBtn) {
 					if (!this.$showTermBtn.classList.contains("hide")) {
 						let headerHeight =
 							document.querySelector("#root header")?.offsetHeight;
@@ -1168,6 +1177,7 @@ class AcodeX {
 			transparency: ALLOW_TRANSPRANCY,
 			imageRendering: IMAGE_RENDERING,
 			showTerminalBtnSize: showTerminalBtnSize,
+			showTerminalBtn: showTerminalBtn,
 			blurValue: "4px",
 			cursorBlink: CURSOR_BLINK,
 			cursorStyle: CURSOR_STYLE[0],
@@ -1893,6 +1903,12 @@ class AcodeX {
 				checkbox: !!this.settings.imageRendering
 			},
 			{
+				key: "showTerminalBtn",
+				text: "Terminal Maximise Button",
+				info: "Hide/Unhide terminal maximise button",
+				checkbox: !!this.settings.showTerminalBtn
+			},
+			{
 				index: 7,
 				key: "customFontStyleSheet",
 				text: "Custom Font Stylesheet file",
@@ -2210,6 +2226,16 @@ class AcodeX {
 		        this.settings[key] = value;
 				appSettings.update();
 				break;
+		    case "showTerminalBtn":
+		        if(this.$showTermBtn){
+		            this.$showTermBtn.remove();
+		        } else {
+		            if (app.get("main")) {
+        				app.get("main").append(this.$showTermBtn);
+        			}
+		        }
+		        this.settings[key] = value;
+				appSettings.update();
 
 			default:
 				this.settings[key] = value;

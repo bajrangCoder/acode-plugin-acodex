@@ -3,7 +3,7 @@
 > [!Warning]
 > This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
 
-[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **45k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **70k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
 > [!Note]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
@@ -17,14 +17,13 @@
 
 <details>
     <summary>
-      <h3 style="display:inline">Update v3.1.5</h3>
+      <h3 style="display:inline">Alpha v3.1.6</h3>
     </summary>
-    
-- Now it will handle automatically closing of server
-- 🆕 key-bindings `Ctrl+Shift+I` to clear the terminal 
-- updated xterm and its styling
 
-This is a LTS version.
+- Image rendering support 
+- Option to hide maximise terminal button 
+- Added Key binding for maximising terminal - `Ctrl-Shift-T`
+
 </details>
 <br/>
 
@@ -105,7 +104,7 @@ cd $HOME && mkdir -p .gyp && echo "{'variables': {'android_ndk_path': ''}}" > .g
 - To use AcodeX, press `Ctrl+K` or search for `"Open Terminal"` in the command palette (press `Ctrl+Shift+P` to open the command palette).
 - Enter the port number, and the terminal will start.
 - Plus `+` icon to create new session 
-- Use the minus icon button to hide the terminal while coding and the terminal button to show it.
+- Use the minus icon button to hide the terminal while coding and the terminal button or `Ctrl-Shift-T` to show it.
 - You can also drag the terminal panel around by clicking and dragging through the terminal header area.
 - The `✗` button is for closing the terminal.
 - The folder icon button on the terminal header is for navigating to opened files (in the editor) directory.

@@ -1,5 +1,10 @@
 # Change Logs
 
+## `Update v3.1.5`
+- Now it will handle automatically closing of server
+- 🆕 key-bindings `Ctrl+Shift+I` to clear the terminal 
+- updated xterm and its styling
+
 ## `Update v3.1.3 & v3.1.4`
 - Enhanced AcodeX by integrating AI into the terminal, making it a standout option in the modern era. (Check `How to use AI section` for refrence)
 - Updated the default font family for the Terminal to `Meslo NF Regular`.
