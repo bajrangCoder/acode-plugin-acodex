@@ -17,7 +17,7 @@
 
 <details>
     <summary>
-      <h3 style="display:inline">Alpha v3.1.6</h3>
+      <h3 style="display:inline">Update v3.1.6</h3>
     </summary>
 
 - Image rendering support 
@@ -113,7 +113,8 @@ cd $HOME && mkdir -p .gyp && echo "{'variables': {'android_ndk_path': ''}}" > .g
 
 AcodeX provides some additional Keybindings for easy usability of terminal features.
 
-> Note: These keybindings will only work if you will use these inside terminal only.
+> [!Note]
+> These keybindings will only work if you will use these inside terminal only. except the * marked one
 
 Following are the supported Keybindings :
 
@@ -129,6 +130,7 @@ Following are the supported Keybindings :
 - <kbd>Ctrl+4</kbd> : opens session 4 if exists
 - <kbd>Ctrl+5</kbd> : opens session 5 if exists
 - <kbd>Ctrl+Shift+I</kbd> : clear the terminal 
+- <kbd>Ctrl+Shift+T</kbd> : Maximise the terminal *
 
 ### How to Use AI
 
