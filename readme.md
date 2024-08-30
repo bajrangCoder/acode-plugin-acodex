@@ -17,12 +17,12 @@
 
 <details>
     <summary>
-      <h3 style="display:inline">Update v3.1.6</h3>
+      <h3 style="display:inline">Update v3.1.7</h3>
     </summary>
 
-- Image rendering support 
-- Option to hide maximise terminal button 
-- Added Key binding for maximising terminal - `Ctrl-Shift-T`
+- Fixed settings not saving issue (First backup your settings before updating)
+- Added a new settings to control `letterSpacing`
+- Some improvement to fallback font
 
 </details>
 <br/>

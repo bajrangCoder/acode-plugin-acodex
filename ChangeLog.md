@@ -1,5 +1,10 @@
 # Change Logs
 
+## `Update v3.1.6`
+- Image rendering support 
+- Option to hide maximise terminal button 
+- Added Key binding for maximising terminal - `Ctrl-Shift-T`
+
 ## `Update v3.1.5`
 - Now it will handle automatically closing of server
 - 🆕 key-bindings `Ctrl+Shift+I` to clear the terminal 

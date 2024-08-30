@@ -66,7 +66,7 @@ class AcodeX {
 		if (!appSettings.value[plugin.id]) {
 			this._saveSetting();
 		} else {
-			if (!this.settings.imageRendering) {
+			if (!this.settings.hasOwnProperty('letterSpacing')) {
 				delete appSettings.value[plugin.id];
 				appSettings.update(false);
 				this._saveSetting();
@@ -1184,6 +1184,7 @@ class AcodeX {
 			cursorInactiveStyle: CURSOR_INACTIVE_STYLE[0],
 			fontSize: FONT_SIZE,
 			fontFamily: FONT_FAMILY,
+			letterSpacing: "",
 			fontWeight: FONT_WEIGHT[0],
 			customFontStyleSheet: "",
 			scrollBack: SCROLLBACK,
@@ -1717,7 +1718,7 @@ class AcodeX {
 	}
 
 	get terminalObj() {
-		return new Terminal({
+		const termObj = new Terminal({
 			allowTransparency: this.settings.transparency,
 			allowProposedApi: true,
 			scrollOnUserInput: true,
@@ -1727,10 +1728,14 @@ class AcodeX {
 			scrollBack: this.settings.scrollBack,
 			scrollSensitivity: this.settings.scrollSensitivity,
 			fontSize: this.settings.fontSize,
-			fontFamily: this.settings.fontFamily,
+			fontFamily: this.settings.fontFamily + ", Fira Code, monospace",
 			fontWeight: this.settings.fontWeight,
 			theme: this.terminalThemeObj
 		});
+		if (this.settings.letterSpacing) {
+      termObj.letterSpacing = Number.parseInt(this.settings.letterSpacing);
+    }
+		return termObj;
 	}
 
 	async clearCache() {
@@ -1812,6 +1817,19 @@ class AcodeX {
 				value: this.settings.port,
 				info: "Port which is displayed on termux when starting the server",
 				prompt: "Server Port",
+				promptType: "number",
+				promptOption: [
+					{
+						required: true
+					}
+				]
+			},
+			{
+				key: "letterSpacing",
+				text: "Letter Spacing",
+				value: this.settings.letterSpacing,
+				info: "The spacing in whole pixels between characters.",
+				prompt: "Letter spacing",
 				promptType: "number",
 				promptOption: [
 					{
@@ -2197,6 +2215,13 @@ class AcodeX {
 				this.settings[key] = value;
 				appSettings.update();
 				break;
+		  case "letterSpacing":
+		    if (this.$terminal) {
+					this.$terminal.options.letterSpacing = Number.parseInt(value);
+				}
+				this.settings[key] = value;
+				appSettings.update();
+		    break;
 			case "cursorBlink":
 				if (this.$terminal) {
 					this.$terminal.options.cursorBlink = value;
