@@ -123,44 +123,49 @@ class AcodeX {
 			this.$terminalHeader = tag("div", {
 				className: "terminal-title-bar"
 			});
+			const leftSection = tag("div", {
+				className: "left-section"
+			});
 			const sessionInfo = tag("div", {
 				className: "session-info"
 			});
 			const pointerIndicator = tag("div", {
-				className: "pointer-indicator"
+				className: "pointer-indicator",
+				ariaHidden: true
 			});
 			this.$terminalTitle = tag("h3", {
 				textContent: "AcodeX 1",
 				className: "session-name"
 			});
 			sessionInfo.append(pointerIndicator, this.$terminalTitle);
+			leftSection.append(sessionInfo);
 
-			const $actionBtns = tag("div", {
-				className: "action-buttons"
+			const $btnSection = tag("div", {
+				className: "btn-section"
 			});
 			const newSessionBtn = tag("button", {
 				className: "action-button new-session",
-				title: "New Session"
+				ariaLabel: "New Session"
 			});
 			newSessionBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 38q-.65 0-1.075-.425-.425-.425-.425-1.075v-11h-11q-.65 0-1.075-.425Q10 24.65 10 24q0-.65.425-1.075.425-.425 1.075-.425h11v-11q0-.65.425-1.075Q23.35 10 24 10q.65 0 1.075.425.425.425.425 1.075v11h11q.65 0 1.075.425Q38 23.35 38 24q0 .65-.425 1.075-.425.425-1.075.425h-11v11q0 .65-.425 1.075Q24.65 38 24 38Z"/></svg>`;
 			this.$searchBtn = tag("button", {
 				className: "action-button search-btn",
-				title: "Search"
+				ariaLabel: "Search"
 			});
 			this.$searchBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-code"><path d="m9 9-2 2 2 2"/><path d="m13 13 2-2-2-2"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
 			this.$cdBtn = tag("button", {
 				className: "action-button folder-icon",
-				title: "Navigate to Folder"
+				ariaLabel: "Navigate to Folder"
 			});
 			this.$cdBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14V3.5zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5V6zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7H1.633z"/></svg>`;
 			this.$minimizeBtn = tag("button", {
 				className: "action-button minimize",
-				title: "Minimize"
+				ariaLabel: "Minimize"
 			});
 			this.$minimizeBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 24.75q-.3 0-.55-.1-.25-.1-.5-.35l-9.9-9.9q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.15l8.85-8.85q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05l-9.9 9.9q-.25.25-.5.35-.25.1-.55.1Zm0 12.65q-.3 0-.55-.1-.25-.1-.5-.35l-9.9-9.9q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 33.8l8.85-8.85q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05l-9.9 9.9q-.25.25-.5.35-.25.1-.55.1Z"/></svg>`;
 			this.$closeTermBtn = tag("button", {
 				className: "action-button close",
-				title: "Close Terminal"
+				ariaLabel: "Close Terminal"
 			});
 			this.$closeTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 26.1 13.5 36.6q-.45.45-1.05.45-.6 0-1.05-.45-.45-.45-.45-1.05 0-.6.45-1.05L21.9 24 11.4 13.5q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.9l10.5-10.5q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05L26.1 24l10.5 10.5q.45.45.45 1.05 0 .6-.45 1.05-.45.45-1.05.45-.6 0-1.05-.45Z"/></svg>`;
 			this.$searchInputContainer = tag("div", {
@@ -169,25 +174,26 @@ class AcodeX {
 			this.$searchInputContainer.append(
 				tag("button", {
 					className: "action-button find-previous",
-					title: "Find Previous",
-					innerHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`,
+					ariaLabel: "Find Previous",
+					innerHTML: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
 					onclick: this._findPreviousMatchofSearch.bind(this)
 				}),
 				tag("input", {
 					type: "text",
 					placeholder: "Find...",
+					ariaLabel: "Search input",
 					oninput: e => {
 						this.$searchAddon?.findNext(e.target.value);
 					}
 				}),
 				tag("button", {
 					className: "action-button find-next",
-					title: "Find Next",
-					innerHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`,
+					ariaLabel: "Find Next",
+					innerHTML: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
 					onclick: this._findNextMatchofSearch.bind(this)
 				})
 			);
-			$actionBtns.append(
+			$btnSection.append(
 				newSessionBtn,
 				this.$searchBtn,
 				this.$cdBtn,
@@ -196,7 +202,7 @@ class AcodeX {
 				this.$searchInputContainer
 			);
 
-			this.$terminalHeader.append(sessionInfo, $actionBtns);
+			this.$terminalHeader.append(leftSection, $btnSection);
 
 			this.$terminalContent = tag("div", {
 				className: "terminal-content"
@@ -244,7 +250,6 @@ class AcodeX {
 
 				// Toggle visibility based on the presence of 'show' class in the search input
 				if (this.$searchInputContainer.classList.contains("show")) {
-					searchInput.style.maxWidth = "150px";
 					newSessionBtn.style.display = "none";
 					this.$cdBtn.style.display = "none";
 					this.$minimizeBtn.style.display = "none";
@@ -253,7 +258,6 @@ class AcodeX {
 						searchInput.focus();
 					});
 				} else {
-					searchInput.style.maxWidth = "0";
 					this.$searchAddon?.clearDecorations();
 					this.$searchAddon?.clearActiveDecoration();
 					newSessionBtn.style.display = "block";
