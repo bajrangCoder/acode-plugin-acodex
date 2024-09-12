@@ -23,7 +23,8 @@
     "jszip": "^3.10.1"
   },
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "serve": "node build.mjs --serve"
   },
   "browserslist": [
     "> 0.25%, not dead"
