@@ -33,7 +33,7 @@
 
 - **User-Friendly Terminal**: AcodeX provides a seamless terminal experience within Acode. You can open the terminal panel with a simple `Ctrl+K` shortcut or by searching for "Open Terminal" in the command palette.
 
-- **Integrated AI**: if you don't know any command, just ask the ai and ai will weite it
+- **Integrated AI**: if you don't know any command, just ask the ai and ai will write ✍️ it
 
 - **Enhanced Productivity**: With AcodeX, developers can save time by executing commands directly within Acode, eliminating the need to switch between multiple applications.
 
