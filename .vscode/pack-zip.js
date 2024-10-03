@@ -31,17 +31,22 @@ zip
 function loadFile(root, folder) {
   const distFiles = fs.readdirSync(folder);
   distFiles.forEach((file) => {
+    const filePath = path.join(folder, file);
+    const stat = fs.statSync(filePath);
 
-    const stat = fs.statSync(path.join(folder, file));
+    // Skip AcodeX.zip
+    if (file === 'AcodeX.zip') {
+      return;
+    }
 
     if (stat.isDirectory()) {
       zip.folder(file);
-      loadFile(path.join(root, file), path.join(folder, file));
+      loadFile(path.join(root, file), filePath);
       return;
     }
 
     if (!/LICENSE.txt/.test(file)) {
-      zip.file(path.join(root, file), fs.readFileSync(path.join(folder, file)));
+      zip.file(path.join(root, file), fs.readFileSync(filePath));
     }
   });
 }

@@ -12,6 +12,9 @@ importers:
 
   .:
     dependencies:
+      '@novnc/novnc':
+        specifier: ^1.5.0
+        version: 1.5.0
       '@xterm/addon-attach':
         specifier: 0.10.0-beta.1
         version: 0.10.0-beta.1(xterm@5.3.0)
@@ -39,6 +42,9 @@ importers:
       html-tag-js:
         specifier: ^1.7.1
         version: 1.7.1
+      ollama:
+        specifier: ^0.5.9
+        version: 0.5.9
     devDependencies:
       esbuild:
         specifier: ^0.19.12
@@ -190,6 +196,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@novnc/novnc@1.5.0':
+    resolution: {integrity: sha512-4yGHOtUCnEJUCsgEt/L78eeJu00kthurLBWXFiaXfonNx0pzbs6R/3gJb1byZe6iAE8V9MF0syQb0xIL8MSOtQ==}
+
   '@xterm/addon-attach@0.10.0-beta.1':
     resolution: {integrity: sha512-u1LBLVgVR1TZJT/8lFkvl7AZaYx1Z9uzPqh7bGUvsIWPllpnj36Hzv5+jY1FBGVBQv2eZfyUvHCKIiujyCJF2w==}
     peerDependencies:
@@ -322,6 +331,9 @@ packages:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
 
+  ollama@0.5.9:
+    resolution: {integrity: sha512-F/KZuDRC+ZsVCuMvcOYuQ6zj42/idzCkkuknGyyGVmNStMZ/sU3jQpvhnl4SyC0+zBzLiKNZJnJeuPFuieWZvQ==}
+
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
@@ -374,6 +386,9 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  whatwg-fetch@3.6.20:
+    resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
 
   xterm@5.3.0:
     resolution: {integrity: sha512-8QqjlekLUFTrU6x7xck1MsPzPA571K5zNqWm0M0oroYEWVOptZ0+ubQSkQ3uxIEhcIHRujJy6emDWX4A7qyFzg==}
@@ -449,6 +464,8 @@ snapshots:
 
   '@esbuild/win32-x64@0.19.12':
     optional: true
+
+  '@novnc/novnc@1.5.0': {}
 
   '@xterm/addon-attach@0.10.0-beta.1(xterm@5.3.0)':
     dependencies:
@@ -593,6 +610,10 @@ snapshots:
 
   normalize-path@3.0.0: {}
 
+  ollama@0.5.9:
+    dependencies:
+      whatwg-fetch: 3.6.20
+
   pako@1.0.11: {}
 
   path-parse@1.0.7: {}
@@ -644,5 +665,7 @@ snapshots:
       is-number: 7.0.0
 
   util-deprecate@1.0.2: {}
+
+  whatwg-fetch@3.6.20: {}
 
   xterm@5.3.0: {}
