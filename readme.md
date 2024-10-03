@@ -60,6 +60,7 @@
 
 - **Intuitive Interface**: Designed for developers of all skill levels with an easy-to-use interface.
 
+
 - **Personalization**: Tailor the terminal’s appearance and behavior to your preferences.
 
 - **Efficient Session Management**: Manage multiple sessions smoothly while minimizing resource usage.
