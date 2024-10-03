@@ -12,6 +12,24 @@
 
 <a href='https://ko-fi.com/M4M3QPI7K' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
+---
+
+## Table of Contents
+- [Features](#-features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [For Existing Users: Enabling GUI Features](#for-existing-users-enabling-gui-features)
+- [How to Use](#how-to-use)
+- [Running GUI Apps](#how-to-run-gui-apps-in-acodex)
+- [Selection Context Menu](#why-is-there-no-selection-context-menu)
+- [Keybindings](#additional-terminal-keybindings)
+- [Using AI](#how-to-use-ai)
+- [Api Docs](#api-docs)
+- [Custom Fonts](#custom-fonts)
+- [Support Project](#-contribute-financially)
+- [License](#license)
+
+---
 
 <details>
     <summary>
