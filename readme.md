@@ -5,7 +5,7 @@
 
 [AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **80k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
 
-> [!Note]
+> [!NOTE]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
 
 <a href="https://www.buymeacoffee.com/bajrangCoder" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="40" width="170"/></a>
@@ -101,16 +101,17 @@ To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) install
    - Install the `acodex-server` package globally using npm.
    - If you plan to run GUI apps, also install `tigervnc` and `websockify_rs`.
 
-   **Important**: After installing TigerVNC, make sure to set a password by running the `vncserver` command the first time.
+> [!IMPORTANT]
+> After installing TigerVNC, make sure to set a password by running the `vncserver` command the first time.
 
-3. **Termux Specific Step**  
+4. **Termux Specific Step**  
    Before installing on Termux, run this command to bypass a Termux-specific issue:
 
    ```bash
    cd $HOME && mkdir -p .gyp && echo "{'variables': {'android_ndk_path': ''}}" > .gyp/include.gypi
    ```
 
-> **Note**:  
+> [!TIP]
 > After successfully installing `acodex-server`, you can uninstall Python if it's no longer needed.
 
 
@@ -156,7 +157,7 @@ If you're an existing user and want to start using the new GUI features, follow 
 To run GUI apps within AcodeX, follow the steps below:
 
 1. **Install the Required Packages**  
-   Ensure that you have installed the necessary packages by following the instructions in the [Installation](#installation) or [Existing Users Setup](#for-existing-users) sections.
+   Ensure that you have installed the necessary packages by following the instructions in the [Installation](#installation) or [Existing Users Setup](#for-existing-users-enabling-gui-features) sections.
 
 2. **Enable GUI Viewer Settings**  
    - Navigate to `Acode > Settings > Plugins > AcodeX`.  
@@ -186,11 +187,11 @@ To run GUI apps within AcodeX, follow the steps below:
    - In the AcodeX terminal, **click the Display button**, which will copy and execute the `export DISPLAY` command.  
    - Start your GUI app in the terminal, and it will open in the integrated viewer.
 
-   > [!Tip]
-   > Always verify that the `export DISPLAY` command was executed successfully before launching your GUI application.
+> [!TIP]
+> Always verify that the `export DISPLAY` command was executed successfully before launching your GUI application.
    
-   > [!Note]
-   > the display env variable command needs to run once in a terminal session 
+> [!NOTE]
+> the display env variable command needs to run once in a terminal session 
 
 ### Why is there no selection context menu?
 
