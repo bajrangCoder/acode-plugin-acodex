@@ -205,3 +205,24 @@
     }
   }
 }
+
+.selection-handle {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  background-color: rgba(0, 0, 255, 0.7);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(135deg);
+  z-index: 999;
+  display: none;
+}
+
+/********* GUI Viewer Page ************/
+#acodex-gui-viewer {
+  .gui-viewer-canvas {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: auto;
+  }
+}

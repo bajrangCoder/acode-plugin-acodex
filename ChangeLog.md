@@ -1,5 +1,11 @@
 # Change Logs
 
+## `Update v3.1.7`
+
+- Fixed settings not saving issue (First backup your settings before updating)
+- Added a new settings to control `letterSpacing`
+- Some improvement to fallback font
+
 ## `Update v3.1.6`
 - Image rendering support 
 - Option to hide maximise terminal button 
