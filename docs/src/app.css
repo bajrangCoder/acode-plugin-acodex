@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--primary: #8b5cf6;
+	--secondary: #6366f1;
+	--accent: #a78bfa;
+}
+
+body {
+	@apply bg-gradient-to-b from-gray-900 to-black min-h-screen text-white;
+}
+
+.gradient-text {
+	@apply text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary;
+}
+
+.gradient-bg {
+	@apply bg-gradient-to-r from-primary to-secondary;
+}
+
+.feature-card {
+	@apply bg-gray-800 p-6 rounded-lg transition-all duration-300 relative overflow-hidden;
+	box-shadow:
+		0 4px 6px -1px rgba(0, 0, 0, 0.1),
+		0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.feature-card::before {
+	content: '';
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	width: 200%;
+	height: 200%;
+	background: conic-gradient(
+		transparent,
+		var(--primary),
+		var(--secondary),
+		var(--accent),
+		transparent 30%
+	);
+	animation: rotate 8s linear infinite;
+}
+
+.feature-card::after {
+	content: '';
+	position: absolute;
+	inset: 2px;
+	background: inherit;
+	border-radius: inherit;
+}
+
+.feature-content {
+	@apply relative z-10;
+}
+
+.badge {
+	@apply bg-gray-700 py-1 px-3 rounded-full text-sm font-medium text-accent border border-accent;
+}
+
+.header-blur {
+	@apply bg-gray-900 bg-opacity-80 backdrop-filter backdrop-blur-xl border-b border-gray-800;
+}
+
+@keyframes rotate {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
