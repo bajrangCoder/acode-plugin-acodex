@@ -5,13 +5,6 @@
 			<ul class="flex space-x-6">
 				<li><a href="/#features" class="text-gray-300 hover:text-white transition">Features</a></li>
 				<li><a href="/docs" class="text-gray-300 hover:text-white transition">Docs</a></li>
-				<li>
-					<a
-						href="/"
-						class="bg-primary hover:bg-primary/80 text-white font-medium py-2 px-4 rounded-full transition duration-300"
-						>Get Started</a
-					>
-				</li>
 			</ul>
 		</nav>
 	</div>
