@@ -111,6 +111,7 @@ To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) install
    pkg update && pkg upgrade -y
    pkg install python nodejs -y
    npm i -g acodex-server
+   pkg install x11-repo
    pkg install tigervnc -y
    curl -L https://raw.githubusercontent.com/bajrangCoder/websockify_rs/main/install.sh | bash
    ```
@@ -142,6 +143,7 @@ If you're an existing user and want to start using the new GUI features, follow 
    Run the following commands in Termux to install the necessary packages:
 
    ```bash
+   pkg install x11-repo
    pkg install tigervnc -y
    curl -L https://raw.githubusercontent.com/bajrangCoder/websockify_rs/main/install.sh | bash
    ```
