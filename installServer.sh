@@ -30,6 +30,7 @@ echo -e "\e[1;36mDo you want to install GUI-related packages to run gui apps in 
 read -r gui_response_acodex
 if [[ "$gui_response_acodex" =~ ^[Yy]$ ]]; then
     echo -e "\e[1;36m[*] Installing GUI-related packages for acodeX-server...\e[0m"
+    pkg install x11-repo -y
     pkg install tigervnc -y
     curl -L https://raw.githubusercontent.com/bajrangCoder/websockify_rs/main/install.sh | bash
     echo -e "\e[1;32mGUI packages for acodeX-server installed successfully. Run vncserver command and setup password to get started\e[0m"
