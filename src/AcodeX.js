@@ -23,6 +23,7 @@ import {
   AVAILABLE_AI_MODELS,
   IMAGE_RENDERING,
   GUI_VIEWER,
+  SELECTION_HAPTICS,
   showTerminalBtn
 } from "./utils/constants.js";
 
@@ -88,7 +89,7 @@ export default class AcodeX {
     if (!appSettings.value[plugin.id]) {
       this._saveSetting();
     } else {
-      if (!this.settings.hasOwnProperty('enableGuiViewer')) {
+      if (!this.settings.hasOwnProperty('selectionHaptics')) {
         delete appSettings.value[plugin.id];
         appSettings.update(false);
         this._saveSetting();
@@ -123,7 +124,11 @@ export default class AcodeX {
         description: "Open Terminal",
         bindKey: { win: "Ctrl-K" },
         exec: () => {
-          this.openTerminalPanel(270, this.settings.port);
+          if(this.isTerminalOpened && this.isTerminalMinimized) {
+            this.maxmise();
+          } else {
+            this.openTerminalPanel(270, this.settings.port);
+          }
         }
       });
       editorManager.editor.commands.addCommand({
@@ -965,25 +970,7 @@ export default class AcodeX {
         return;
       } catch (error) {
         // server closed
-        if (!this.$terminalContainer.classList.contains("hide"))
-          this.$terminalContainer.style.opacity = 1;
-        this.$terminalContainer.classList.add("hide");
-        if (!this.$showTermBtn.classList.contains("hide"))
-          this.$showTermBtn.classList.add("hide");
-        this.isTerminalMinimized = false;
-        this.isTerminalOpened = false;
-        localStorage.setItem(
-          "AcodeX_Terminal_Is_Minimised",
-          this.isTerminalMinimized
-        );
-        localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
-        this.$terminalContainer.style.height = this.previousTerminalHeight;
-        localStorage.setItem(
-          "AcodeX_Terminal_Cont_Height",
-          this.$terminalContainer.offsetHeight
-        );
-        localStorage.removeItem("AcodeX_Current_Session");
-        await this.$cacheFile.writeFile("");
+        this.removeTerminal();
         acode.alert(
           "AcodeX Server",
           "Disconnected from server because server gets closed 😞!"
@@ -1296,7 +1283,7 @@ export default class AcodeX {
     this.isTapAndHoldActive = false;
 
     this.tapHoldTimeout = setTimeout(() => {
-      navigator.vibrate(300);
+      if (this.settings.selectionHaptics) navigator.vibrate(300);
       this.isTapAndHoldActive = true;
       this.$terminal.focus()
       this.startSelection(coords.row, coords.column);
@@ -1633,6 +1620,7 @@ export default class AcodeX {
       aiApiKey: "",
       aiModel: AI_MODEL,
       transparency: ALLOW_TRANSPRANCY,
+      selectionHaptics: SELECTION_HAPTICS,
       enableGuiViewer: GUI_VIEWER,
       imageRendering: IMAGE_RENDERING,
       showTerminalBtnSize: showTerminalBtnSize,
@@ -1730,7 +1718,32 @@ export default class AcodeX {
       return null;
     }
   }
-
+  
+  async removeTerminal() {
+    /*
+    removes terminal in case of any issue 
+    */
+    if (!this.$terminalContainer.classList.contains("hide"))
+      this.$terminalContainer.style.opacity = 1;
+    this.$terminalContainer.classList.add("hide");
+    if (!this.$showTermBtn.classList.contains("hide"))
+      this.$showTermBtn.classList.add("hide");
+    this.isTerminalMinimized = false;
+    this.isTerminalOpened = false;
+    localStorage.setItem(
+      "AcodeX_Terminal_Is_Minimised",
+      this.isTerminalMinimized
+    );
+    localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+    this.$terminalContainer.style.height = this.previousTerminalHeight;
+    localStorage.setItem(
+      "AcodeX_Terminal_Cont_Height",
+      this.$terminalContainer.offsetHeight
+    );
+    localStorage.removeItem("AcodeX_Current_Session");
+    await this.$cacheFile.writeFile("");
+  }
+  
   async terminalCloseHandler() {
     const jsonData = await this.$cacheFile.readFile("utf8");
     let sessionsData = jsonData ? JSON.parse(jsonData) : [];
@@ -1799,30 +1812,13 @@ export default class AcodeX {
           } else {
             acode.alert(
               "AcodeX Error",
-              `Failed to close terminal ${this.pid}.`
+              `Failed to close terminal ${this.pid}. Trying to force close it...`
             );
+            this.removeTerminal();
           }
         })
         .catch(async error => {
-          if (!this.$terminalContainer.classList.contains("hide"))
-            this.$terminalContainer.style.opacity = 1;
-          this.$terminalContainer.classList.add("hide");
-          if (!this.$showTermBtn.classList.contains("hide"))
-            this.$showTermBtn.classList.add("hide");
-          this.isTerminalMinimized = false;
-          this.isTerminalOpened = false;
-          localStorage.setItem(
-            "AcodeX_Terminal_Is_Minimised",
-            this.isTerminalMinimized
-          );
-          localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
-          this.$terminalContainer.style.height = this.previousTerminalHeight;
-          localStorage.setItem(
-            "AcodeX_Terminal_Cont_Height",
-            this.$terminalContainer.offsetHeight
-          );
-          localStorage.removeItem("AcodeX_Current_Session");
-          await this.$cacheFile.writeFile("");
+          this.removeTerminal();
           acode.alert(
             "AcodeX Server",
             "Disconnected from server because server gets closed 😞!"
@@ -2296,6 +2292,12 @@ export default class AcodeX {
         text: "GUI Viewer",
         info: "Enables gui viewer, to view the output of graphical apps",
         checkbox: !!this.settings.enableGuiViewer
+      },
+      {
+        key: "selectionHaptics",
+        text: "Selecty Haptics",
+        info: "Enable/Disable vibration on selection",
+        checkbox: !!this.settings.selectionHaptics
       },
       {
         key: "showTerminalBtn",
