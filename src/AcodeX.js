@@ -24,6 +24,7 @@ import {
   IMAGE_RENDERING,
   GUI_VIEWER,
   SELECTION_HAPTICS,
+  FONT_LIGATURES,
   showTerminalBtn
 } from "./utils/constants.js";
 
@@ -40,6 +41,7 @@ import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { AttachAddon } from "@xterm/addon-attach";
 import { SearchAddon } from "@xterm/addon-search";
 import { ImageAddon } from '@xterm/addon-image';
+import LigaturesAddon from "./addons/ligatures.js";
 
 // acode commopents & api
 const confirm = acode.require("confirm");
@@ -89,7 +91,7 @@ export default class AcodeX {
     if (!appSettings.value[plugin.id]) {
       this._saveSetting();
     } else {
-      if (!this.settings.hasOwnProperty('selectionHaptics')) {
+      if (!this.settings.hasOwnProperty('fontLigatures')) {
         delete appSettings.value[plugin.id];
         appSettings.update(false);
         this._saveSetting();
@@ -907,6 +909,10 @@ export default class AcodeX {
       // webgl loading failed for some reason, attach with DOM renderer
       this.$terminal.open(this.$terminalContent);
     }
+    if(this.settings.fontLigatures){
+      this.$ligatureAddon = new LigaturesAddon();
+      this.$terminal.loadAddon(this.$ligatureAddon);
+    }
     this.$terminal.focus();
     this._updateTerminalHeight();
   }
@@ -1492,6 +1498,7 @@ export default class AcodeX {
     this.$webLinkAddon.dispose();
     this.$searchAddon.dispose();
     if (this.settings.imageRendering) this.$imageAddon.dispose();
+    if (this.settings.fontLigatures) this.$ligatureAddon.dispose();
     this.$webglAddon.dispose();
     this.$terminal.dispose();
     this.socket.close();
@@ -1503,6 +1510,7 @@ export default class AcodeX {
     this.$webLinkAddon = undefined;
     this.$searchAddon = undefined;
     this.$imageAddon = undefined;
+    this.$ligatureAddon = undefined;
     this.$webglAddon = undefined;
     this.$terminalContent.innerHTML = "";
   }
@@ -1621,6 +1629,7 @@ export default class AcodeX {
       aiModel: AI_MODEL,
       transparency: ALLOW_TRANSPRANCY,
       selectionHaptics: SELECTION_HAPTICS,
+      fontLigatures: FONT_LIGATURES,
       enableGuiViewer: GUI_VIEWER,
       imageRendering: IMAGE_RENDERING,
       showTerminalBtnSize: showTerminalBtnSize,
@@ -2295,9 +2304,15 @@ export default class AcodeX {
       },
       {
         key: "selectionHaptics",
-        text: "Selecty Haptics",
+        text: "Selection Haptics",
         info: "Enable/Disable vibration on selection",
         checkbox: !!this.settings.selectionHaptics
+      },
+      {
+        key: "fontLigatures",
+        text: "Font Ligatures",
+        info: "Enable/Disable font ligatures in terminal",
+        checkbox: !!this.settings.fontLigatures
       },
       {
         key: "showTerminalBtn",
@@ -2583,6 +2598,7 @@ export default class AcodeX {
       case "fontFamily":
         if (this.$terminal) {
           this.$terminal.options.fontFamily = value;
+          this.$terminal.refresh(0, this.$terminal.rows - 1);
         }
         this.settings[key] = value;
         appSettings.update();
@@ -2624,8 +2640,24 @@ export default class AcodeX {
         break;
       case "imageRendering":
         if (this.$terminal) {
-          this.$imageAddon = new ImageAddon();
-          this.$terminal.loadAddon(this.$imageAddon);
+          if(value){
+            this.$imageAddon = new ImageAddon();
+            this.$terminal.loadAddon(this.$imageAddon);
+          } else {
+            this.$imageAddon?.dispose();
+          }
+        }
+        this.settings[key] = value;
+        appSettings.update();
+        break;
+      case "fontLigatures":
+        if (this.$terminal) {
+          if(value){
+            this.$ligatureAddon = new LigaturesAddon();
+          this.$terminal.loadAddon(this.$ligatureAddon);
+          } else {
+            this.$ligatureAddon?.dispose();
+          }
         }
         this.settings[key] = value;
         appSettings.update();
@@ -2637,7 +2669,7 @@ export default class AcodeX {
         break;
       case "showTerminalBtn":
         if (this.$showTermBtn) {
-          this.$showTermBtn.remove();
+          !value ? this.$showTermBtn.remove() : acode.alert("AcodeX Warning", "Restart App to see this change");;
         } else {
           acode.alert("AcodeX Warning", "Restart App to see this change");
         }

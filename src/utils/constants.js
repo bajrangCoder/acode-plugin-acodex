@@ -9,6 +9,7 @@ export const GUI_VIEWER = false;
 export const IMAGE_RENDERING = false;
 export const ALLOW_TRANSPRANCY = false;
 export const SELECTION_HAPTICS = true;
+export const FONT_LIGATURES = true;
 export const CURSOR_BLINK = true;
 export const CURSOR_STYLE = ["block", "underline", "bar"];
 export const CURSOR_INACTIVE_STYLE = [
