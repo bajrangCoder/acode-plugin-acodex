@@ -1,5 +1,12 @@
 # Change Logs
 
+## `Update v3.1.8`
+
+- Added a new keybinds ctrl+a to select all
+- touch selection support 
+- Gui viewer support 
+- added local ai support using ollama
+
 ## `Update v3.1.7`
 
 - Fixed settings not saving issue (First backup your settings before updating)

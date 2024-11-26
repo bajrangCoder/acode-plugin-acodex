@@ -10,7 +10,7 @@
 > [!Warning]
 > This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
 
-[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **80k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access.
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **90k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX has almost every terminal feature and also it is more feature rich when it comes to rendering things compared termux etc (Thanks to xtermjs)
 
 > [!NOTE]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
@@ -40,20 +40,29 @@
 
 <details>
     <summary>
-      <h3 style="display:inline">Update v3.1.8</h3>
+      <h3 style="display:inline">Update v3.1.9</h3>
     </summary>
 
-- Fixed settings issue (First backup your settings before updating)
-- Added a new keybinds ctrl+a to select all
-- touch selection support 
-- Gui viewer support 
-- added local ai using ollama
-- more...
+- First backup your settings before updating
+- fixed some bugs related to disposing of terminal reported by Users
+- Added font ligatures support (you can disable it from settings)
+- fix: ctrl - k issue when terminal is minimised or opened
+- now ctrl-k can also be used as shortcut to maximise terminal if it is open and minimised 
+- new settings to on/off haptic(vibration) on Selection start
+- some minor fixes and few typos adjustments
 
 </details>
 <br/>
 
 > For previous change logs/updates, visit: [Change Log](https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/ChangeLog.md)
+
+### Roadmap 
+
+- full page mode for AcodeX similar to other terminal plugins 
+- fix bugs related to touch selection and gui viewer
+- ssh based Terminal support 
+- config(dotfiles) for acodex to customise everything from the config file 
+- suggest more 🙌
 
 ## 💥 Features
 
@@ -66,7 +75,6 @@
 - **Customizable Terminal Panel**: Move, resize, minimize, or maximize the terminal panel to fit your workflow.
 
 - **Intuitive Interface**: Designed for developers of all skill levels with an easy-to-use interface.
-
 
 - **Personalization**: Tailor the terminal’s appearance and behavior to your preferences.
 
@@ -93,6 +101,8 @@
 - **GUI App Support**: Run GUI apps via VNC (for learning and experimentation).
 
 - **Image Rendering**: Supports rendering images in the terminal (enable in settings).
+
+- **Font Ligatures**: Supports font ligatures in supported font family
 
 
 ## Prerequisites
