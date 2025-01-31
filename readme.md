@@ -125,7 +125,7 @@ To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) install
    or use this to install server along with gui packages
 
    ```bash
-curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash -s -- --gui
+   curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash -s -- --gui
    ```
 
    Alternatively, you can manually install the required packages:
