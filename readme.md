@@ -8,9 +8,9 @@
 </p>
 
 > [!Warning]
-> This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev).
+> This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package or [axs](https://github.com/bajrangCoder/acodex_server) to be installed and running on [Termux](https://termux.dev).
 
-[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **90k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX has almost every terminal feature and also it is more feature rich when it comes to rendering things compared termux etc (Thanks to xtermjs)
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **100k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX has almost every terminal feature and also it is more feature rich when it comes to rendering things compared termux etc (Thanks to xtermjs)
 
 > [!NOTE]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
@@ -122,35 +122,29 @@ To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) install
    curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash
    ```
 
+   or use this to install server along with gui packages
+
+   ```bash
+curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash -s -- --gui
+   ```
+
    Alternatively, you can manually install the required packages:
 
    ```bash
    pkg update && pkg upgrade -y
-   pkg install python nodejs -y
-   npm i -g acodex-server
+   curl -sL https://raw.githubusercontent.com/bajrangCoder/acode-plugin-acodex/main/installServer.sh | bash
+   # for gui only
    pkg install x11-repo
    pkg install tigervnc -y
    curl -L https://raw.githubusercontent.com/bajrangCoder/websockify_rs/main/install.sh | bash
    ```
 
    The key steps are:
-   - Install `python` and `nodejs`.
-   - Install the `acodex-server` package globally using npm.
+   - Install `axs` cli binary.
    - If you plan to run GUI apps, also install `tigervnc` and `websockify_rs`.
 
 > [!IMPORTANT]
 > After installing TigerVNC, make sure to set a password by running the `vncserver` command the first time.
-
-4. **Termux Specific Step**  
-   Before installing on Termux, run this command to bypass a Termux-specific issue:
-
-   ```bash
-   cd $HOME && mkdir -p .gyp && echo "{'variables': {'android_ndk_path': ''}}" > .gyp/include.gypi
-   ```
-
-> [!TIP]
-> After successfully installing `acodex-server`, you can uninstall Python if it's no longer needed.
-
 
 ## For Existing Users: Enabling GUI Features
 
