@@ -7,7 +7,7 @@
   <a href="https://acode.app/plugin/bajrangcoder.acodex"><img alt="Download Counts" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Facode.app%2Fapi%2Fplugin%2Fbajrangcoder.acodex&query=downloads&style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjYWQzZjUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1hcnJvdy1kb3duLXRvLWxpbmUiPjxwYXRoIGQ9Ik0xMiAxN1YzIi8+PHBhdGggZD0ibTYgMTEgNiA2IDYtNiIvPjxwYXRoIGQ9Ik0xOSAyMUg1Ii8+PC9zdmc+&logoColor=cad3f5&label=Downloads&labelColor=363a4f&color=c6a0f6"></a>
 </p>
 
-> [!Danger]
+> [!CAUTION]
 > Ai functionality is not working entirely, soon it will be patched
 
 > [!Warning]
