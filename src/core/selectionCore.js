@@ -9,9 +9,15 @@ export default class SelectionCore {
   touchStartY = 0;
   touchStartTime = 0;
   scrollThreshold = 10; // pixels
-  scrollTimeThreshold = 100; // milliseconds 
+  scrollTimeThreshold = 100; // milliseconds
 
-  constructor(terminal, startHandle, endHandle, terminalContainer, terminalHeader) {
+  constructor(
+    terminal,
+    startHandle,
+    endHandle,
+    terminalContainer,
+    terminalHeader,
+  ) {
     this.terminal = terminal;
     this.startHandle = startHandle;
     this.endHandle = endHandle;
@@ -23,7 +29,7 @@ export default class SelectionCore {
     const renderer = this.terminal._core._renderService.dimensions;
     return {
       cellWidth: renderer.css.cell.width,
-      cellHeight: renderer.css.cell.height
+      cellHeight: renderer.css.cell.height,
     };
   }
 
@@ -74,18 +80,20 @@ export default class SelectionCore {
     handle.style.top = `${y}px`;
     handle.style.display = 'block';
   }*/
-  
+
   setHandlePosition(handle, row, column, isStartHandle = false) {
     const { cellWidth, cellHeight } = this._getCellSize();
     const rect = this.terminal.element.getBoundingClientRect();
 
     const terminalContainer = this.terminalContainer;
     const terminalHeader = this.terminalHeader;
-    
+
     // Heights
     const terminalContainerRect = terminalContainer.getBoundingClientRect();
-    const terminalHeaderHeight = terminalHeader ? terminalHeader.getBoundingClientRect().height : 0;
-    
+    const terminalHeaderHeight = terminalHeader
+      ? terminalHeader.getBoundingClientRect().height
+      : 0;
+
     // Terminal scroll position and viewport Y-offset
     const terminalScrollOffset = this.terminal.element.scrollTop || 0;
     const viewportScrollOffset = this.terminal.buffer.active.viewportY;
@@ -95,13 +103,20 @@ export default class SelectionCore {
 
     // X position based on column
     let x = isStartHandle
-        ? rect.left + column * cellWidth - 10
-        : rect.left + (column + 1) * cellWidth - cellWidth;
+      ? rect.left + column * cellWidth - 10
+      : rect.left + (column + 1) * cellWidth - cellWidth;
 
-    let y = rect.top + (adjustedRow * cellHeight) - terminalHeaderHeight - terminalScrollOffset - cellHeight;
+    let y =
+      rect.top +
+      adjustedRow * cellHeight -
+      terminalHeaderHeight -
+      terminalScrollOffset -
+      cellHeight;
 
-    const isSwapped = this.selectionStart.row > this.selectionEnd.row ||
-      (this.selectionStart.row === this.selectionEnd.row && this.selectionStart.column > this.selectionEnd.column);
+    const isSwapped =
+      this.selectionStart.row > this.selectionEnd.row ||
+      (this.selectionStart.row === this.selectionEnd.row &&
+        this.selectionStart.column > this.selectionEnd.column);
 
     if (isSwapped) {
       x = !isStartHandle
@@ -111,22 +126,25 @@ export default class SelectionCore {
 
     // Ensure the handle stays within bounds of terminal
     x = Math.max(rect.left, Math.min(x, rect.right - handle.offsetWidth));
-    y = Math.max(terminalContainerRect.top, Math.min(y, terminalContainerRect.bottom - handle.offsetHeight));
+    y = Math.max(
+      terminalContainerRect.top,
+      Math.min(y, terminalContainerRect.bottom - handle.offsetHeight),
+    );
 
     // Set the position of the handle
     handle.style.left = `${x}px`;
     handle.style.top = `${y}px`;
-    handle.style.display = 'block';
+    handle.style.display = "block";
   }
 
   hideHandles() {
-    this.startHandle.style.display = 'none';
-    this.endHandle.style.display = 'none';
+    this.startHandle.style.display = "none";
+    this.endHandle.style.display = "none";
   }
 
   showHandles() {
-    this.startHandle.style.display = 'block';
-    this.endHandle.style.display = 'block';
+    this.startHandle.style.display = "block";
+    this.endHandle.style.display = "block";
   }
 
   startSelection(row, column) {
@@ -150,15 +168,34 @@ export default class SelectionCore {
 
     // start is always before end in the terminal's text flow
     if (startRow > endRow || (startRow === endRow && startColumn > endColumn)) {
-      [startRow, startColumn, endRow, endColumn] = [endRow, endColumn, startRow, startColumn];
+      [startRow, startColumn, endRow, endColumn] = [
+        endRow,
+        endColumn,
+        startRow,
+        startColumn,
+      ];
     }
 
-    const totalLength = this._calculateTotalSelectionLength(startRow, endRow, startColumn, endColumn);
+    const totalLength = this._calculateTotalSelectionLength(
+      startRow,
+      endRow,
+      startColumn,
+      endColumn,
+    );
     this.terminal.select(startColumn, startRow, totalLength);
 
     // Set handle positions based on their actual positions, not the selection bounds
-    this.setHandlePosition(this.startHandle, this.selectionStart.row, this.selectionStart.column, true);
-    this.setHandlePosition(this.endHandle, this.selectionEnd.row, this.selectionEnd.column);
+    this.setHandlePosition(
+      this.startHandle,
+      this.selectionStart.row,
+      this.selectionStart.column,
+      true,
+    );
+    this.setHandlePosition(
+      this.endHandle,
+      this.selectionEnd.row,
+      this.selectionEnd.column,
+    );
   }
 
   _calculateTotalSelectionLength(startRow, endRow, startColumn, endColumn) {
@@ -166,13 +203,12 @@ export default class SelectionCore {
 
     if (startRow === endRow) {
       return Math.abs(endColumn - startColumn) + 1;
-    } else {
-      let length = 0;
-      length += terminalCols - startColumn;
-      length += (endRow - startRow - 1) * terminalCols;
-      length += endColumn + 1;
-      return length;
     }
+    let length = 0;
+    length += terminalCols - startColumn;
+    length += (endRow - startRow - 1) * terminalCols;
+    length += endColumn + 1;
+    return length;
   }
 
   startHandleTouchMoveCb(event) {
@@ -204,7 +240,7 @@ export default class SelectionCore {
 
     this.tapHoldTimeout = setTimeout(() => {
       this.isTapAndHoldActive = true;
-      this.terminal.focus()
+      this.terminal.focus();
       this.startSelection(coords.row, coords.column);
     }, 500);
   }
@@ -223,7 +259,10 @@ export default class SelectionCore {
       const touchMoveDelta = Math.abs(this.touchMoveY - this.touchStartY);
       const touchMoveTime = Date.now() - this.touchStartTime;
 
-      if (touchMoveDelta > this.scrollThreshold && touchMoveTime < this.scrollTimeThreshold) {
+      if (
+        touchMoveDelta > this.scrollThreshold &&
+        touchMoveTime < this.scrollTimeThreshold
+      ) {
         clearTimeout(this.tapHoldTimeout);
       }
     }

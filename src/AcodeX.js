@@ -1468,20 +1468,37 @@ export default class AcodeX {
     }
   }
 
-  async openAIPromptPopup() {
-    const aiResponseHandler =
-      this.settings.aiModel === AVAILABLE_AI_MODELS[3][0]
-        ? new AIResponseHandler()
-        : new AIResponseHandler(this.settings.aiApiKey);
+  async getOllamaModel(aiResponseHandler) {
     const savedLocalLLM = localStorage.getItem("ACODEX_LOCAL_LLM_MODEL");
-    let ollamaModel;
-    if (!savedLocalLLM) {
+    if (savedLocalLLM) return savedLocalLLM;
+
+    try {
       const models = await aiResponseHandler.getListOfOllamaModels();
-      ollamaModel = await select("Select Local Model", models);
-      if (!ollamaModel) return;
+      if (!Array.isArray(models)) {
+        throw new Error("Failed to fetch Ollama models");
+      }
+      const ollamaModel = await select("Select Local Model", models);
+      if (!ollamaModel) return null;
+
       localStorage.setItem("ACODEX_LOCAL_LLM_MODEL", ollamaModel);
-    } else {
-      ollamaModel = savedLocalLLM;
+      return ollamaModel;
+    } catch (error) {
+      console.error("Error getting Ollama models:", error);
+      acode.alert("Error", "Failed to fetch Ollama models");
+      return null;
+    }
+  }
+
+  async openAIPromptPopup() {
+    const aiResponseHandler = new AIResponseHandler(
+      this.settings.aiModel === AVAILABLE_AI_MODELS[3][0]
+        ? null
+        : this.settings.aiApiKey,
+    );
+    let ollamaModel;
+    if (this.settings.aiModel === "local-llm") {
+      ollamaModel = await this.getOllamaModel(aiResponseHandler);
+      if (!ollamaModel) return;
     }
     const promptBox = DialogBox(
       "⚡ Ask  AcodeX Ai",

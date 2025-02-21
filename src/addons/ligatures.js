@@ -1,21 +1,73 @@
 export default class LigaturesAddon {
   constructor(options = {}) {
     // fallback ligatures if a font does not support ligatures natively
-    this._fallbackLigatures = options.fallbackLigatures || [
-      '<--', '<---', '<<-', '<-', '->', '->>', '-->', '--->',
-      '<==', '<===', '<<=', '<=', '=>', '=>>', '==>', '===>', '>=', '>>=',
-      '<->', '<-->', '<--->', '<---->', '<=>', '<==>', '<===>', '<====>',
-      '<~~', '<~', '~>', '~~>', '::', ':::', '==', '!=', '===', '!==', ':=',
-      ':-', ':+', '<*', '<*>', '*>', '<|', '<|>', '|>', '+:', '-:', '=:', ':>',
-      '++', '+++', '<!--', '<!---', '<***>'
-    ].sort((a, b) => b.length - a.length);
+    this._fallbackLigatures =
+      options.fallbackLigatures ||
+      [
+        "<--",
+        "<---",
+        "<<-",
+        "<-",
+        "->",
+        "->>",
+        "-->",
+        "--->",
+        "<==",
+        "<===",
+        "<<=",
+        "<=",
+        "=>",
+        "=>>",
+        "==>",
+        "===>",
+        ">=",
+        ">>=",
+        "<->",
+        "<-->",
+        "<--->",
+        "<---->",
+        "<=>",
+        "<==>",
+        "<===>",
+        "<====>",
+        "<~~",
+        "<~",
+        "~>",
+        "~~>",
+        "::",
+        ":::",
+        "==",
+        "!=",
+        "===",
+        "!==",
+        ":=",
+        ":-",
+        ":+",
+        "<*",
+        "<*>",
+        "*>",
+        "<|",
+        "<|>",
+        "|>",
+        "+:",
+        "-:",
+        "=:",
+        ":>",
+        "++",
+        "+++",
+        "<!--",
+        "<!---",
+        "<***>",
+      ].sort((a, b) => b.length - a.length);
     this._characterJoinerId = undefined;
     this._terminal = undefined;
   }
 
   activate(terminal) {
     this._terminal = terminal;
-    this._characterJoinerId = terminal.registerCharacterJoiner(this._joinCharacters.bind(this));
+    this._characterJoinerId = terminal.registerCharacterJoiner(
+      this._joinCharacters.bind(this),
+    );
     terminal.element.style.fontFeatureSettings = `"liga" on, "calt" on`;
   }
 
@@ -25,7 +77,7 @@ export default class LigaturesAddon {
       this._characterJoinerId = undefined;
     }
     if (this._terminal?.element) {
-      this._terminal.element.style.fontFeatureSettings = '';
+      this._terminal.element.style.fontFeatureSettings = "";
     }
   }
 
@@ -36,7 +88,7 @@ export default class LigaturesAddon {
   _findLigatureRanges(text, ligatures) {
     const ranges = [];
     for (let i = 0; i < text.length; i++) {
-      for (let ligature of ligatures) {
+      for (const ligature of ligatures) {
         if (text.startsWith(ligature, i)) {
           ranges.push([i, i + ligature.length]);
           i += ligature.length - 1;
