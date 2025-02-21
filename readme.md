@@ -7,9 +7,6 @@
   <a href="https://acode.app/plugin/bajrangcoder.acodex"><img alt="Download Counts" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Facode.app%2Fapi%2Fplugin%2Fbajrangcoder.acodex&query=downloads&style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjYWQzZjUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1hcnJvdy1kb3duLXRvLWxpbmUiPjxwYXRoIGQ9Ik0xMiAxN1YzIi8+PHBhdGggZD0ibTYgMTEgNiA2IDYtNiIvPjxwYXRoIGQ9Ik0xOSAyMUg1Ii8+PC9zdmc+&logoColor=cad3f5&label=Downloads&labelColor=363a4f&color=c6a0f6"></a>
 </p>
 
-> [!CAUTION]
-> Ai functionality is not working entirely, soon it will be patched
-
 > [!Warning]
 > This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package or [axs](https://github.com/bajrangCoder/acodex_server) to be installed and running on [Termux](https://termux.dev).
 
@@ -50,7 +47,7 @@
 - fixed some bugs related to disposing of terminal reported by Users
 - Added font ligatures support (you can disable it from settings)
 - fix: ctrl - k issue when terminal is minimised or opened
-- now ctrl-k can also be used as shortcut to maximise terminal if it is open and minimised 
+- now ctrl-k can also be used as shortcut to maximise terminal if it is open and minimised
 - new settings to on/off haptic(vibration) on Selection start
 - some minor fixes and few typos adjustments
 
@@ -59,13 +56,13 @@
 
 > For previous change logs/updates, visit: [Change Log](https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/ChangeLog.md)
 
-### Roadmap 
+### Roadmap
 
 - Add shortcuts for minimising and also refine other shortcuts
 - full page mode for AcodeX similar to other terminal plugins (using Acode tab view)
 - fix bugs related to touch selection and gui viewer
-- ssh based Terminal support 
-- config(dotfiles) for acodex to customise everything from the config file 
+- ssh based Terminal support
+- config(dotfiles) for acodex to customise everything from the config file
 - suggest more 🙌
 
 ## 💥 Features
@@ -115,11 +112,11 @@ To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) install
 
 ## Installation
 
-1. **Install the Plugin in Acode**  
-   Open the Acode App and navigate to:  
+1. **Install the Plugin in Acode**
+   Open the Acode App and navigate to:
    `Acode > Settings > Plugins > AcodeX`, then install the plugin.
 
-2. **Install the Server in Termux**  
+2. **Install the Server in Termux**
    To install everything required, including prompts for GUI-related tools like TigerVNC and Websockify (if needed), run the following command in Termux:
 
    ```bash
@@ -154,7 +151,7 @@ To use AcodeX, you need to have the [Termux app](https://termux.dev/en/) install
 
 If you're an existing user and want to start using the new GUI features, follow these steps to install the required packages:
 
-1. **Install TigerVNC and Websockify**  
+1. **Install TigerVNC and Websockify**
    Run the following commands in Termux to install the necessary packages:
 
    ```bash
@@ -163,7 +160,7 @@ If you're an existing user and want to start using the new GUI features, follow 
    curl -L https://raw.githubusercontent.com/bajrangCoder/websockify_rs/main/install.sh | bash
    ```
 
-2. **Setup VNC Server**  
+2. **Setup VNC Server**
    After installation, run the `vncserver` command for the first time to set up a password:
 
    ```bash
@@ -172,7 +169,7 @@ If you're an existing user and want to start using the new GUI features, follow 
 
    This will prompt you to create a password for your VNC server.
 
-3. **Start Using GUI Features**  
+3. **Start Using GUI Features**
    Once you’ve set up the VNC server, AcodeX will handle everything for you automatically, enabling the use of GUI apps seamlessly. but you will need to enable this feature from AcodeX settings.(after enabling you will get an image like icon on AcodeX header for viewing the gui)
 
 ## How to Use
@@ -182,7 +179,7 @@ If you're an existing user and want to start using the new GUI features, follow 
 - Start the server in Termux using: `acodeX-server`.
 - To use AcodeX, press `Ctrl+K` or search for `"Open Terminal"` in the command palette (press `Ctrl+Shift+P` to open the command palette).
 - Enter the port number, and the terminal will start.
-- Plus `+` icon to create new session 
+- Plus `+` icon to create new session
 - Use the minus icon button to hide the terminal while coding and the terminal button or `Ctrl-Shift-T` to show it.
 - You can also drag the terminal panel around by clicking and dragging through the terminal header area.
 - The `✗` button is for closing the terminal.
@@ -192,42 +189,42 @@ If you're an existing user and want to start using the new GUI features, follow 
 
 To run GUI apps within AcodeX, follow the steps below:
 
-1. **Install the Required Packages**  
+1. **Install the Required Packages**
    Ensure that you have installed the necessary packages by following the instructions in the [Installation](#installation) or [Existing Users Setup](#for-existing-users-enabling-gui-features) sections.
 
-2. **Enable GUI Viewer Settings**  
-   - Navigate to `Acode > Settings > Plugins > AcodeX`.  
-   - Tap the ⚙️ icon at the top-right corner of the AcodeX header to access the plugin settings.  
+2. **Enable GUI Viewer Settings**
+   - Navigate to `Acode > Settings > Plugins > AcodeX`.
+   - Tap the ⚙️ icon at the top-right corner of the AcodeX header to access the plugin settings.
    - Enable the **GUI Viewer** option from the settings.
 
-3. **Open AcodeX Terminal**  
+3. **Open AcodeX Terminal**
    - Open the AcodeX terminal using the `Ctrl+K` shortcut, or search for "Open Terminal" in the command palette.
 
-4. **Launch the GUI Viewer**  
-   - In the terminal header, you'll see a small **image-like icon**.  
-   - Click the icon. The first time you do this, it will set up the necessary configurations and prompt you for the VNC password.  
+4. **Launch the GUI Viewer**
+   - In the terminal header, you'll see a small **image-like icon**.
+   - Click the icon. The first time you do this, it will set up the necessary configurations and prompt you for the VNC password.
    - Enter your VNC password, which will be saved securely in the local storage for future sessions.
 
-5. **Using the GUI Viewer**  
+5. **Using the GUI Viewer**
    After setup, the GUI Viewer page will open. On this page, you’ll find multiple interactive elements such as:
 
-   - **Display Variable Button**:  
-     This button copies the `DISPLAY` environment variable needed for running GUI apps.  
-     
+   - **Display Variable Button**:
+     This button copies the `DISPLAY` environment variable needed for running GUI apps.
+
      **Before launching a GUI app**, always click the **Display Button** to set up the display environment in the terminal. If you skip this step, the GUI app will fail with a "No display variable" error.
 
-   - **Keyboard Icon**:  
+   - **Keyboard Icon**:
      A keyboard icon is available to activate your mobile keyboard for typing within GUI applications.
 
-6. **Run Your GUI App**  
-   - In the AcodeX terminal, **click the Display button**, which will copy and execute the `export DISPLAY` command.  
+6. **Run Your GUI App**
+   - In the AcodeX terminal, **click the Display button**, which will copy and execute the `export DISPLAY` command.
    - Start your GUI app in the terminal, and it will open in the integrated viewer.
 
 > [!TIP]
 > Always verify that the `export DISPLAY` command was executed successfully before launching your GUI application.
-   
+
 > [!NOTE]
-> the display env variable command needs to run once in a terminal session 
+> the display env variable command needs to run once in a terminal session
 
 ### Why is there no selection context menu?
 
@@ -248,8 +245,8 @@ AcodeX provides some additional Keybindings for easy usability of terminal featu
 
 Following are the supported Keybindings :
 
-- <kbd>Ctrl+N</kbd> : opens a new terminal session 
-- <kbd>Ctrl+W</kbd> : close opened terminal session 
+- <kbd>Ctrl+N</kbd> : opens a new terminal session
+- <kbd>Ctrl+W</kbd> : close opened terminal session
 - <kbd>Ctrl+Shift+V</kbd> : paste something from clipboard inside your terminal
 - <kbd>Ctrl+Shift+C</kbd> : copy selected text from terminal
 - <kbd>Ctrl+Left Arrow</kbd> : open previous session corresponding to current one like if current one is session 2 then it will open session 1(if exists)
@@ -259,7 +256,7 @@ Following are the supported Keybindings :
 - <kbd>Ctrl+3</kbd> : opens session 3 if exists
 - <kbd>Ctrl+4</kbd> : opens session 4 if exists
 - <kbd>Ctrl+5</kbd> : opens session 5 if exists
-- <kbd>Ctrl+Shift+I</kbd> : clear the terminal 
+- <kbd>Ctrl+Shift+I</kbd> : clear the terminal
 - <kbd>Ctrl+Shift+T</kbd> : Maximise the terminal *
 - <kbd>Ctrl+a</kbd> : select all
 
@@ -417,7 +414,7 @@ acodex.applyTheme("myTheme");
 
 ## Custom Fonts
 
-Custom fonts are provided to load any other external fonts 
+Custom fonts are provided to load any other external fonts
 
 To load a custom font:
 
@@ -513,7 +510,7 @@ You can also support the development of AcodeX Plugin by making a financial cont
 
 ### ⭐ Star on GitHub
 
-If you find AcodeX Plugin useful, consider giving it a star on GitHub. It's a simple way to show your appreciation and help others discover the project. and You can review AcodeX on https://acode.app 
+If you find AcodeX Plugin useful, consider giving it a star on GitHub. It's a simple way to show your appreciation and help others discover the project. and You can review AcodeX on https://acode.app
 
 Your contributions, whether through code, financial support, or a simple star, make AcodeX Plugin better for the entire community. Thank you for your support!
 
