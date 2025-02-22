@@ -144,7 +144,13 @@ export default class AcodeX {
         name: "acodex:maximise_terminal",
         description: "Maximise Terminal",
         bindKey: { win: "Ctrl-Shift-T" },
-        exec: this.maxmise.bind(this),
+        exec: () => {
+          if (this.isTerminalOpened && this.isTerminalMinimized) {
+            this.maxmise();
+          } else {
+            this.minimise();
+          }
+        },
       });
       // main terminal container
       this.$terminalContainer = tag("div", {
@@ -1088,6 +1094,13 @@ export default class AcodeX {
         if (e.ctrlKey && (e.key === "W" || e.key === "w")) {
           // ctrl+w
           this.closeTerminal();
+          return false;
+        }
+        if (e.ctrlKey && e.shiftKey && (e.key === "T" || e.key === "t")) {
+          // ctrl+shift+t
+          if (!this.isTerminalMinimized) {
+            this.minimise();
+          }
           return false;
         }
         if (e.ctrlKey && e.shiftKey && (e.key === "V" || e.key === "v")) {

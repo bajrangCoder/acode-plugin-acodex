@@ -58,12 +58,13 @@
 
 ### Roadmap
 
-- Add shortcuts for minimising and also refine other shortcuts
-- full page mode for AcodeX similar to other terminal plugins (using Acode tab view)
-- fix bugs related to touch selection and gui viewer
-- ssh based Terminal support
-- config(dotfiles) for acodex to customise everything from the config file
-- suggest more 🙌
+- [x] Add shortcuts for minimizing and also refine other shortcuts
+- Full page mode for AcodeX similar to other terminal plugins (using Acode tab view)
+- Fix bugs related to touch selection and GUI viewer
+- SSH-based Terminal support
+- Config (dotfiles) for AcodeX to customize everything from the config file
+- Custom fine-tuned AI model for AI service which will work without any API key (fine-tuning is done)
+- Suggest more 🙌
 
 ## 💥 Features
 
@@ -257,7 +258,7 @@ Following are the supported Keybindings :
 - <kbd>Ctrl+4</kbd> : opens session 4 if exists
 - <kbd>Ctrl+5</kbd> : opens session 5 if exists
 - <kbd>Ctrl+Shift+I</kbd> : clear the terminal
-- <kbd>Ctrl+Shift+T</kbd> : Maximise the terminal *
+- <kbd>Ctrl+Shift+T</kbd> : Maximise/Minimise the terminal(works from terminal as well as from editor)
 - <kbd>Ctrl+a</kbd> : select all
 
 ### How to Use AI
@@ -274,9 +275,6 @@ To leverage the power of artificial intelligence within `AcodeX Terminal` Plugin
    - Within the popup window, you can input your prompt or query.
    - Upon entering your prompt, click the button provided to prompt the AI to generate a command based on your input.
    - The generated command will be written into the terminal. From there, you have the option to execute the command as is or modify it according to your requirements.
-
-> [!Warning]
-> Avoid prompts that may lead the AI to provide descriptive or explanatory responses instead of actionable commands.
 
 > [!Note]
 > Use AI wisely, as there may be token limits associated with your API key. Be mindful of your usage to avoid exceeding token limits and potential interruptions in service.
