@@ -1,5 +1,22 @@
 # Change Logs
 
+## `Update v3.1.10`
+
+- fix: AI related bugs and improved command generation, also improved system prompt
+- improved keybinds: now `ctrl-shift-t` can minimise/maximise according to situation and also this will work from editor as well as terminal.
+- many small bug fix and patches
+
+## `Update v3.1.9`
+
+- First backup your settings before updating
+- fixed some bugs related to disposing of terminal reported by Users
+- Added font ligatures support (you can disable it from settings)
+- fix: ctrl - k issue when terminal is minimised or opened
+- now ctrl-k can also be used as shortcut to maximise terminal if it is open and minimised
+- new settings to on/off haptic(vibration) on Selection start
+- some minor fixes and few typos adjustments
+
+
 ## `Update v3.1.8`
 
 - Added a new keybinds ctrl+a to select all
