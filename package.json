@@ -20,7 +20,7 @@
     "ollama": "^0.5.13"
   },
   "devDependencies": {
-    "esbuild": "^0.19.12",
+    "esbuild": "^0.25.0",
     "esbuild-sass-plugin": "^2.16.1",
     "jszip": "^3.10.1"
   },
