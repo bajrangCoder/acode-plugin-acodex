@@ -370,7 +370,7 @@ export default class AcodeX {
         document.addEventListener("mousemove", this.dragFlotButton.bind(this));
         document.addEventListener(
           "mouseup",
-          this.startDraggingFloatingBtn.bind(this),
+          this.stopDraggingFlotBtn.bind(this),
         );
         this.$showTermBtn.addEventListener(
           "touchstart",
