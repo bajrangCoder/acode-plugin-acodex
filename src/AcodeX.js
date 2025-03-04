@@ -4,6 +4,7 @@ import * as helpers from "./utils/helpers.js";
 import { themes } from "./utils/themes.js";
 import AIResponseHandler from "./services/AiService.js";
 import SelectionCore from "./core/selectionCore.js";
+import Icons from "./utils/icons";
 import {
   ALLOW_TRANSPRANCY,
   CURSOR_BLINK,
@@ -172,27 +173,27 @@ export default class AcodeX {
         className: "action-button new-session",
         ariaLabel: "New Session",
       });
-      newSessionBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 38q-.65 0-1.075-.425-.425-.425-.425-1.075v-11h-11q-.65 0-1.075-.425Q10 24.65 10 24q0-.65.425-1.075.425-.425 1.075-.425h11v-11q0-.65.425-1.075Q23.35 10 24 10q.65 0 1.075.425.425.425.425 1.075v11h11q.65 0 1.075.425Q38 23.35 38 24q0 .65-.425 1.075-.425.425-1.075.425h-11v11q0 .65-.425 1.075Q24.65 38 24 38Z"/></svg>`;
+      newSessionBtn.innerHTML = Icons.plus;
       this.$searchBtn = tag("button", {
         className: "action-button search-btn",
         ariaLabel: "Search",
       });
-      this.$searchBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-code"><path d="m13 13.5 2-2.5-2-2.5"/><path d="m21 21-4.3-4.3"/><path d="M9 8.5 7 11l2 2.5"/><circle cx="11" cy="11" r="8"/></svg>`;
+      this.$searchBtn.innerHTML = Icons.search;
       this.$cdBtn = tag("button", {
         className: "action-button folder-icon",
         ariaLabel: "Navigate to Folder",
       });
-      this.$cdBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14V3.5zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5V6zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7H1.633z"/></svg>`;
+      this.$cdBtn.innerHTML = Icons.folder;
       this.$minimizeBtn = tag("button", {
         className: "action-button minimize",
         ariaLabel: "Minimize",
       });
-      this.$minimizeBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 24.75q-.3 0-.55-.1-.25-.1-.5-.35l-9.9-9.9q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.15l8.85-8.85q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05l-9.9 9.9q-.25.25-.5.35-.25.1-.55.1Zm0 12.65q-.3 0-.55-.1-.25-.1-.5-.35l-9.9-9.9q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 33.8l8.85-8.85q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05l-9.9 9.9q-.25.25-.5.35-.25.1-.55.1Z"/></svg>`;
+      this.$minimizeBtn.innerHTML = Icons.minimise;
       this.$closeTermBtn = tag("button", {
         className: "action-button close",
         ariaLabel: "Close Terminal",
       });
-      this.$closeTermBtn.innerHTML = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M24 26.1 13.5 36.6q-.45.45-1.05.45-.6 0-1.05-.45-.45-.45-.45-1.05 0-.6.45-1.05L21.9 24 11.4 13.5q-.45-.45-.45-1.05 0-.6.45-1.05.45-.45 1.05-.45.6 0 1.05.45L24 21.9l10.5-10.5q.45-.45 1.05-.45.6 0 1.05.45.45.45.45 1.05 0 .6-.45 1.05L26.1 24l10.5 10.5q.45.45.45 1.05 0 .6-.45 1.05-.45.45-1.05.45-.6 0-1.05-.45Z"/></svg>`;
+      this.$closeTermBtn.innerHTML = Icons.close;
       this.$searchInputContainer = tag("div", {
         className: "search-input-container",
       });
@@ -200,7 +201,7 @@ export default class AcodeX {
         tag("button", {
           className: "action-button find-previous",
           ariaLabel: "Find Previous",
-          innerHTML: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
+          innerHTML: Icons.findPrevious,
           onclick: this._findPreviousMatchofSearch.bind(this),
         }),
         tag("input", {
@@ -214,7 +215,7 @@ export default class AcodeX {
         tag("button", {
           className: "action-button find-next",
           ariaLabel: "Find Next",
-          innerHTML: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
+          innerHTML: Icons.findNext,
           onclick: this._findNextMatchofSearch.bind(this),
         }),
       );
@@ -244,7 +245,7 @@ export default class AcodeX {
       // show terminal button
       this.$showTermBtn = tag("button", {
         className: "show-terminal-btn",
-        innerHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>`,
+        innerHTML: Icons.terminal,
       });
       // append Terminal panel to app main
       if (app.get("main")) {
@@ -427,6 +428,11 @@ export default class AcodeX {
 
       // acodex terminal api
       acode.define("acodex", {
+        /**
+         * Executes a command in the terminal.
+         * @param {string} cmd - The command to execute.
+         * @param {boolean} [withEnter=true] - Whether to append a carriage return to the command.
+         */
         execute: (cmd, withEnter = true) => {
           try {
             if (!this.isTerminalOpened) return;
@@ -435,17 +441,36 @@ export default class AcodeX {
             throw Error(error);
           }
         },
+        /**
+         * Checks if the terminal is minimized.
+         * @returns {boolean} - True if the terminal is minimized, false otherwise.
+         */
         isMinimized: () => {
           return this.isTerminalMinimized;
         },
+
+        /**
+         * Checks if the terminal is opened.
+         * @returns {boolean} - True if the terminal is opened, false otherwise.
+         */
         isTerminalOpened: () => {
           return this.isTerminalOpened;
         },
+
+        /**
+         * Maximizes the terminal if it is opened and minimized.
+         */
         maximiseTerminal: () => {
           if (this.isTerminalOpened && this.isTerminalMinimized) {
             this.maxmise();
           }
         },
+        /**
+         * Opens the terminal panel and returns an object to interact with the terminal.
+         * @param {number} [termContainerHeight=270] - The height of the terminal container.
+         * @param {number} [port=this.settings.port] - The port number to connect to.
+         * @returns {Promise<{onmessage: function, write: function}>} - An object with methods to interact with the terminal.
+         */
         openTerminal: async (
           termContainerHeight = 270,
           port = this.settings.port,
@@ -456,6 +481,10 @@ export default class AcodeX {
               port,
             );
             return {
+              /**
+               * Sets a callback function to handle incoming messages from the terminal.
+               * @param {function} cb - The callback function to handle incoming messages.
+               */
               onmessage: (cb) => {
                 if (socket) {
                   socket.onmessage = (event) =>
@@ -466,6 +495,11 @@ export default class AcodeX {
                     );
                 }
               },
+              /**
+               * Sends a command to the terminal session.
+               * @param {string} cmd - The command to send.
+               * @param {boolean} [withEnter=true] - Whether to append a carriage return to the command.
+               */
               write: (cmd, withEnter = true) => {
                 const command = withEnter ? `${cmd}\r` : cmd;
                 socket.send(command);
@@ -473,10 +507,18 @@ export default class AcodeX {
             };
           }
         },
+        /**
+         * Creates a new terminal session.
+         * @returns {Promise<{onmessage: function, write: function}>} - An object with methods to interact with the terminal session.
+         */
         createSession: async () => {
           if (this.isTerminalOpened) {
             const socket = await this.createSession();
             return {
+              /**
+               * Sets a callback function to handle incoming messages from the terminal.
+               * @param {function} cb - The callback function to handle incoming messages.
+               */
               onmessage: (cb) => {
                 if (socket) {
                   socket.onmessage = (event) =>
@@ -487,6 +529,11 @@ export default class AcodeX {
                     );
                 }
               },
+              /**
+               * Sends a command to the terminal session.
+               * @param {string} cmd - The command to send.
+               * @param {boolean} [withEnter=true] - Whether to append a carriage return to the command.
+               */
               write: (cmd, withEnter = true) => {
                 const command = withEnter ? `${cmd}\r` : cmd;
                 socket.send(command);
@@ -494,10 +541,19 @@ export default class AcodeX {
             };
           }
         },
+        /**
+         * Changes the current terminal session.
+         * @param {string} sessionName - The name of the session to switch to.
+         * @returns {Promise<{onmessage: function, write: function}>} - An object with methods to interact with the terminal.
+         */
         changeSession: async (sessionName) => {
           if (this.isTerminalOpened) {
             const socket = await this.changeSession(sessionName);
             return {
+              /**
+               * Sets a callback function to handle incoming messages from the terminal.
+               * @param {function} cb - The callback function to handle incoming messages.
+               */
               onmessage: (cb) => {
                 if (socket) {
                   socket.onmessage = (event) =>
@@ -508,6 +564,11 @@ export default class AcodeX {
                     );
                 }
               },
+              /**
+               * Sends a command to the terminal session.
+               * @param {string} cmd - The command to send.
+               * @param {boolean} [withEnter=true] - Whether to append a carriage return to the command.
+               */
               write: (cmd, withEnter = true) => {
                 const command = withEnter ? `${cmd}\r` : cmd;
                 socket.send(command);
@@ -515,18 +576,38 @@ export default class AcodeX {
             };
           }
         },
+        /**
+         * Closes the terminal if it is currently opened.
+         */
         closeTerminal: () => {
           if (this.isTerminalOpened) {
             this.closeTerminal();
           }
         },
+
+        /**
+         * Converts an Acode URI to a terminal-readable path.
+         * @param {string} path - The Acode URI to convert.
+         * @returns {string} - The converted terminal-readable path.
+         */
         convertAcodeUriToTermReadable: (path) => {
           return helpers.convertPath(path);
         },
+
+        /**
+         * Adds a new theme to the theme list.
+         * @param {string} themeNme - The name of the new theme.
+         * @param {object} colorSchema - The color schema of the new theme.
+         */
         addTheme: (themeNme, colorSchema) => {
           THEME_LIST.push(themeNme);
           themes[themeNme] = colorSchema;
         },
+
+        /**
+         * Applies a specified theme to the terminal.
+         * @param {string} themeNme - The name of the theme to apply.
+         */
         applyTheme: (themeNme) => {
           this.settings.theme = themeNme;
           appSettings.update();
@@ -542,7 +623,7 @@ export default class AcodeX {
       className: "action-button gui-viewer",
       ariaLabel: "Open GUI Viewer",
     });
-    viewerBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-play"><path d="m11 16-5 5"/><path d="M11 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6.5"/><path d="M15.765 22a.5.5 0 0 1-.765-.424V13.38a.5.5 0 0 1 .765-.424l5.878 3.674a1 1 0 0 1 0 1.696z"/><circle cx="9" cy="9" r="2"/></svg>`;
+    viewerBtn.innerHTML = Icons.imagePlay;
     viewerBtn.onclick = this.openViewerPage.bind(this);
     return viewerBtn;
   }
