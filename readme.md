@@ -38,20 +38,6 @@
 
 ---
 
-<details>
-    <summary>
-      <h3 style="display:inline">Update v3.1.10</h3>
-    </summary>
-
-- fix: AI related bugs and improved command generation, also improved system prompt
-- improved keybinds: now `ctrl-shift-t` can minimise/maximise according to situation and also this will work from editor as well as terminal.
-- many small bug fix and PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij4KPHBhdGggZD0iTTIxNiwzMlYxOTJhOCw4LDAsMCwxLTgsOEg3MmExNiwxNiwwLDAsMC0xNiwxNkgxOTJhOCw4LDAsMCwxLDAsMTZINDhhOCw4LDAsMCwxLTgtOFY1NkEzMiwzMiwwLDAsMSw3MiwyNEgyMDhBOCw4LDAsMCwxLDIxNiwzMloiIHN0eWxlPSJmaWxsOiAjQ0FEM0Y1OyIvPgo8L3N2Zz4
-
-</details>
-<br/>
-
-> For previous change logs/updates, visit: [Change Log](https://github.com/bajrangCoder/acode-plugin-acodex/blob/main/ChangeLog.md)
-
 ### Roadmap
 
 - [x] Add shortcuts for minimizing and also refine other shortcuts

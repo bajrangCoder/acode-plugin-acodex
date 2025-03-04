@@ -1,5 +1,12 @@
 # Change Logs
 
+## `Update v3.1.11`
+
+- Fixed the terminal floating button issue.
+- Rewritten the touch selection functionality, making it more efficient and portable, and fixed several touch selection-related bugs.
+- Updated the search icon strokes to ensure consistency with other icons.
+- Added typings for the AcodeX API and made several internal changes and improvements.
+
 ## `Update v3.1.10`
 
 - fix: AI related bugs and improved command generation, also improved system prompt
@@ -20,8 +27,8 @@
 ## `Update v3.1.8`
 
 - Added a new keybinds ctrl+a to select all
-- touch selection support 
-- Gui viewer support 
+- touch selection support
+- Gui viewer support
 - added local ai support using ollama
 
 ## `Update v3.1.7`
@@ -31,19 +38,19 @@
 - Some improvement to fallback font
 
 ## `Update v3.1.6`
-- Image rendering support 
-- Option to hide maximise terminal button 
+- Image rendering support
+- Option to hide maximise terminal button
 - Added Key binding for maximising terminal - `Ctrl-Shift-T`
 
 ## `Update v3.1.5`
 - Now it will handle automatically closing of server
-- 🆕 key-bindings `Ctrl+Shift+I` to clear the terminal 
+- 🆕 key-bindings `Ctrl+Shift+I` to clear the terminal
 - updated xterm and its styling
 
 ## `Update v3.1.3 & v3.1.4`
-- Enhanced AcodeX by integrating AI into the terminal, making it a standout option in the modern era. (Check `How to use AI section` for refrence)
+- Enhanced AcodeX by integrating AI into the terminal, making it a standout option in the modern era. (Check `How to use AI section` for reference)
 - Updated the default font family for the Terminal to `Meslo NF Regular`.
-- Resolved the issue with the `exit` command; now, typing `exit` in the terminal will promptly close the current session. 
+- Resolved the issue with the `exit` command; now, typing `exit` in the terminal will promptly close the current session.
 - fixed settings issue (v3.1.4)
 
 ## `Update v3.1.2`
@@ -60,7 +67,7 @@
 - Added new keybindings such as <kbd>Ctrl-+</kbd>, <kbd>Ctrl--</kbd>, <kbd>Ctrl-Shift-C</kbd>
 - Modified paste shortcut to <kbd>Ctrl+Shift+V</kbd>
 - And in shortcuts you can use either capital letter or small for eg: <kbd>Ctrl-Shift-c</kbd> and <kbd>Ctrl-Shift-C</kbd> both will work fine
-- redesigned the panel ui and chnaged icons
+- redesigned the panel ui and changed icons
 - lots of inner improvement, to improve overall performance and stability
 - Added a Search functionality to search inside terminal
 - fixed ui bug (of transparent mode)
@@ -214,7 +221,7 @@ Nothing fancy just a simple bugs 😑
 
 ## `Update v1.0.4`
 
--   Now you can use any keyboard in terminal(recommend -> keyboard which cantains ctrl key and so on)
+-   Now you can use any keyboard in terminal(recommend -> keyboard which contains ctrl key and so on)
 -   Some Improvement
 -   There is little bit limitations with keys that will be fixed in next update
 -   Supported Keys
