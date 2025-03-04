@@ -3,8 +3,7 @@ import style from "./styles/style.scss";
 import * as helpers from "./utils/helpers.js";
 import { themes } from "./utils/themes.js";
 import AIResponseHandler from "./services/AiService.js";
-// due to some reason selection model from other file doesn't work, feel free to open pr
-// import SelectionCore from "./core/selectionCore.js";
+import SelectionCore from "./core/selectionCore.js";
 import {
   ALLOW_TRANSPRANCY,
   CURSOR_BLINK,
@@ -74,17 +73,7 @@ export default class AcodeX {
   socket = null;
   $fitAddon = undefined;
 
-  isSelecting = false;
-  isTapAndHoldActive = false;
-  tapHoldTimeout = null;
-  selectionStart = null;
-  selectionEnd = null;
-  lastTapTime = 0; // Store the timestamp of the last tap
-  tapThreshold = 300; // Maximum time (in ms) allowed between taps to count as a double-tap
-  touchStartY = 0;
-  touchStartTime = 0;
-  scrollThreshold = 10; // pixels
-  scrollTimeThreshold = 100; // milliseconds
+  selectionManager = null;
 
   constructor() {
     if (!appSettings.value[plugin.id]) {
@@ -248,13 +237,6 @@ export default class AcodeX {
         className: "terminal-content",
       });
 
-      this.startHandle = tag("div", {
-        className: "selection-handle selection-start-handle",
-      });
-      this.endHandle = tag("div", {
-        className: "selection-handle selection-end-handle",
-      });
-
       this.$terminalContainer.append(
         this.$terminalHeader,
         this.$terminalContent,
@@ -270,8 +252,6 @@ export default class AcodeX {
           .get("main")
           .append(
             this.$terminalContainer,
-            this.startHandle,
-            this.endHandle,
             this.settings.showTerminalBtn ? this.$showTermBtn : "",
           );
       }
@@ -414,7 +394,7 @@ export default class AcodeX {
           }
           const selection = this.$terminal?.getSelection();
           if (selection && selection.length > 0) {
-            this.updateHandles();
+            this.selectionManager.updateHandles();
           }
         }
 
@@ -891,22 +871,15 @@ export default class AcodeX {
   }
 
   async openTerminalPanel(termContainerHeight, port) {
-    /*
-        opens floating terminal panel
-        @param termContainerHeight: number
-        @param port: number
-        */
+    /**
+     * Opens the floating terminal panel.
+     * @param {number} termContainerHeight - The height of the terminal container.
+     * @param {number} port - The port number to connect to.
+     */
 
     if (!port) return;
     if (!document.querySelector(".terminal-panel")) {
-      app
-        .get("main")
-        .append(
-          this.$terminalContainer,
-          this.$showTermBtn,
-          this.startHandle,
-          this.endHandle,
-        );
+      app.get("main").append(this.$terminalContainer, this.$showTermBtn);
     }
     this.settings.port = port;
     appSettings.update(false);
@@ -1027,33 +1000,11 @@ export default class AcodeX {
       }
       //this.$terminal.focus();
       this._updateTerminalHeight();
-      this.startHandle.addEventListener(
-        "touchmove",
-        this.startHandleTouchMoveCb.bind(this),
+      this.selectionManager = new SelectionCore(
+        this.$terminal,
+        this.$terminalContainer,
+        this.settings,
       );
-      this.endHandle.addEventListener(
-        "touchmove",
-        this.endHandleTouchMoveCb.bind(this),
-      );
-      // bind events on terminal
-      this.$terminal.element.addEventListener(
-        "touchstart",
-        this.terminalTouchStartCb.bind(this),
-      );
-      this.$terminal.element.addEventListener(
-        "touchmove",
-        this.terminalTouchMoveCb.bind(this),
-      );
-      this.$terminal.element.addEventListener(
-        "touchend",
-        this.terminalTouchEndCb.bind(this),
-      );
-      // bind event to selection change
-      this.$terminal.onSelectionChange(
-        this.terminalSelectionChangeCb.bind(this),
-      );
-
-      document.addEventListener("click", this.removeSelectionCb.bind(this));
     };
     this.socket.onclose = async (event) => {
       try {
@@ -1227,260 +1178,6 @@ export default class AcodeX {
     });
   }
 
-  _getCellSize() {
-    const renderer = this.$terminal._core._renderService.dimensions;
-    return {
-      cellWidth: renderer.css.cell.width,
-      cellHeight: renderer.css.cell.height,
-    };
-  }
-
-  getTouchCoordinates(event) {
-    const rect = this.$terminal.element.getBoundingClientRect();
-    const touch = event.touches[0];
-
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-
-    const { cellWidth, cellHeight } = this._getCellSize();
-
-    const scrollOffset = this.$terminal.buffer.active.viewportY;
-    const column = Math.floor(x / cellWidth);
-    const row = Math.floor(y / cellHeight) + scrollOffset;
-
-    return { row, column };
-  }
-
-  setHandlePosition(handle, row, column, isStartHandle = false) {
-    const { cellWidth, cellHeight } = this._getCellSize();
-    const rect = this.$terminal.element.getBoundingClientRect();
-
-    const terminalContainer = this.$terminalContainer;
-    const terminalHeader = this.$terminalHeader;
-
-    // Heights
-    const terminalContainerRect = terminalContainer.getBoundingClientRect();
-    const terminalHeaderHeight = terminalHeader
-      ? terminalHeader.getBoundingClientRect().height
-      : 0;
-
-    // Terminal scroll position and viewport Y-offset
-    const terminalScrollOffset = this.$terminal.element.scrollTop || 0;
-    const viewportScrollOffset = this.$terminal.buffer.active.viewportY;
-
-    // Adjust the row to reflect scrolling inside the terminal
-    const adjustedRow = row - viewportScrollOffset;
-
-    // X position based on column
-    let x = isStartHandle
-      ? rect.left + column * cellWidth - 10
-      : rect.left + (column + 1) * cellWidth - cellWidth;
-
-    let y =
-      rect.top +
-      adjustedRow * cellHeight -
-      terminalHeaderHeight -
-      terminalScrollOffset -
-      cellHeight;
-
-    const isSwapped =
-      this.selectionStart.row > this.selectionEnd.row ||
-      (this.selectionStart.row === this.selectionEnd.row &&
-        this.selectionStart.column > this.selectionEnd.column);
-
-    if (isSwapped) {
-      x = !isStartHandle
-        ? rect.left + column * cellWidth - 10
-        : rect.left + (column + 1) * cellWidth - cellWidth;
-    }
-
-    // Ensure the handle stays within bounds of terminal
-    x = Math.max(rect.left, Math.min(x, rect.right - handle.offsetWidth));
-    y = Math.max(
-      terminalContainerRect.top - terminalHeaderHeight,
-      Math.min(
-        y,
-        terminalContainerRect.bottom -
-          handle.offsetHeight -
-          document.querySelector("#quick-tools")?.offsetHeight || 0,
-      ),
-    );
-
-    // Set the position of the handle
-    handle.style.left = `${x}px`;
-    handle.style.top = `${y}px`;
-    handle.style.display = "block";
-  }
-
-  hideHandles() {
-    this.startHandle.style.display = "none";
-    this.endHandle.style.display = "none";
-  }
-
-  showHandles() {
-    this.startHandle.style.display = "block";
-    this.endHandle.style.display = "block";
-  }
-
-  startSelection(row, column) {
-    this.selectionStart = { row, column };
-    this.selectionEnd = { row, column };
-    this.isSelecting = true;
-
-    this.$terminal.clearSelection();
-    this.$terminal.select(column, row, 1);
-    this.setHandlePosition(this.startHandle, row, column, true);
-    this.setHandlePosition(this.endHandle, row, column);
-  }
-
-  updateSelection() {
-    this.$terminal.clearSelection();
-
-    let startRow = this.selectionStart.row;
-    let startColumn = this.selectionStart.column;
-    let endRow = this.selectionEnd.row;
-    let endColumn = this.selectionEnd.column;
-
-    // start is always before end in the terminal's text flow
-    if (startRow > endRow || (startRow === endRow && startColumn > endColumn)) {
-      [startRow, startColumn, endRow, endColumn] = [
-        endRow,
-        endColumn,
-        startRow,
-        startColumn,
-      ];
-    }
-
-    const totalLength = this._calculateTotalSelectionLength(
-      startRow,
-      endRow,
-      startColumn,
-      endColumn,
-    );
-    this.$terminal.select(startColumn, startRow, totalLength);
-
-    // Set handle positions based on their actual positions, not the selection bounds
-    this.setHandlePosition(
-      this.startHandle,
-      this.selectionStart.row,
-      this.selectionStart.column,
-      true,
-    );
-    this.setHandlePosition(
-      this.endHandle,
-      this.selectionEnd.row,
-      this.selectionEnd.column,
-    );
-  }
-
-  updateHandles() {
-    this.setHandlePosition(
-      this.startHandle,
-      this.selectionStart.row,
-      this.selectionStart.column,
-      true,
-    );
-    this.setHandlePosition(
-      this.endHandle,
-      this.selectionEnd.row,
-      this.selectionEnd.column,
-    );
-  }
-
-  _calculateTotalSelectionLength(startRow, endRow, startColumn, endColumn) {
-    const terminalCols = this.$terminal.cols;
-
-    if (startRow === endRow) {
-      return Math.abs(endColumn - startColumn) + 1;
-    }
-    let length = 0;
-    length += terminalCols - startColumn;
-    length += (endRow - startRow - 1) * terminalCols;
-    length += endColumn + 1;
-    return length;
-  }
-
-  startHandleTouchMoveCb(event) {
-    event.preventDefault();
-    const coords = this.getTouchCoordinates(event);
-    if (!coords) return;
-
-    this.selectionStart = coords;
-    this.updateSelection();
-  }
-
-  endHandleTouchMoveCb(event) {
-    event.preventDefault();
-    const coords = this.getTouchCoordinates(event);
-    if (!coords) return;
-
-    this.selectionEnd = coords;
-    this.updateSelection();
-  }
-
-  terminalTouchStartCb(event) {
-    this.touchStartY = event.touches[0].clientY;
-    this.touchStartTime = Date.now();
-
-    const coords = this.getTouchCoordinates(event);
-    if (!coords) return;
-
-    this.isTapAndHoldActive = false;
-
-    this.tapHoldTimeout = setTimeout(() => {
-      if (this.settings.selectionHaptics) navigator.vibrate(300);
-      this.isTapAndHoldActive = true;
-      this.$terminal.focus();
-      this.startSelection(coords.row, coords.column);
-    }, 500);
-  }
-
-  terminalTouchMoveCb(event) {
-    if (this.isSelecting) {
-      event.preventDefault();
-      const coords = this.getTouchCoordinates(event);
-      if (!coords) return;
-
-      this.selectionEnd = coords;
-      this.updateSelection();
-    } else {
-      // Check if it's a scroll
-      const touchMoveY = event.touches[0].clientY;
-      const touchMoveDelta = Math.abs(touchMoveY - this.touchStartY);
-      const touchMoveTime = Date.now() - this.touchStartTime;
-
-      if (
-        touchMoveDelta > this.scrollThreshold &&
-        touchMoveTime < this.scrollTimeThreshold
-      ) {
-        clearTimeout(this.tapHoldTimeout);
-      }
-    }
-  }
-
-  terminalTouchEndCb(event) {
-    clearTimeout(this.tapHoldTimeout);
-    //if (!this.isSelecting) this.$terminal.focus();
-  }
-
-  terminalSelectionChangeCb() {
-    const selection = this.$terminal.getSelection();
-    if (selection && selection.length > 0) {
-      //showHandles()
-    } else {
-      this.hideHandles();
-      this.isSelecting = false;
-    }
-  }
-
-  removeSelectionCb(event) {
-    if (!this.$terminal?.element.contains(event.target)) {
-      this.isSelecting = false;
-      this.$terminal?.clearSelection();
-      this.hideHandles();
-    }
-  }
-
   async getOllamaModel(aiResponseHandler) {
     const savedLocalLLM = localStorage.getItem("ACODEX_LOCAL_LLM_MODEL");
     if (savedLocalLLM) return savedLocalLLM;
@@ -1611,8 +1308,8 @@ export default class AcodeX {
 
   async createSession() {
     /*
-        creates terminal session
-        */
+     * creates terminal session
+     */
     let pid;
     const jsonData = await this.$cacheFile.readFile("utf8");
     let sessionsData = jsonData ? JSON.parse(jsonData) : [];
@@ -1898,8 +1595,8 @@ export default class AcodeX {
 
   async removeTerminal() {
     /*
-    removes terminal in case of any issue
-    */
+     * removes terminal in case of any issue
+     */
     if (!this.$terminalContainer.classList.contains("hide"))
       this.$terminalContainer.style.opacity = 1;
     this.$terminalContainer.classList.add("hide");
@@ -1961,12 +1658,14 @@ export default class AcodeX {
         this.$terminalContainer.offsetHeight,
       );
     }
+
+    this.cleanupSelectionManager();
   }
 
   async closeTerminal() {
     /*
-        remove terminal from  app
-        */
+     *  remove terminal from  app
+     */
     const confirmation = await confirm("Warning", "Are you sure ?");
     if (!confirmation) return;
 
@@ -2111,7 +1810,7 @@ export default class AcodeX {
     this._updateTerminalHeight();
     const selection = this.$terminal?.getSelection();
     if (selection && selection.length > 0) {
-      this.updateHandles();
+      this.selectionManager.updateHandles();
     }
   }
 
@@ -2123,8 +1822,8 @@ export default class AcodeX {
 
   minimise() {
     /*
-      hide terminal and active the show terminal button
-    */
+     *  hide terminal and active the show terminal button
+     */
     try {
       if (!this.isTerminalMinimized) {
         this.previousTerminalHeight = window.getComputedStyle(
@@ -2152,8 +1851,8 @@ export default class AcodeX {
 
   maxmise() {
     /*
-        show terminal and hide the show terminal button
-        */
+     *  show terminal and hide the show terminal button
+     */
     if (this.isTerminalMinimized) {
       if (
         Number.parseInt(localStorage.getItem("AcodeX_Terminal_Cont_Height")) <=
@@ -2181,7 +1880,7 @@ export default class AcodeX {
       this._updateTerminalHeight();
       const selection = this.$terminal?.getSelection();
       if (selection && selection.length > 0) {
-        this.updateHandles();
+        this.selectionManager.updateHandles();
       }
     }
   }
@@ -2213,6 +1912,13 @@ export default class AcodeX {
     }
   }
 
+  cleanupSelectionManager() {
+    if (this.selectionManager) {
+      this.selectionManager.destroy();
+      this.selectionManager = null;
+    }
+  }
+
   async destroy() {
     this.$style.remove();
     this.xtermCss.remove();
@@ -2220,10 +1926,9 @@ export default class AcodeX {
     await fsOperation(`${window.DATA_STORAGE}acodex_fonts`).delete();
     editorManager.editor.commands.removeCommand("terminal:open_terminal");
     editorManager.editor.commands.removeCommand("terminal:close_terminal");
+    this.cleanupSelectionManager();
     this.$terminalContainer.remove();
     this.$showTermBtn.remove();
-    this.startHandle?.remove();
-    this.endHandle?.remove();
     document.removeEventListener("mousemove", this.dragFlotButton.bind(this));
     document.removeEventListener(
       "mouseup",

@@ -56,7 +56,7 @@
 
 - [x] Add shortcuts for minimizing and also refine other shortcuts
 - Full page mode for AcodeX similar to other terminal plugins (using Acode tab view)
-- Fix bugs related to touch selection and GUI viewer
+- [x] Fix bugs related to touch selection
 - SSH-based Terminal support
 - Config (dotfiles) for AcodeX to customize everything from the config file
 - Custom fine-tuned AI model for AI service which will work without any API key (fine-tuning is done)
