@@ -5,7 +5,7 @@ class AIResponseHandler {
     this.apiKey = apiKey;
     this.deepseekAPI = "https://api.deepseek.com/v1/chat/completions";
     this.chatgptAPI = "https://api.openai.com/v1/chat/completions";
-    this.geminiAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.apiKey}`;
+    this.geminiAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${this.apiKey}`;
 
     if (!apiKey) {
       // check local storage, if user want to provide custom host for ollama

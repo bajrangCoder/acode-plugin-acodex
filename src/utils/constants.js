@@ -151,7 +151,7 @@ export const AVAILABLE_AI_MODELS = [
   ],
   [
     "gemini-pro",
-    "Gemini Pro",
+    "Gemini Flash Lite",
     "gemini",
     true
   ],
