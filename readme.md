@@ -159,7 +159,7 @@ If you're an existing user and want to start using the new GUI features, follow 
 
 > **Tutorial link**: [https://youtu.be/sXlIhrbpjyw](https://youtu.be/sXlIhrbpjyw)
 
-- Start the server in Termux using: `acodeX-server`.
+- Start the server in Termux using: `axs` or `acodeX-server`.
 - To use AcodeX, press `Ctrl+K` or search for `"Open Terminal"` in the command palette (press `Ctrl+Shift+P` to open the command palette).
 - Enter the port number, and the terminal will start.
 - Plus `+` icon to create new session
