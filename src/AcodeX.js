@@ -53,8 +53,122 @@ const loader = acode.require("loader");
 const DialogBox = acode.require("dialogBox");
 const pageComponent = acode.require("page");
 const actionStack = acode.require("actionStack");
+const acodeFonts = acode.require("fonts");
 
 const { clipboard } = cordova.plugins;
+
+const FONT_CDN_BASE =
+  "https://cdn.jsdelivr.net/gh/bajrangCoder/acode-plugin-acodex@main/fonts/";
+
+const TERMINAL_FONTS = [
+  {
+    name: "Fira Code Bold Nerd Font",
+    url: `${FONT_CDN_BASE}Fira Code Bold Nerd Font.ttf`,
+    format: "truetype",
+    weight: "bold",
+    style: "normal",
+  },
+  {
+    name: "Fira Code Medium Nerd Font",
+    url: `${FONT_CDN_BASE}Fira Code Medium Nerd Font Complete Mono.ttf`,
+    format: "truetype",
+    weight: "normal",
+    style: "normal",
+  },
+  {
+    name: "JetBrains Mono Bold Nerd Font",
+    url: `${FONT_CDN_BASE}JetBrains Mono Bold Nerd Font Complete.ttf`,
+    format: "truetype",
+    weight: "bold",
+    style: "normal",
+  },
+  {
+    name: "JetBrains Mono Medium Nerd Font",
+    url: `${FONT_CDN_BASE}JetBrains Mono Medium Nerd Font Complete.ttf`,
+    format: "truetype",
+    weight: "normal",
+    style: "normal",
+  },
+  {
+    name: "VictorMonoNerdFont Bold",
+    url: `${FONT_CDN_BASE}VictorMonoNerdFont-Bold.ttf`,
+    format: "truetype",
+    weight: "bold",
+    style: "normal",
+  },
+  {
+    name: "VictorMonoNerdFont BoldItalic",
+    url: `${FONT_CDN_BASE}VictorMonoNerdFont-BoldItalic.ttf`,
+    format: "truetype",
+    weight: "bold",
+    style: "italic",
+  },
+  {
+    name: "VictorMonoNerdFont Medium",
+    url: `${FONT_CDN_BASE}VictorMonoNerdFont-Medium.ttf`,
+    format: "truetype",
+    weight: "normal",
+    style: "normal",
+  },
+  {
+    name: "VictorMonoNerdFont Italic",
+    url: `${FONT_CDN_BASE}VictorMonoNerdFont-Italic.ttf`,
+    format: "truetype",
+    weight: "normal",
+    style: "italic",
+  },
+  {
+    name: "SauceCodeProNerdFont Bold",
+    url: `${FONT_CDN_BASE}SauceCodeProNerdFont-Bold.ttf`,
+    format: "truetype",
+    weight: "bold",
+    style: "normal",
+  },
+  {
+    name: "SauceCodeProNerdFont Medium",
+    url: `${FONT_CDN_BASE}SauceCodeProNerdFont-Medium.ttf`,
+    format: "truetype",
+    weight: "normal",
+    style: "normal",
+  },
+  {
+    name: "MesloLGS NF Bold Italic",
+    url: `${FONT_CDN_BASE}MesloLGS NF Bold Italic.ttf`,
+    format: "truetype",
+    weight: "bold",
+    style: "italic",
+  },
+  {
+    name: "MesloLGS NF Bold",
+    url: `${FONT_CDN_BASE}MesloLGS NF Bold.ttf`,
+    format: "truetype",
+    weight: "bold",
+    style: "normal",
+  },
+  {
+    name: "MesloLGS NF Italic",
+    url: `${FONT_CDN_BASE}MesloLGS NF Italic.ttf`,
+    format: "truetype",
+    weight: "normal",
+    style: "italic",
+  },
+];
+
+function registerTerminalFonts() {
+  if (typeof acodeFonts?.add !== "function") return;
+
+  TERMINAL_FONTS.forEach(({ name, url, format, weight, style }) => {
+    if (acodeFonts?.has?.(name)) return;
+    const fontUrl = encodeURI(url);
+    const fontFace = `@font-face {
+  font-family: '${name}';
+  src: url('${fontUrl}') format('${format}');
+  font-weight: ${weight};
+  font-style: ${style};
+}`;
+    acodeFonts.add(name, fontFace);
+  });
+}
 
 export default class AcodeX {
   // constants for draggable Terminal panel
@@ -92,12 +206,7 @@ export default class AcodeX {
 
   async init($page, cacheFile, cacheFileUrl) {
     try {
-      if (!(await fsOperation(`${window.DATA_STORAGE}acodex_fonts`).exists())) {
-        helpers.downloadFont(fsOperation, loader);
-      }
-      const baseFontUrl = window.IS_FREE_VERSION
-        ? "https://localhost/__cdvfile_sdcard__/Android/data/com.foxdebug.acodefree/files/acodex_fonts/"
-        : "https://localhost/__cdvfile_sdcard__/Android/data/com.foxdebug.acode/files/acodex_fonts/";
+      registerTerminalFonts();
       this.xtermCss = tag("link", {
         rel: "stylesheet",
         href: `${this.baseUrl}xterm.css`,
@@ -106,11 +215,8 @@ export default class AcodeX {
         rel: "stylesheet",
         href: `${this.baseUrl}main.css`,
       });
-      this.$fontStyleSheet = tag("style", {
-        textContent: helpers.fontsStyleSheetStr(baseFontUrl),
-      });
       this._loadCustomFontStyleSheet();
-      document.head.append(this.xtermCss, this.$style, this.$fontStyleSheet);
+      document.head.append(this.xtermCss, this.$style);
       // add command in command Palette for opening and closing terminal
       editorManager.editor.commands.addCommand({
         name: "acodex:open_terminal",
@@ -969,6 +1075,7 @@ export default class AcodeX {
     this.$terminalContainer.style.height = `${termContainerHeight}px`;
     this.$terminalContent.style.width = "100%";
     this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
+    await acodeFonts.loadFont(this.settings.fontFamily);
 
     if (this.settings.transparency) {
       this.$terminalContainer.style.background = "transparent";
@@ -2330,7 +2437,9 @@ export default class AcodeX {
         text: "Font Family",
         value: this.settings.fontFamily,
         info: "The font family used to render text.",
-        select: FONTS_LIST,
+        get select() {
+          return acodeFonts.getNames();
+        },
       },
       {
         index: 4,
@@ -2525,7 +2634,7 @@ export default class AcodeX {
     ];
   }
 
-  settingsSaveCallback(key, value) {
+  async settingsSaveCallback(key, value) {
     switch (key) {
       case "customFontStyleSheet":
         this.setCustomFontFile();
@@ -2557,6 +2666,11 @@ export default class AcodeX {
         appSettings.update();
         break;
       case "fontFamily":
+        try {
+					await acodeFonts.loadFont(value);
+				} catch (error) {
+					console.warn(`Failed to load font ${value}:`, error);
+				}
         if (this.$terminal) {
           this.$terminal.options.fontFamily = value;
           this.$terminal.refresh(0, this.$terminal.rows - 1);

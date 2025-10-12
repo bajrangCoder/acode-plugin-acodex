@@ -1,5 +1,3 @@
-const appSettings = acode.require("settings");
-
 // ai models logo
 acode.addIcon("deepseek", "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-Coder/main/pictures/home.png");
 acode.addIcon("chatgpt", "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg");
@@ -55,85 +53,9 @@ export const THEME_LIST = [
     "siduckOneDark",
     "snazzy",
     "xterm",
+    "wal",
     "custom",
   ];
-export const FONTS_LIST = [
-  [
-    appSettings.get("editorFont"),
-    "Default Editor Font",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "Fira Code Bold Nerd Font",
-    "Fira Code Bold Nerd Font",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "Fira Code Medium Nerd Font",
-    "Fira Code Medium Nerd Font",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "JetBrains Mono Bold Nerd Font",
-    "JetBrains Mono Bold Nerd Font",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "JetBrains Mono Medium Nerd Font",
-    "JetBrains Mono Medium Nerd Font",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "VictorMonoNerdFont Bold",
-    "VictorMonoNerdFont Bold",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "VictorMonoNerdFont BoldItalic",
-    "VictorMonoNerdFont BoldItalic",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "VictorMonoNerdFont Medium",
-    "VictorMonoNerdFont Medium",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "VictorMonoNerdFont Italic",
-    "VictorMonoNerdFont Italic",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "SauceCodeProNerdFont Bold",
-    "SauceCodeProNerdFont Bold",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "SauceCodeProNerdFont Medium",
-    "SauceCodeProNerdFont Medium",
-    "file file_type_font",
-    true,
-  ],
-  [
-    "MesloLGS NF Bold Italic",
-    "MesloLGS NF Bold Italic",
-    "file file_type_font",
-    true,
-  ],
-  ["MesloLGS NF Bold", "MesloLGS NF Bold", "file file_type_font", true],
-  ["MesloLGS NF Italic", "MesloLGS NF Italic", "file file_type_font", true],
-  ["MesloLGS NF Regular", "MesloLGS NF Regular", "file file_type_font", true],
-];
 
 export const AI_MODEL = "deepseek";
 export const AVAILABLE_AI_MODELS = [
