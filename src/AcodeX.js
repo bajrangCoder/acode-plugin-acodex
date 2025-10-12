@@ -1188,10 +1188,18 @@ export default class AcodeX {
       }
       //this.$terminal.focus();
       this._updateTerminalHeight();
+      const baseFontSize = Number(this.settings.fontSize) || FONT_SIZE;
+      const minFontSize = Math.max(1, baseFontSize - 10);
+      const maxFontSize = Math.max(baseFontSize + 16, 32);
       this.selectionManager = new SelectionCore(
         this.$terminal,
         this.$terminalContainer,
         this.settings,
+        {
+          minFontSize,
+          maxFontSize,
+          onFontSizeChange: (size) => this.applyTerminalFontSize(size),
+        },
       );
     };
     this.socket.onclose = async (event) => {
@@ -1285,20 +1293,15 @@ export default class AcodeX {
         }
         if (e.ctrlKey && e.key === "+") {
           // Ctrl + Plus(+)
-          this.$terminal.options.fontSize = this.$terminal.options.fontSize + 1;
-          this.$terminal.refresh(0, this.$terminal.rows - 1);
-          this.settings.fontSize = this.$terminal.options.fontSize;
-          appSettings.update(false);
+          const newFontSize = this.$terminal.options.fontSize + 1;
+          this.applyTerminalFontSize(newFontSize);
           return false;
         }
         if (e.ctrlKey && e.key === "-") {
           // Ctrl + Minus(-)
           const newFontSize = this.$terminal.options.fontSize - 1;
-          if (newFontSize < 1) return;
-          this.$terminal.options.fontSize = newFontSize;
-          this.$terminal.refresh(0, this.$terminal.rows - 1);
-          this.settings.fontSize = this.$terminal.options.fontSize;
-          appSettings.update(false);
+          if (newFontSize < 1) return false;
+          this.applyTerminalFontSize(newFontSize);
           return false;
         }
         if (e.ctrlKey && e.shiftKey && (e.key === "c" || e.key === "C")) {
@@ -1757,6 +1760,25 @@ export default class AcodeX {
     if (dimensions) {
       this.$terminal.resize(dimensions.cols + 2, dimensions.rows + 1);
     }
+  }
+
+  applyTerminalFontSize(fontSize) {
+    if (!this.$terminal) return;
+
+    const parsedFontSize = Number(fontSize);
+    if (Number.isNaN(parsedFontSize)) return;
+
+    const minFontSize = 1;
+    const clampedFontSize = Math.max(minFontSize, parsedFontSize);
+
+    if (this.$terminal.options.fontSize === clampedFontSize) return;
+
+    this.$terminal.options.fontSize = clampedFontSize;
+    if (typeof this.$terminal.refresh === "function") {
+      this.$terminal.refresh(0, this.$terminal.rows - 1);
+    }
+    this.settings.fontSize = clampedFontSize;
+    appSettings.update(false);
   }
 
   async _getLastSessionName() {
@@ -2659,11 +2681,7 @@ export default class AcodeX {
         }
         break;
       case "fontSize":
-        if (this.$terminal) {
-          this.$terminal.options.fontSize = value;
-        }
-        this.settings[key] = value;
-        appSettings.update();
+        this.applyTerminalFontSize(value);
         break;
       case "fontFamily":
         try {
@@ -2761,6 +2779,9 @@ export default class AcodeX {
 
       default:
         this.settings[key] = value;
+        if (key === "selectionHaptics" && this.selectionManager) {
+          this.selectionManager.options.hapticFeedback = !!value;
+        }
         appSettings.update();
     }
   }
