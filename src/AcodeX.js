@@ -16,6 +16,7 @@ import {
   FONT_WEIGHT,
   SCROLLBACK,
   SCROLL_SENSITIVITY,
+  TERMINAL_PADDING,
   THEME_LIST,
   FONTS_LIST,
   showTerminalBtnSize,
@@ -201,6 +202,10 @@ export default class AcodeX {
         appSettings.update(false);
         this._saveSetting();
       }
+    }
+    if (typeof this.settings?.terminalPadding === "undefined") {
+      this.settings.terminalPadding = TERMINAL_PADDING;
+      appSettings.update(false);
     }
   }
 
@@ -1141,6 +1146,9 @@ export default class AcodeX {
       // webgl loading failed for some reason, attach with DOM renderer
       this.$terminal.open(this.$terminalContent);
     }
+    if (this.$terminal.element) {
+      this._setTerminalPadding(this.settings.terminalPadding);
+    }
     if (this.settings.fontLigatures) {
       this.$ligatureAddon = new LigaturesAddon();
       this.$terminal.loadAddon(this.$ligatureAddon);
@@ -1697,6 +1705,7 @@ export default class AcodeX {
       fontSize: FONT_SIZE,
       fontFamily: FONT_FAMILY,
       letterSpacing: 0,
+      terminalPadding: TERMINAL_PADDING,
       fontWeight: FONT_WEIGHT[0],
       customFontStyleSheet: "",
       scrollBack: SCROLLBACK,
@@ -1740,6 +1749,23 @@ export default class AcodeX {
         document.querySelector("#customFontAcodeXStyleSheet").href =
           this.settings.customFontStyleSheet;
       }
+    }
+  }
+
+  _setTerminalPadding(padding) {
+    if (!this.$terminal?.element) {
+      return;
+    }
+    const numericPadding = Number(padding);
+    const safePadding = Number.isNaN(numericPadding)
+      ? 0
+      : Math.max(0, numericPadding);
+    const paddingValue = `${safePadding}px`;
+    const terminalElement = this.$terminal.element;
+    terminalElement.style.boxSizing = "border-box";
+    terminalElement.style.padding = paddingValue;
+    if (this.$fitAddon) {
+      this.fitTerminal();
     }
   }
 
@@ -2303,6 +2329,20 @@ export default class AcodeX {
         ],
       },
       {
+        key: "terminalPadding",
+        text: "Terminal Padding",
+        value: this.settings.terminalPadding,
+        info: "Padding around the terminal content in pixels.",
+        prompt: "Terminal Padding",
+        promptType: "number",
+        promptOption: [
+          {
+            match: /^[0-9]+$/,
+            required: true,
+          },
+        ],
+      },
+      {
         key: "serverHost",
         text: "Server Host Name",
         value: this.settings.serverHost,
@@ -2710,6 +2750,17 @@ export default class AcodeX {
         this.settings[key] = value;
         appSettings.update();
         break;
+      case "terminalPadding": {
+        const parsedPadding = Number(value);
+        if (Number.isNaN(parsedPadding)) break;
+        const clampedPadding = Math.max(0, parsedPadding);
+        this.settings[key] = clampedPadding;
+        if (this.$terminal?.element) {
+          this._setTerminalPadding(clampedPadding);
+        }
+        appSettings.update();
+        break;
+      }
       case "cursorBlink":
         if (this.$terminal) {
           this.$terminal.options.cursorBlink = value;
