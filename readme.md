@@ -8,9 +8,9 @@
 </p>
 
 > [!Warning]
-> This plugin requires the [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package or [axs](https://github.com/bajrangCoder/acodex_server) to be installed and running on [Termux](https://termux.dev).
+> This plugin requires the [axs](https://github.com/bajrangCoder/acodex_server) to be installed and running on [Termux](https://termux.dev Or Directly use it with Acode's builtin terminal backend.
 
-[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **100k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX has almost every terminal feature and also it is more feature rich when it comes to rendering things compared termux etc (Thanks to xtermjs)
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **150k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX has almost every terminal feature and also it is more feature rich when it comes to rendering things compared termux etc (Thanks to xtermjs)
 
 > [!NOTE]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
@@ -28,7 +28,6 @@
 - [For Existing Users: Enabling GUI Features](#for-existing-users-enabling-gui-features)
 - [How to Use](#how-to-use)
 - [Running GUI Apps](#how-to-run-gui-apps-in-acodex)
-- [Selection Context Menu](#why-is-there-no-selection-context-menu)
 - [Keybindings](#additional-terminal-keybindings)
 - [Using AI](#how-to-use-ai)
 - [Api Docs](#api-docs)
@@ -37,16 +36,6 @@
 - [License](#license)
 
 ---
-
-### Roadmap
-
-- [x] Add shortcuts for minimizing and also refine other shortcuts
-- Full page mode for AcodeX similar to other terminal plugins (using Acode tab view)
-- [x] Fix bugs related to touch selection
-- SSH-based Terminal support
-- Config (dotfiles) for AcodeX to customize everything from the config file
-- Custom fine-tuned AI model for AI service which will work without any API key (fine-tuning is done)
-- Suggest more 🙌
 
 ## 💥 Features
 
@@ -208,16 +197,6 @@ To run GUI apps within AcodeX, follow the steps below:
 
 > [!NOTE]
 > the display env variable command needs to run once in a terminal session
-
-### Why is there no selection context menu?
-
-On small screens, the context menu can clutter the interface. Additionally, since the AcodeX panel is adjustable, the menu can behave unpredictably. We believe in prioritizing **keyboard shortcuts** over UI buttons for efficiency.
-
-However, you can still perform all tasks using the following key shortcuts:
-
-- **Select All**: <kbd>Ctrl + A</kbd>
-- **Copy**: <kbd>Ctrl + Shift + C</kbd>
-- **Paste**: <kbd>Ctrl + Shift + V</kbd>
 
 ## Additional Terminal Keybindings
 
@@ -394,27 +373,7 @@ acodex.applyTheme("myTheme");
 
 ## Custom Fonts
 
-Custom fonts are provided to load any other external fonts
-
-To load a custom font:
-
-1. Download the font files(**Note: Download nerd font file in case if you are loading for termux theme**).
-2. Create a `css` file anywhere in the internal storage.
-3. Write CSS code to load font files using relative URLs in the CSS, for example:
-
-```css
-@font-face {
-    font-family: "MesloLGS NF Regular";
-    src: url("./MesloLGS NF Regular.ttf") format("truetype");
-    font-weight: normal;
-    font-style: normal;
-}
-```
-
-4. Open AcodeX Settings page and find the option `"Custom Font StyleSheet"`.
-5. Select your CSS file created in step 3.
-6. Enter the font name in the Font Family option.
-7. Restart the terminal.
+Just add custom font through Acode's custom font manager and it will be listed in the font dropdown.
 
 ## Acknowledgments
 

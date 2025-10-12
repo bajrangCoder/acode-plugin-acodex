@@ -1,5 +1,14 @@
 # Change Logs
 
+## `Update v3.2.0`
+
+- Integrate with the acode font system for better font handling and customs fonts stuffs.
+- Add custom padding setting
+- Rewrite the terminal touch selection with context menu and better UX
+- Pinch zoom support for terminal to increase/decrease font size
+- better touch handles
+- few theme fixes
+
 ## `Update v3.1.11`
 
 - Fixed the terminal floating button issue.
