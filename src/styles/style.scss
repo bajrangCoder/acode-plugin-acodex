@@ -2,6 +2,8 @@
     position: absolute;
     bottom: 0;
     left: 0;
+    display: flex;
+    flex-direction: column;
     background-color: var(--popup-background-color);
     width: 100%;
     border-top: 1px solid var(--popup-border-color);
@@ -222,12 +224,31 @@
     }
 
     .terminal-content {
-        flex-grow: 1;
-        overflow-y: auto;
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
         box-sizing: border-box;
         background: inherit;
         width: 100%;
+        height: auto;
+    }
+
+    .terminal-content .xterm {
+        width: 100%;
         height: 100%;
+        overflow: hidden;
+        touch-action: pan-y;
+    }
+
+    .terminal-content .xterm-viewport {
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
+    .terminal-content .xterm-screen {
+        touch-action: pan-y;
     }
 }
 
