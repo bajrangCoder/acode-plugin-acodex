@@ -16,6 +16,7 @@
     "@xterm/addon-web-links": "0.10.0-beta.1",
     "@xterm/addon-webgl": "0.17.0-beta.1",
     "@xterm/xterm": "^5.5.0",
+    "acode-plugin-types": "^1.11.7-patch.2",
     "html-tag-js": "^1.9.2",
     "ollama": "^0.5.13"
   },

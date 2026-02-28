@@ -1,4 +1,5 @@
 {
+  "$schema": "https://acode.app/schema/plugin/v0.1.0.json",
   "id": "bajrangcoder.acodex",
   "name": "AcodeX - Terminal",
   "main": "dist/main.js",
