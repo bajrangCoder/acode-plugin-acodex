@@ -1560,16 +1560,16 @@ export default class AcodeX {
   }
 
   _hideTerminalSession() {
-    this.$attachAddon.dispose();
-    this.$fitAddon.dispose();
-    this.$unicode11Addon.dispose();
-    this.$webLinkAddon.dispose();
-    this.$searchAddon.dispose();
-    if (this.settings.imageRendering) this.$imageAddon.dispose();
-    if (this.settings.fontLigatures) this.$ligatureAddon.dispose();
-    this.$webglAddon.dispose();
-    this.$terminal.dispose();
-    this.socket.close();
+    this.$attachAddon?.dispose();
+    this.$fitAddon?.dispose();
+    this.$unicode11Addon?.dispose();
+    this.$webLinkAddon?.dispose();
+    this.$searchAddon?.dispose();
+    this.$imageAddon?.dispose();
+    this.$ligatureAddon?.dispose();
+    this.$webglAddon?.dispose();
+    this.$terminal?.dispose();
+    this.socket?.close();
     this.socket = null;
     this.$terminal = undefined;
     this.$attachAddon = undefined;

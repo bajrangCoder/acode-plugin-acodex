@@ -428,11 +428,11 @@ git clone https://github.com/bajrangCoder/acode-plugin-acodex.git
 
 2. navigate to acodex directory and install the dependency
 ```bash
-pnpm install
+bun install
 ```
 3. For building the plugin zip
 ```bash
-pnpm build
+bun run build
 ```
 
 > [!Warning]

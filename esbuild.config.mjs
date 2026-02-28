@@ -1,12 +1,18 @@
 import * as esbuild from "esbuild";
 import { sassPlugin } from "esbuild-sass-plugin";
 import { exec } from "node:child_process";
+import { cpSync, mkdirSync } from "node:fs";
+
+function syncXtermCss() {
+  mkdirSync("dist", { recursive: true });
+  cpSync("node_modules/@xterm/xterm/css/xterm.css", "dist/xterm.css");
+}
 
 const isServe = process.argv.includes("--serve");
 
 // Function to pack the ZIP file
 function packZip() {
-  exec("node .vscode/pack-zip.js", (err, stdout, stderr) => {
+  exec("bun .vscode/pack-zip.js", (err, stdout, stderr) => {
     if (err) {
       console.error("Error packing zip:", err);
       return;
@@ -19,6 +25,10 @@ function packZip() {
 const zipPlugin = {
   name: "zip-plugin",
   setup(build) {
+    build.onStart(() => {
+      syncXtermCss();
+    });
+
     build.onEnd(() => {
       packZip();
     });
