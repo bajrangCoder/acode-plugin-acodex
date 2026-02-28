@@ -18,7 +18,8 @@
     "@xterm/xterm": "6.0.0",
     "acode-plugin-types": "^1.11.7-patch.2",
     "html-tag-js": "^1.9.2",
-    "ollama": "^0.5.13"
+    "ollama": "^0.5.13",
+    "preact": "^10.27.2"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

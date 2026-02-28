@@ -4,7 +4,6 @@ import * as helpers from "./utils/helpers.js";
 import { themes } from "./utils/themes.js";
 import AIResponseHandler from "./services/AiService.js";
 import SelectionCore from "./core/selectionCore.js";
-import Icons from "./utils/icons";
 import {
   ALLOW_TRANSPRANCY,
   CURSOR_BLINK,
@@ -32,6 +31,7 @@ import {
 import RFB from "@novnc/novnc";
 import KeyTable from "@novnc/novnc/lib/input/keysym";
 import keysyms from "@novnc/novnc/lib/input/keysymdef";
+import { h, render } from "preact";
 // xtermjs
 import { Terminal } from "@xterm/xterm";
 // xtermjs addons
@@ -43,6 +43,10 @@ import { AttachAddon } from "@xterm/addon-attach";
 import { SearchAddon } from "@xterm/addon-search";
 import { ImageAddon } from "@xterm/addon-image";
 import LigaturesAddon from "./addons/ligatures.js";
+import {
+  FloatingTerminalButton,
+  TerminalShell,
+} from "./ui/TerminalShell.jsx";
 
 // acode commopents & api
 const confirm = acode.require("confirm");
@@ -207,6 +211,192 @@ export default class AcodeX {
       this.settings.terminalPadding = TERMINAL_PADDING;
       appSettings.update(false);
     }
+
+    this.uiState = {
+      sessionName: localStorage.getItem("AcodeX_Current_Session") || "AcodeX1",
+      searchVisible: false,
+      searchQuery: "",
+    };
+
+    this.handleResize = this.handleResize.bind(this);
+    this.handleDrag = this.drag.bind(this);
+    this.handleStopDragging = this.stopDragging.bind(this);
+    this.handleStartDragging = this.startDragging.bind(this);
+    this.handleDragFloatingBtn = this.dragFlotButton.bind(this);
+    this.handleStopDraggingFloatingBtn = this.stopDraggingFlotBtn.bind(this);
+    this.handleStartDraggingFloatingBtn =
+      this.startDraggingFloatingBtn.bind(this);
+    this.handleOpenTerminalCommand = this.handleOpenTerminalCommand.bind(this);
+    this.handleCloseTerminalCommand = this.closeTerminal.bind(this);
+    this.handleToggleTerminalCommand =
+      this.handleToggleTerminalCommand.bind(this);
+    this.handleMaximiseClick = this.maxmise.bind(this);
+    this.handleSessionSelect = this.handleSessionSelect.bind(this);
+    this.handleToggleSearch = this.handleToggleSearch.bind(this);
+    this.handleSearchChange = this.handleSearchChange.bind(this);
+    this.handleCreateSession = this.createSession.bind(this);
+    this.handleOpenGuiViewer = this.openViewerPage.bind(this);
+    this.handleNavigateToDir = this._cdToActiveDir.bind(this);
+    this.handleBackButton = this.handleBackButton.bind(this);
+  }
+
+  renderUI() {
+    if (!this.$terminalContainer || !this.$showTermBtn) return;
+
+    render(
+      h(TerminalShell, {
+        bindHeader: (element) => {
+          this.$terminalHeader = element;
+        },
+        bindContent: (element) => {
+          this.$terminalContent = element;
+        },
+        bindSearchInput: (element) => {
+          this.$searchInput = element;
+        },
+        onHeaderPointerDown: this.handleStartDragging,
+        searchVisible: this.uiState.searchVisible,
+        searchQuery: this.uiState.searchQuery,
+        sessionName: this.uiState.sessionName,
+        enableGuiViewer: this.settings.enableGuiViewer,
+        onSessionSelect: this.handleSessionSelect,
+        onCreateSession: this.handleCreateSession,
+        onToggleSearch: this.handleToggleSearch,
+        onNavigateToDir: this.handleNavigateToDir,
+        onMinimize: this.minimise.bind(this),
+        onClose: this.handleCloseTerminalCommand,
+        onOpenGuiViewer: this.handleOpenGuiViewer,
+        onSearchChange: this.handleSearchChange,
+        onSearchNext: this._findNextMatchofSearch.bind(this),
+        onSearchPrevious: this._findPreviousMatchofSearch.bind(this),
+      }),
+      this.$terminalContainer,
+    );
+
+    render(h(FloatingTerminalButton, null), this.$showTermBtn);
+    this.$showTermBtn.dataset.state = this.isTerminalMinimized
+      ? "minimized"
+      : "hidden";
+  }
+
+  setUiState(partialState) {
+    this.uiState = {
+      ...this.uiState,
+      ...partialState,
+    };
+    this.renderUI();
+  }
+
+  handleOpenTerminalCommand() {
+    if (this.isTerminalOpened && this.isTerminalMinimized) {
+      this.maxmise();
+      return;
+    }
+    this.openTerminalPanel(270, this.settings.port);
+  }
+
+  handleToggleTerminalCommand() {
+    if (this.isTerminalOpened && this.isTerminalMinimized) {
+      this.maxmise();
+      return;
+    }
+    this.minimise();
+  }
+
+  async handleSessionSelect() {
+    let sessionNames;
+    const jsonData = await this.$cacheFile.readFile("utf8");
+    const sessionsData = jsonData ? JSON.parse(jsonData) : [];
+
+    if (Array.isArray(sessionsData)) {
+      sessionNames = sessionsData.map((session) => session.name);
+    } else {
+      sessionNames = [];
+    }
+
+    const opt = {
+      hideOnSelect: true,
+      default: localStorage.getItem("AcodeX_Current_Session"),
+    };
+
+    const sessionSelectBox = await select("AcodeX Sessions", sessionNames, opt);
+    if (sessionSelectBox) {
+      this.changeSession(sessionSelectBox);
+    }
+  }
+
+  handleToggleSearch() {
+    const nextSearchVisible = !this.uiState.searchVisible;
+    this.setUiState({
+      searchVisible: nextSearchVisible,
+      searchQuery: nextSearchVisible ? this.uiState.searchQuery : "",
+    });
+
+    if (!nextSearchVisible) {
+      this.$searchAddon?.clearDecorations();
+      this.$searchAddon?.clearActiveDecoration();
+    }
+  }
+
+  handleSearchChange(value) {
+    this.setUiState({ searchQuery: value });
+    if (!value) {
+      this.$searchAddon?.clearDecorations();
+      this.$searchAddon?.clearActiveDecoration();
+      return;
+    }
+    this.$searchAddon?.findNext(value);
+  }
+
+  handleResize() {
+    if (this.$terminalContainer && !this.$terminalContainer.classList.contains("hide")) {
+      const headerHeight = document.querySelector("#root header")?.offsetHeight;
+      const fileTabHeight = document.querySelector("#root ul")?.offsetHeight || 0;
+      const totalHeaderHeight = headerHeight + fileTabHeight;
+      const totalFooterHeight =
+        document.querySelector("#quick-tools")?.offsetHeight || 0;
+      const screenHeight =
+        window.innerHeight - (totalHeaderHeight + totalFooterHeight);
+
+      const currentHeight = Number.parseInt(this.$terminalContainer.style.height);
+      if (Number.isNaN(currentHeight)) {
+        return;
+      }
+      const adjustedHeight = Math.min(currentHeight, screenHeight);
+      this.$terminalContainer.style.height = `${adjustedHeight}px`;
+      localStorage.setItem(
+        "AcodeX_Terminal_Cont_Height",
+        this.$terminalContainer.offsetHeight,
+      );
+    }
+
+    const selection = this.$terminal?.getSelection();
+    if (selection && selection.length > 0) {
+      this.selectionManager?.updateHandles();
+    }
+
+    if (
+      this.$showTermBtn &&
+      this.settings.showTerminalBtn &&
+      !this.$showTermBtn.classList.contains("hide")
+    ) {
+      const headerHeight = document.querySelector("#root header")?.offsetHeight;
+      const fileTabHeight = document.querySelector("#root ul")?.offsetHeight || 0;
+      const totalHeaderHeight = headerHeight + fileTabHeight;
+      const maxY =
+        window.innerHeight -
+        totalHeaderHeight -
+        this.$showTermBtn.offsetHeight;
+      const currentY = Number.parseInt(this.$showTermBtn.style.bottom);
+      this.$showTermBtn.style.bottom = `${Math.max(0, Math.min(maxY, currentY))}px`;
+    }
+  }
+
+  handleBackButton() {
+    if (!this.$page || !document.contains(this.$page)) return;
+    this.rfb?.disconnect();
+    this.$page.querySelector(".gui-viewer-canvas").innerHTML = "";
+    this.$page.hide();
   }
 
   async init($page, cacheFile, cacheFileUrl) {
@@ -227,137 +417,35 @@ export default class AcodeX {
         name: "acodex:open_terminal",
         description: "Open Terminal",
         bindKey: { win: "Ctrl-K" },
-        exec: () => {
-          if (this.isTerminalOpened && this.isTerminalMinimized) {
-            this.maxmise();
-          } else {
-            this.openTerminalPanel(270, this.settings.port);
-          }
-        },
+        exec: this.handleOpenTerminalCommand,
       });
       editorManager.editor.commands.addCommand({
         name: "acodex:close_terminal",
         description: "Close Terminal",
         bindKey: { win: "Ctrl-J" },
-        exec: this.closeTerminal.bind(this),
+        exec: this.handleCloseTerminalCommand,
       });
       editorManager.editor.commands.addCommand({
         name: "acodex:maximise_terminal",
         description: "Maximise Terminal",
         bindKey: { win: "Ctrl-Shift-T" },
-        exec: () => {
-          if (this.isTerminalOpened && this.isTerminalMinimized) {
-            this.maxmise();
-          } else {
-            this.minimise();
-          }
-        },
+        exec: this.handleToggleTerminalCommand,
       });
-      // main terminal container
+
       this.$terminalContainer = tag("div", {
         className: "terminal-panel",
       });
-      this.$terminalHeader = tag("div", {
-        className: "terminal-title-bar",
+      this.$showTermBtn = tag("button", {
+        className: "show-terminal-btn",
+        ariaLabel: "Restore terminal",
       });
-      const leftSection = tag("div", {
-        className: "left-section",
-      });
-      const sessionInfo = tag("div", {
-        className: "session-info",
-      });
-      const pointerIndicator = tag("div", {
-        className: "pointer-indicator",
-        ariaHidden: true,
-      });
-      this.$terminalTitle = tag("h3", {
-        textContent: "AcodeX 1",
-        className: "session-name",
-      });
-      sessionInfo.append(pointerIndicator, this.$terminalTitle);
-      leftSection.append(sessionInfo);
 
-      const $btnSection = tag("div", {
-        className: "btn-section",
-      });
-      const newSessionBtn = tag("button", {
-        className: "action-button new-session",
-        ariaLabel: "New Session",
-      });
-      newSessionBtn.innerHTML = Icons.plus;
-      this.$searchBtn = tag("button", {
-        className: "action-button search-btn",
-        ariaLabel: "Search",
-      });
-      this.$searchBtn.innerHTML = Icons.search;
-      this.$cdBtn = tag("button", {
-        className: "action-button folder-icon",
-        ariaLabel: "Navigate to Folder",
-      });
-      this.$cdBtn.innerHTML = Icons.folder;
-      this.$minimizeBtn = tag("button", {
-        className: "action-button minimize",
-        ariaLabel: "Minimize",
-      });
-      this.$minimizeBtn.innerHTML = Icons.minimise;
-      this.$closeTermBtn = tag("button", {
-        className: "action-button close",
-        ariaLabel: "Close Terminal",
-      });
-      this.$closeTermBtn.innerHTML = Icons.close;
-      this.$searchInputContainer = tag("div", {
-        className: "search-input-container",
-      });
-      this.$searchInputContainer.append(
-        tag("button", {
-          className: "action-button find-previous",
-          ariaLabel: "Find Previous",
-          innerHTML: Icons.findPrevious,
-          onclick: this._findPreviousMatchofSearch.bind(this),
-        }),
-        tag("input", {
-          type: "text",
-          placeholder: "Find...",
-          ariaLabel: "Search input",
-          oninput: (e) => {
-            this.$searchAddon?.findNext(e.target.value);
-          },
-        }),
-        tag("button", {
-          className: "action-button find-next",
-          ariaLabel: "Find Next",
-          innerHTML: Icons.findNext,
-          onclick: this._findNextMatchofSearch.bind(this),
-        }),
-      );
       if (this.settings.enableGuiViewer) {
         this.setupGUIViewerPage();
       }
-      $btnSection.append(
-        newSessionBtn,
-        this.settings.enableGuiViewer ? this.createGUIViewerBtn() : "",
-        this.$searchBtn,
-        this.$cdBtn,
-        this.$minimizeBtn,
-        this.$closeTermBtn,
-        this.$searchInputContainer,
-      );
 
-      this.$terminalHeader.append(leftSection, $btnSection);
+      this.renderUI();
 
-      this.$terminalContent = tag("div", {
-        className: "terminal-content",
-      });
-
-      this.$terminalContainer.append(
-        this.$terminalHeader,
-        this.$terminalContent,
-      );
-      // show terminal button
-      this.$showTermBtn = tag("button", {
-        className: "show-terminal-btn",
-        innerHTML: Icons.terminal,
-      });
       // append Terminal panel to app main
       if (app.get("main")) {
         app
@@ -377,155 +465,26 @@ export default class AcodeX {
       }
 
       this.$cacheFile = cacheFile;
-      // add event listnner to all buttons and terminal panel header
-      this.$terminalHeader.addEventListener(
+      this.$showTermBtn.addEventListener(
         "mousedown",
-        this.startDragging.bind(this),
+        this.handleStartDraggingFloatingBtn,
       );
-      this.$terminalHeader.addEventListener(
+      this.$showTermBtn.addEventListener(
         "touchstart",
-        this.startDragging.bind(this),
+        this.handleStartDraggingFloatingBtn,
       );
+      this.$showTermBtn.addEventListener("click", this.handleMaximiseClick);
 
-      newSessionBtn.addEventListener("click", this.createSession.bind(this));
-      this.$searchBtn.addEventListener("click", () => {
-        const searchInput = this.$searchInputContainer.querySelector("input");
-        this.$searchInputContainer.classList.toggle("show");
+      document.addEventListener("mousemove", this.handleDragFloatingBtn);
+      document.addEventListener("mouseup", this.handleStopDraggingFloatingBtn);
+      document.addEventListener("touchmove", this.handleDragFloatingBtn);
+      document.addEventListener("touchend", this.handleStopDraggingFloatingBtn);
 
-        // Toggle visibility based on the presence of 'show' class in the search input
-        if (this.$searchInputContainer.classList.contains("show")) {
-          newSessionBtn.style.display = "none";
-          if (this.settings.enableGuiViewer) {
-            document.querySelector(".action-button.gui-viewer").style.display =
-              "none";
-          }
-          this.$cdBtn.style.display = "none";
-          this.$minimizeBtn.style.display = "none";
-          this.$closeTermBtn.style.display = "none";
-          searchInput.addEventListener("click", () => {
-            searchInput.focus();
-          });
-        } else {
-          this.$searchAddon?.clearDecorations();
-          this.$searchAddon?.clearActiveDecoration();
-          newSessionBtn.style.display = "block";
-          if (this.settings.enableGuiViewer) {
-            document.querySelector(".action-button.gui-viewer").style.display =
-              "block";
-          }
-          this.$cdBtn.style.display = "block";
-          this.$minimizeBtn.style.display = "block";
-          this.$closeTermBtn.style.display = "block";
-        }
-      });
-
-      this.$terminalTitle.addEventListener("click", async (e) => {
-        let sessionNames;
-        const jsonData = await this.$cacheFile.readFile("utf8");
-        const sessionsData = JSON.parse(jsonData);
-
-        if (Array.isArray(sessionsData)) {
-          // Extract session names and return them in an array
-          sessionNames = sessionsData.map((session) => session.name);
-        } else {
-          sessionNames = [];
-        }
-
-        const opt = {
-          hideOnSelect: true,
-          default: localStorage.getItem("AcodeX_Current_Session"),
-        };
-
-        const sessionSelectBox = await select(
-          "AcodeX Sessions",
-          sessionNames,
-          opt,
-        );
-        if (sessionSelectBox) {
-          this.changeSession(sessionSelectBox);
-        }
-      });
-
-      this.$closeTermBtn.addEventListener(
-        "click",
-        this.closeTerminal.bind(this),
-      );
-      this.$minimizeBtn.addEventListener("click", this.minimise.bind(this));
-      this.$cdBtn.addEventListener("click", this._cdToActiveDir.bind(this));
-
-      // add event listener for show terminal button
-      if (this.settings.showTerminalBtn) {
-        this.$showTermBtn.addEventListener(
-          "mousedown",
-          this.startDraggingFloatingBtn.bind(this),
-        );
-        document.addEventListener("mousemove", this.dragFlotButton.bind(this));
-        document.addEventListener(
-          "mouseup",
-          this.stopDraggingFlotBtn.bind(this),
-        );
-        this.$showTermBtn.addEventListener(
-          "touchstart",
-          this.startDraggingFloatingBtn.bind(this),
-        );
-        document.addEventListener("touchmove", this.dragFlotButton.bind(this));
-        document.addEventListener(
-          "touchend",
-          this.stopDraggingFlotBtn.bind(this),
-        );
-        this.$showTermBtn.addEventListener("click", this.maxmise.bind(this));
-      }
-
-      window.addEventListener("mousemove", this.drag.bind(this));
-      window.addEventListener("touchmove", this.drag.bind(this));
-      window.addEventListener("mouseup", this.stopDragging.bind(this));
-      window.addEventListener("touchend", this.stopDragging.bind(this));
-      // to adjust size of terminal or floating button when Keyboard is opened
-      window.addEventListener("resize", () => {
-        if (this.$terminalContainer) {
-          if (!this.$terminalContainer.classList.contains("hide")) {
-            const headerHeight =
-              document.querySelector("#root header")?.offsetHeight;
-            const fileTabHeight =
-              document.querySelector("#root ul")?.offsetHeight || 0;
-            const totalHeaderHeight = headerHeight + fileTabHeight;
-            const totalFooterHeight =
-              document.querySelector("#quick-tools")?.offsetHeight || 0;
-            const screenHeight =
-              window.innerHeight - (totalHeaderHeight + totalFooterHeight);
-
-            const currentHeight = Number.parseInt(
-              this.$terminalContainer.style.height,
-            );
-            const adjustedHeight = Math.min(currentHeight, screenHeight);
-            this.$terminalContainer.style.height = `${adjustedHeight}px`;
-            localStorage.setItem(
-              "AcodeX_Terminal_Cont_Height",
-              this.$terminalContainer.offsetHeight,
-            );
-          }
-          const selection = this.$terminal?.getSelection();
-          if (selection && selection.length > 0) {
-            this.selectionManager.updateHandles();
-          }
-        }
-
-        if (this.$showTermBtn && this.settings.showTerminalBtn) {
-          if (!this.$showTermBtn.classList.contains("hide")) {
-            const headerHeight =
-              document.querySelector("#root header")?.offsetHeight;
-            const fileTabHeight =
-              document.querySelector("#root ul")?.offsetHeight || 0;
-            const totalHeaderHeight = headerHeight + fileTabHeight;
-            const maxY =
-              window.innerHeight -
-              totalHeaderHeight -
-              this.$showTermBtn.offsetHeight;
-            const currentY = Number.parseInt(this.$showTermBtn.style.bottom);
-            this.$showTermBtn.style.bottom = `${Math.max(0, Math.min(maxY, currentY))}px`;
-          }
-        }
-      });
+      window.addEventListener("mousemove", this.handleDrag);
+      window.addEventListener("touchmove", this.handleDrag);
+      window.addEventListener("mouseup", this.handleStopDragging);
+      window.addEventListener("touchend", this.handleStopDragging);
+      window.addEventListener("resize", this.handleResize);
 
       if (
         localStorage.getItem("AcodeX_Is_Opened") === "true" &&
@@ -729,16 +688,6 @@ export default class AcodeX {
     }
   }
 
-  createGUIViewerBtn() {
-    const viewerBtn = tag("button", {
-      className: "action-button gui-viewer",
-      ariaLabel: "Open GUI Viewer",
-    });
-    viewerBtn.innerHTML = Icons.imagePlay;
-    viewerBtn.onclick = this.openViewerPage.bind(this);
-    return viewerBtn;
-  }
-
   setupGUIViewerPage() {
     const closeBtn = tag("span", {
       className: "icon clearclose",
@@ -779,17 +728,7 @@ export default class AcodeX {
       viewerCanvas.innerHTML = "";
       this.$page.hide();
     };
-    document.addEventListener(
-      "backbutton",
-      () => {
-        if (document.contains(this.$page)) {
-          this.rfb.disconnect();
-          viewerCanvas.innerHTML = "";
-          this.$page.hide();
-        }
-      },
-      false,
-    );
+    document.addEventListener("backbutton", this.handleBackButton, false);
     const showKeyboard = tag("span", {
       className: "icon keyboard_hide",
       dataset: {
@@ -1079,7 +1018,7 @@ export default class AcodeX {
     this.isTerminalOpened = true;
     this.$terminalContainer.style.height = `${termContainerHeight}px`;
     this.$terminalContent.style.width = "100%";
-    this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
+    this.$terminalContent.style.height = "100%";
     await acodeFonts.loadFont(this.settings.fontFamily);
 
     if (this.settings.transparency) {
@@ -1422,24 +1361,27 @@ export default class AcodeX {
       "Start Magic ✨",
     );
     promptBox.ok(async () => {
-      const prompt = document.querySelector("#acodeXAiPromptBox").value;
+      const promptInput = document.querySelector("#acodeXAiPromptBox");
+      const loaderElement = document.querySelector(".ai-loader-container");
+      const prompt = promptInput?.value;
       if (!prompt) {
         promptBox.hide();
         return;
       }
-      document.querySelector(".ai-loader-container").style.display = "flex";
+      if (loaderElement) {
+        loaderElement.style.display = "flex";
+      }
       window.toast("Wait! To see the magic of AcodeX AI ✨", 2000);
       try {
         let aiGeneratedCmd = "";
         switch (this.settings.aiModel) {
-          case "deepseek":
-            {
-              const { response, error } =
-                await aiResponseHandler.generateDeepseekResponse(prompt);
-            }
+          case "deepseek": {
+            const { response, error } =
+              await aiResponseHandler.generateDeepseekResponse(prompt);
             if (error) {
-              document.querySelector(".ai-loader-container").style.display =
-                "none";
+              if (loaderElement) {
+                loaderElement.style.display = "none";
+              }
               promptBox.hide();
               acode.alert("AcodeX AI Error", error.toString());
               console.error("AcodeX AI Error:", error);
@@ -1447,14 +1389,16 @@ export default class AcodeX {
             }
             aiGeneratedCmd = response.choices[0].message.content;
             break;
+          }
 
           case "chatgpt": {
             const { response: chatgptResponse, error: chatgptError } =
               await aiResponseHandler.generateChatgptResponse(prompt);
 
             if (chatgptError) {
-              document.querySelector(".ai-loader-container").style.display =
-                "none";
+              if (loaderElement) {
+                loaderElement.style.display = "none";
+              }
               promptBox.hide();
               acode.alert("AcodeX AI Error", chatgptError.toString());
               console.error("AcodeX AI Error:", chatgptError);
@@ -1467,8 +1411,9 @@ export default class AcodeX {
             const { response: geminiResponse, error: geminiError } =
               await aiResponseHandler.generateGeminiResponse(prompt);
             if (geminiError) {
-              document.querySelector(".ai-loader-container").style.display =
-                "none";
+              if (loaderElement) {
+                loaderElement.style.display = "none";
+              }
               promptBox.hide();
               acode.alert("AcodeX AI Error", geminiError.toString());
               console.error("AcodeX AI Error:", geminiError);
@@ -1488,16 +1433,22 @@ export default class AcodeX {
           }
         }
         if (!aiGeneratedCmd) {
-          document.querySelector(".ai-loader-container").style.display = "none";
+          if (loaderElement) {
+            loaderElement.style.display = "none";
+          }
           promptBox.hide();
           return;
         }
         this.socket?.send("\b");
         this.socket?.send(aiGeneratedCmd.trim());
-        document.querySelector(".ai-loader-container").style.display = "none";
+        if (loaderElement) {
+          loaderElement.style.display = "none";
+        }
         promptBox.hide();
       } catch (error) {
-        document.querySelector(".ai-loader-container").style.display = "none";
+        if (loaderElement) {
+          loaderElement.style.display = "none";
+        }
         promptBox?.hide();
         console.error(error);
         acode.alert("AcodeX AI Error", JSON.stringify(error));
@@ -1550,8 +1501,11 @@ export default class AcodeX {
       "AcodeX_Current_Session",
       sessionsData[sessionsData.length - 1].name,
     );
-    this.$terminalTitle.textContent =
-      sessionsData[sessionsData.length - 1].name;
+    this.setUiState({
+      sessionName: sessionsData[sessionsData.length - 1].name,
+      searchVisible: false,
+      searchQuery: "",
+    });
     window.toast(
       `Created Session: ${sessionsData[sessionsData.length - 1].name}`,
       3000,
@@ -1650,7 +1604,7 @@ export default class AcodeX {
       }
       await this.attachSocketToXterm(this.settings.port, pid);
       localStorage.setItem("AcodeX_Current_Session", sessionName);
-      this.$terminalTitle.textContent = sessionName;
+      this.setUiState({ sessionName, searchVisible: false, searchQuery: "" });
       return this.socket;
     }
     if (sessionName === localStorage.getItem("AcodeX_Current_Session")) return;
@@ -1660,7 +1614,7 @@ export default class AcodeX {
     await this.createXtermTerminal(this.settings.port);
     await this.attachSocketToXterm(this.settings.port, pid);
     localStorage.setItem("AcodeX_Current_Session", sessionName);
-    this.$terminalTitle.textContent = sessionName;
+    this.setUiState({ sessionName, searchVisible: false, searchQuery: "" });
     return this.socket;
   }
 
@@ -1770,10 +1724,7 @@ export default class AcodeX {
   }
 
   _updateTerminalHeight() {
-    const terminalHeaderHeight = this.$terminalHeader.offsetHeight;
-    this.$terminalContent.style.height = `calc(100vh - ${
-      terminalHeaderHeight + 1
-    }px)`;
+    this.$terminalContent.style.height = "100%";
     localStorage.setItem(
       "AcodeX_Terminal_Cont_Height",
       this.$terminalContainer.offsetHeight,
@@ -1851,6 +1802,11 @@ export default class AcodeX {
       this.$terminalContainer.offsetHeight,
     );
     localStorage.removeItem("AcodeX_Current_Session");
+    this.setUiState({
+      sessionName: "AcodeX1",
+      searchVisible: false,
+      searchQuery: "",
+    });
     await this.$cacheFile.writeFile("");
   }
 
@@ -1893,6 +1849,11 @@ export default class AcodeX {
         "AcodeX_Terminal_Cont_Height",
         this.$terminalContainer.offsetHeight,
       );
+      this.setUiState({
+        sessionName: "AcodeX1",
+        searchVisible: false,
+        searchQuery: "",
+      });
     }
 
     this.cleanupSelectionManager();
@@ -2046,7 +2007,7 @@ export default class AcodeX {
     this._updateTerminalHeight();
     const selection = this.$terminal?.getSelection();
     if (selection && selection.length > 0) {
-      this.selectionManager.updateHandles();
+      this.selectionManager?.updateHandles();
     }
   }
 
@@ -2079,6 +2040,7 @@ export default class AcodeX {
         this.settings.showTerminalBtn
           ? this.$showTermBtn.classList.remove("hide")
           : "";
+        this.$showTermBtn.dataset.state = "minimized";
       }
     } catch (err) {
       window.alert(err);
@@ -2099,7 +2061,7 @@ export default class AcodeX {
         this.$terminalContainer.style.height = `${localStorage.getItem("AcodeX_Terminal_Cont_Height")}px`;
       }
       this.$terminalContainer.classList.remove("hide");
-      this.$terminalContent.style.height = `calc(100% - ${this.$terminalContainer.offsetHeight}px)`;
+      this.$terminalContent.style.height = "100%";
       this.fitTerminal();
       localStorage.setItem(
         "AcodeX_Terminal_Cont_Height",
@@ -2108,6 +2070,7 @@ export default class AcodeX {
       this.settings.showTerminalBtn
         ? this.$showTermBtn.classList.add("hide")
         : "";
+      this.$showTermBtn.dataset.state = "hidden";
       this.isTerminalMinimized = false;
       localStorage.setItem(
         "AcodeX_Terminal_Is_Minimised",
@@ -2116,22 +2079,18 @@ export default class AcodeX {
       this._updateTerminalHeight();
       const selection = this.$terminal?.getSelection();
       if (selection && selection.length > 0) {
-        this.selectionManager.updateHandles();
+        this.selectionManager?.updateHandles();
       }
     }
   }
 
   _findPreviousMatchofSearch() {
-    const searchInput = document.querySelector(
-      ".search-input-container input",
-    ).value;
+    const searchInput = this.uiState.searchQuery;
     this.$searchAddon?.findPrevious(searchInput);
   }
 
   _findNextMatchofSearch() {
-    const searchInput = document.querySelector(
-      ".search-input-container input",
-    ).value;
+    const searchInput = this.uiState.searchQuery;
     this.$searchAddon?.findNext(searchInput);
   }
 
@@ -2156,29 +2115,37 @@ export default class AcodeX {
   }
 
   async destroy() {
-    this.$style.remove();
-    this.xtermCss.remove();
-    this.$fontStyleSheet.remove();
+    render(null, this.$terminalContainer);
+    render(null, this.$showTermBtn);
+    this.$style?.remove();
+    this.xtermCss?.remove();
+    this.$fontStyleSheet?.remove();
     await fsOperation(`${window.DATA_STORAGE}acodex_fonts`).delete();
-    editorManager.editor.commands.removeCommand("terminal:open_terminal");
-    editorManager.editor.commands.removeCommand("terminal:close_terminal");
+    editorManager.editor.commands.removeCommand("acodex:open_terminal");
+    editorManager.editor.commands.removeCommand("acodex:close_terminal");
+    editorManager.editor.commands.removeCommand("acodex:maximise_terminal");
     this.cleanupSelectionManager();
-    this.$terminalContainer.remove();
-    this.$showTermBtn.remove();
-    document.removeEventListener("mousemove", this.dragFlotButton.bind(this));
-    document.removeEventListener(
-      "mouseup",
-      this.stopDraggingFlotBtn.bind(this),
+    this.$terminalContainer?.remove();
+    this.$showTermBtn?.remove();
+    document.removeEventListener("mousemove", this.handleDragFloatingBtn);
+    document.removeEventListener("mouseup", this.handleStopDraggingFloatingBtn);
+    document.removeEventListener("touchmove", this.handleDragFloatingBtn);
+    document.removeEventListener("touchend", this.handleStopDraggingFloatingBtn);
+    document.removeEventListener("backbutton", this.handleBackButton, false);
+    this.$showTermBtn?.removeEventListener(
+      "mousedown",
+      this.handleStartDraggingFloatingBtn,
     );
-    document.removeEventListener("touchmove", this.dragFlotButton.bind(this));
-    document.removeEventListener(
-      "touchend",
-      this.stopDraggingFlotBtn.bind(this),
+    this.$showTermBtn?.removeEventListener(
+      "touchstart",
+      this.handleStartDraggingFloatingBtn,
     );
-    window.removeEventListener("mousemove", this.drag);
-    window.removeEventListener("touchmove", this.drag);
-    window.removeEventListener("mouseup", this.stopDragging);
-    window.removeEventListener("touchend", this.stopDragging);
+    this.$showTermBtn?.removeEventListener("click", this.handleMaximiseClick);
+    window.removeEventListener("mousemove", this.handleDrag);
+    window.removeEventListener("touchmove", this.handleDrag);
+    window.removeEventListener("mouseup", this.handleStopDragging);
+    window.removeEventListener("touchend", this.handleStopDragging);
+    window.removeEventListener("resize", this.handleResize);
 
     localStorage.removeItem("AcodeX_Terminal_Is_Minimised");
     localStorage.removeItem("AcodeX_Current_Session");
@@ -2809,23 +2776,25 @@ export default class AcodeX {
       case "enableGuiViewer":
         this.settings[key] = value;
         appSettings.update();
-        acode.alert(
-          "AcodeX Warning",
-          "Make sure to restart to see this setting in effect",
-        );
+        if (value && !this.$page) {
+          this.setupGUIViewerPage();
+        }
+        this.renderUI();
         break;
       case "showTerminalBtn":
-        if (this.$showTermBtn) {
-          if (!value) {
-            this.$showTermBtn.remove();
-          } else {
-            acode.alert("AcodeX Warning", "Restart App to see this change");
-          }
-        } else {
-          acode.alert("AcodeX Warning", "Restart App to see this change");
-        }
         this.settings[key] = value;
         appSettings.update();
+        if (this.$showTermBtn) {
+          if (value && !document.contains(this.$showTermBtn) && app.get("main")) {
+            app.get("main").append(this.$showTermBtn);
+          }
+          this.$showTermBtn.style.display = value ? "" : "none";
+          if (!value) {
+            this.$showTermBtn.classList.add("hide");
+          } else if (this.isTerminalMinimized) {
+            this.$showTermBtn.classList.remove("hide");
+          }
+        }
         break;
 
       default:
