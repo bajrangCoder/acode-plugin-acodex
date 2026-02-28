@@ -5,7 +5,9 @@ import { useEffect, useRef } from "preact/hooks";
 import Icons from "../utils/icons";
 
 function Icon({ markup }) {
-  return <span class="icon-markup" dangerouslySetInnerHTML={{ __html: markup }} />;
+  return (
+    <span class="icon-markup" dangerouslySetInnerHTML={{ __html: markup }} />
+  );
 }
 
 function ActionButton({
@@ -28,6 +30,10 @@ function ActionButton({
       <Icon markup={markup} />
     </button>
   );
+}
+
+function HeaderDivider() {
+  return <span class="header-divider" aria-hidden="true" />;
 }
 
 export function TerminalShell({
@@ -80,72 +86,96 @@ export function TerminalShell({
       </div>
 
       <div class="btn-section">
-        <ActionButton
-          className="new-session"
-          label="New session"
-          markup={Icons.plus}
-          onClick={onCreateSession}
-          hidden={searchVisible}
-        />
-        <ActionButton
-          className="gui-viewer"
-          label="Open GUI viewer"
-          markup={Icons.imagePlay}
-          onClick={onOpenGuiViewer}
-          hidden={!enableGuiViewer || searchVisible}
-        />
-        <ActionButton
-          className="search-btn"
-          label={searchVisible ? "Close search" : "Search"}
-          markup={Icons.search}
-          onClick={onToggleSearch}
-        />
-        <ActionButton
-          className="folder-icon"
-          label="Navigate to active folder"
-          markup={Icons.folder}
-          onClick={onNavigateToDir}
-          hidden={searchVisible}
-        />
-        <ActionButton
-          className="minimize"
-          label="Minimize terminal"
-          markup={Icons.minimise}
-          onClick={onMinimize}
-          hidden={searchVisible}
-        />
-        <ActionButton
-          className="close"
-          label="Close terminal"
-          markup={Icons.close}
-          onClick={onClose}
-          hidden={searchVisible}
-        />
+        {!searchVisible && (
+          <div class="default-actions">
+            <ActionButton
+              className="new-session"
+              label="New session"
+              markup={Icons.plus}
+              onClick={onCreateSession}
+            />
+            {enableGuiViewer && (
+              <ActionButton
+                className="gui-viewer"
+                label="Open GUI viewer"
+                markup={Icons.imagePlay}
+                onClick={onOpenGuiViewer}
+              />
+            )}
+            <HeaderDivider />
+            <ActionButton
+              className="search-btn"
+              label="Search"
+              markup={Icons.search}
+              onClick={onToggleSearch}
+            />
+            <ActionButton
+              className="folder-icon"
+              label="Navigate to active folder"
+              markup={Icons.folder}
+              onClick={onNavigateToDir}
+            />
+            <HeaderDivider />
+            <ActionButton
+              className="minimize"
+              label="Minimize terminal"
+              markup={Icons.minimise}
+              onClick={onMinimize}
+            />
+            <ActionButton
+              className="close"
+              label="Close terminal"
+              markup={Icons.close}
+              onClick={onClose}
+            />
+          </div>
+        )}
 
-        <div class={`search-input-container ${searchVisible ? "show" : ""}`}>
-          <ActionButton
-            className="find-previous"
-            label="Find previous"
-            markup={Icons.findPrevious}
-            onClick={onSearchPrevious}
-            disabled={!searchQuery}
-          />
-          <input
-            ref={localSearchInputRef}
-            type="text"
-            value={searchQuery}
-            placeholder="Find..."
-            aria-label="Search input"
-            onInput={(event) => onSearchChange(event.currentTarget.value)}
-          />
-          <ActionButton
-            className="find-next"
-            label="Find next"
-            markup={Icons.findNext}
-            onClick={onSearchNext}
-            disabled={!searchQuery}
-          />
-        </div>
+        {searchVisible && (
+          <div class="search-bar">
+            <div class="search-field">
+              <span class="search-icon">
+                <Icon markup={Icons.search} />
+              </span>
+              <input
+                ref={localSearchInputRef}
+                type="text"
+                value={searchQuery}
+                placeholder="Find in terminal..."
+                aria-label="Search input"
+                onInput={(event) => onSearchChange(event.currentTarget.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    onToggleSearch();
+                  }
+                }}
+              />
+            </div>
+            <div class="search-nav">
+              <ActionButton
+                className="find-previous"
+                label="Find previous"
+                markup={Icons.findPrevious}
+                onClick={onSearchPrevious}
+                disabled={!searchQuery}
+              />
+              <ActionButton
+                className="find-next"
+                label="Find next"
+                markup={Icons.findNext}
+                onClick={onSearchNext}
+                disabled={!searchQuery}
+              />
+              <ActionButton
+                className="close-search"
+                label="Close search"
+                markup={Icons.close}
+                onClick={onToggleSearch}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </Fragment>
   );

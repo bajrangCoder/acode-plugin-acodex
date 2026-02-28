@@ -17,23 +17,35 @@
         justify-content: space-between;
         align-items: center;
         box-sizing: border-box;
-        padding: 2px 16px;
+        padding: 0 12px;
         background-color: var(--primary-color);
         cursor: row-resize;
         touch-action: none;
-        border-bottom: 1px solid var(--popup-border-color);
-        height: 48px;
+        border-bottom: 1px solid var(--border-color);
+        height: 44px;
+        flex-shrink: 0;
+        user-select: none;
+        gap: 12px;
 
-        .left-section,
+        .left-section {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            flex-shrink: 1;
+        }
+
         .btn-section {
             display: flex;
             align-items: center;
+            flex: 1;
+            justify-content: flex-end;
+            min-width: 0;
         }
 
         .session-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             margin: 0;
             padding: 0;
             border: none;
@@ -43,17 +55,20 @@
             text-align: left;
 
             .pointer-indicator {
-                width: 8px;
-                height: 8px;
-                background-color: var(--button-background-color);
+                position: relative;
+                width: 10px;
+                height: 10px;
+                background-color: var(--active-color);
                 border-radius: 50%;
-                box-shadow: 0 0 8px var(--button-background-color);
+                box-shadow: 0 0 8px var(--active-color);
+                flex-shrink: 0;
             }
 
             .session-name {
                 font-size: 14px;
                 font-weight: 600;
                 color: var(--primary-text-color);
+                letter-spacing: 0.3px;
                 margin: 0;
                 white-space: nowrap;
                 overflow: hidden;
@@ -62,24 +77,42 @@
             }
         }
 
+        .header-divider {
+            display: inline-block;
+            width: 1px;
+            height: 16px;
+            background-color: var(--border-color);
+            margin: 0 4px;
+            flex-shrink: 0;
+        }
+
         .action-button {
             background: none;
             border: none;
             color: var(--primary-text-color);
             cursor: pointer;
-            padding: 5px;
-            margin: 0 2px;
+            padding: 6px;
+            margin: 0;
             font-size: 20px;
-            border-radius: 4px;
-            transition: background-color 0.2s ease;
+            border-radius: 6px;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
 
             &:active {
                 background-color: var(--active-icon-color);
             }
 
             &:disabled {
-                opacity: 0.45;
+                opacity: 0.35;
                 cursor: default;
+            }
+
+            &.close:active,
+            &.close-search:active {
+                color: var(--danger-color);
             }
 
             .icon-markup,
@@ -90,37 +123,100 @@
             }
         }
 
-        .search-input-container {
-            display: none;
+        .default-actions {
+            display: flex;
             align-items: center;
-            border-radius: 4px;
-            margin-left: 8px;
+            gap: 0;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            height: 28px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--active-color);
             background: var(--popup-background-color);
+            flex: 1;
+            min-width: 0;
+            max-width: 360px;
+            box-shadow: 0 2px 8px var(--box-shadow-color);
 
-            input {
-                background: none;
-                border: none;
-                color: var(--primary-text-color);
-                padding: 4px 8px !important;
-                font-size: 12px;
-                width: 150px;
-                height: 100% !important;
-
-                &::placeholder {
-                    color: var(--active-color);
-                }
-
-                &:focus {
-                    outline: none;
-                }
-            }
-
-            &.show {
+            .search-field {
                 display: flex;
+                align-items: center;
+                padding-left: 8px;
+                flex: 1;
+                min-width: 0;
+                height: 100%;
+
+                .search-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+
+                    .icon-markup,
+                    svg {
+                        width: 14px;
+                        height: 14px;
+                        color: var(--active-color);
+                    }
+                }
+
+                input {
+                    background: none;
+                    border: none;
+                    color: var(--popup-text-color);
+                    padding: 4px 8px !important;
+                    font-size: 12px;
+                    flex: 1;
+                    width: 0;
+                    min-width: 0;
+                    height: 100% !important;
+
+                    &::placeholder {
+                        color: var(--scrollbar-color);
+                    }
+
+                    &:focus {
+                        outline: none;
+                    }
+                }
             }
 
-            .action-button {
-                padding: 6px;
+            .search-nav {
+                display: flex;
+                align-items: center;
+                height: 100%;
+                border-left: 1px solid var(--border-color);
+                flex-shrink: 0;
+
+                .action-button {
+                    padding: 4px 6px;
+                    margin: 0;
+                    border-radius: 0;
+                    color: var(--popup-text-color);
+                    height: 100%;
+
+                    &:active {
+                        background-color: var(--active-icon-color);
+                    }
+
+                    .icon-markup,
+                    svg {
+                        width: 14px;
+                        height: 14px;
+                    }
+                }
+
+                .close-search {
+                    border-left: 1px solid var(--border-color);
+
+                    &:active {
+                        color: var(--danger-color);
+                    }
+                }
             }
         }
     }
