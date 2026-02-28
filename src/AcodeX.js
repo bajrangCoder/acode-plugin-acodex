@@ -241,20 +241,13 @@ export default class AcodeX {
   }
 
   renderUI() {
-    if (!this.$terminalContainer || !this.$showTermBtn) return;
+    if (!this.$terminalHeader || !this.$showTermBtn) return;
 
     render(
       h(TerminalShell, {
-        bindHeader: (element) => {
-          this.$terminalHeader = element;
-        },
-        bindContent: (element) => {
-          this.$terminalContent = element;
-        },
         bindSearchInput: (element) => {
           this.$searchInput = element;
         },
-        onHeaderPointerDown: this.handleStartDragging,
         searchVisible: this.uiState.searchVisible,
         searchQuery: this.uiState.searchQuery,
         sessionName: this.uiState.sessionName,
@@ -270,7 +263,7 @@ export default class AcodeX {
         onSearchNext: this._findNextMatchofSearch.bind(this),
         onSearchPrevious: this._findPreviousMatchofSearch.bind(this),
       }),
-      this.$terminalContainer,
+      this.$terminalHeader,
     );
 
     render(h(FloatingTerminalButton, null), this.$showTermBtn);
@@ -435,6 +428,12 @@ export default class AcodeX {
       this.$terminalContainer = tag("div", {
         className: "terminal-panel",
       });
+      this.$terminalHeader = tag("div", {
+        className: "terminal-title-bar",
+      });
+      this.$terminalContent = tag("div", {
+        className: "terminal-content",
+      });
       this.$showTermBtn = tag("button", {
         className: "show-terminal-btn",
         ariaLabel: "Restore terminal",
@@ -444,6 +443,18 @@ export default class AcodeX {
         this.setupGUIViewerPage();
       }
 
+      this.$terminalHeader.addEventListener(
+        "mousedown",
+        this.handleStartDragging,
+      );
+      this.$terminalHeader.addEventListener(
+        "touchstart",
+        this.handleStartDragging,
+      );
+      this.$terminalContainer.append(
+        this.$terminalHeader,
+        this.$terminalContent,
+      );
       this.renderUI();
 
       // append Terminal panel to app main
@@ -1070,7 +1081,6 @@ export default class AcodeX {
     this.$terminal.loadAddon(this.$webLinkAddon);
     this.$terminal.loadAddon(this.$searchAddon);
 
-    this.fitTerminal();
     if (this.$webglAddon) {
       try {
         this.$terminal.loadAddon(this.$webglAddon);
@@ -1087,6 +1097,7 @@ export default class AcodeX {
     }
     if (this.$terminal.element) {
       this._setTerminalPadding(this.settings.terminalPadding);
+      this.fitTerminal();
     }
     if (this.settings.fontLigatures) {
       this.$ligatureAddon = new LigaturesAddon();
@@ -1514,6 +1525,7 @@ export default class AcodeX {
   }
 
   _hideTerminalSession() {
+    this.cleanupSelectionManager();
     this.$attachAddon?.dispose();
     this.$fitAddon?.dispose();
     this.$unicode11Addon?.dispose();
@@ -1724,6 +1736,7 @@ export default class AcodeX {
   }
 
   _updateTerminalHeight() {
+    if (!this.$terminalContent) return;
     this.$terminalContent.style.height = "100%";
     localStorage.setItem(
       "AcodeX_Terminal_Cont_Height",
@@ -1733,9 +1746,24 @@ export default class AcodeX {
   }
 
   fitTerminal() {
-    const dimensions = this.$fitAddon.proposeDimensions();
-    if (dimensions) {
+    if (
+      !this.$fitAddon ||
+      !this.$terminal ||
+      !this.$terminal.element ||
+      !this.$terminalContent?.isConnected ||
+      this.$terminalContainer?.classList.contains("hide")
+    ) {
+      return;
+    }
+
+    try {
+      const dimensions = this.$fitAddon.proposeDimensions();
+      if (!dimensions?.cols || !dimensions?.rows) {
+        return;
+      }
       this.$terminal.resize(dimensions.cols + 2, dimensions.rows + 1);
+    } catch (error) {
+      console.warn("AcodeX fitTerminal skipped:", error);
     }
   }
 
@@ -2115,7 +2143,7 @@ export default class AcodeX {
   }
 
   async destroy() {
-    render(null, this.$terminalContainer);
+    render(null, this.$terminalHeader);
     render(null, this.$showTermBtn);
     this.$style?.remove();
     this.xtermCss?.remove();
@@ -2141,6 +2169,8 @@ export default class AcodeX {
       this.handleStartDraggingFloatingBtn,
     );
     this.$showTermBtn?.removeEventListener("click", this.handleMaximiseClick);
+    this.$terminalHeader?.removeEventListener("mousedown", this.handleStartDragging);
+    this.$terminalHeader?.removeEventListener("touchstart", this.handleStartDragging);
     window.removeEventListener("mousemove", this.handleDrag);
     window.removeEventListener("touchmove", this.handleDrag);
     window.removeEventListener("mouseup", this.handleStopDragging);

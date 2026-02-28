@@ -31,10 +31,7 @@ function ActionButton({
 }
 
 export function TerminalShell({
-  bindHeader,
-  bindContent,
   bindSearchInput,
-  onHeaderPointerDown,
   searchVisible,
   searchQuery,
   sessionName,
@@ -64,94 +61,92 @@ export function TerminalShell({
 
   return (
     <Fragment>
-      <div
-        class="terminal-title-bar"
-        ref={bindHeader}
-        onMouseDown={onHeaderPointerDown}
-        onTouchStart={onHeaderPointerDown}
-      >
-        <div class="left-section">
-          <button
-            type="button"
-            class="session-info"
-            aria-label="Open session list"
-            onClick={onSessionSelect}
-          >
-            <span class="pointer-indicator" aria-hidden="true" />
-            <h3 class="session-name">{sessionName}</h3>
-          </button>
-        </div>
-
-        <div class="btn-section">
-          <ActionButton
-            className="new-session"
-            label="New session"
-            markup={Icons.plus}
-            onClick={onCreateSession}
-            hidden={searchVisible}
-          />
-          <ActionButton
-            className="gui-viewer"
-            label="Open GUI viewer"
-            markup={Icons.imagePlay}
-            onClick={onOpenGuiViewer}
-            hidden={!enableGuiViewer || searchVisible}
-          />
-          <ActionButton
-            className="search-btn"
-            label={searchVisible ? "Close search" : "Search"}
-            markup={Icons.search}
-            onClick={onToggleSearch}
-          />
-          <ActionButton
-            className="folder-icon"
-            label="Navigate to active folder"
-            markup={Icons.folder}
-            onClick={onNavigateToDir}
-            hidden={searchVisible}
-          />
-          <ActionButton
-            className="minimize"
-            label="Minimize terminal"
-            markup={Icons.minimise}
-            onClick={onMinimize}
-            hidden={searchVisible}
-          />
-          <ActionButton
-            className="close"
-            label="Close terminal"
-            markup={Icons.close}
-            onClick={onClose}
-            hidden={searchVisible}
-          />
-
-          <div class={`search-input-container ${searchVisible ? "show" : ""}`}>
-            <ActionButton
-              className="find-previous"
-              label="Find previous"
-              markup={Icons.findPrevious}
-              onClick={onSearchPrevious}
-              disabled={!searchQuery}
-            />
-            <input
-              ref={localSearchInputRef}
-              type="text"
-              value={searchQuery}
-              placeholder="Find..."
-              aria-label="Search input"
-              onInput={(event) => onSearchChange(event.currentTarget.value)}
-            />
-            <ActionButton
-              className="find-next"
-              label="Find next"
-              markup={Icons.findNext}
-              onClick={onSearchNext}
-              disabled={!searchQuery}
-            />
-          </div>
+      <div class="left-section">
+        <div
+          class="session-info"
+          role="button"
+          tabIndex={0}
+          onClick={onSessionSelect}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onSessionSelect();
+            }
+          }}
+        >
+          <span class="pointer-indicator" aria-hidden="true" />
+          <h3 class="session-name">{sessionName}</h3>
         </div>
       </div>
-      <div class="terminal-content" ref={bindContent} />
+
+      <div class="btn-section">
+        <ActionButton
+          className="new-session"
+          label="New session"
+          markup={Icons.plus}
+          onClick={onCreateSession}
+          hidden={searchVisible}
+        />
+        <ActionButton
+          className="gui-viewer"
+          label="Open GUI viewer"
+          markup={Icons.imagePlay}
+          onClick={onOpenGuiViewer}
+          hidden={!enableGuiViewer || searchVisible}
+        />
+        <ActionButton
+          className="search-btn"
+          label={searchVisible ? "Close search" : "Search"}
+          markup={Icons.search}
+          onClick={onToggleSearch}
+        />
+        <ActionButton
+          className="folder-icon"
+          label="Navigate to active folder"
+          markup={Icons.folder}
+          onClick={onNavigateToDir}
+          hidden={searchVisible}
+        />
+        <ActionButton
+          className="minimize"
+          label="Minimize terminal"
+          markup={Icons.minimise}
+          onClick={onMinimize}
+          hidden={searchVisible}
+        />
+        <ActionButton
+          className="close"
+          label="Close terminal"
+          markup={Icons.close}
+          onClick={onClose}
+          hidden={searchVisible}
+        />
+
+        <div class={`search-input-container ${searchVisible ? "show" : ""}`}>
+          <ActionButton
+            className="find-previous"
+            label="Find previous"
+            markup={Icons.findPrevious}
+            onClick={onSearchPrevious}
+            disabled={!searchQuery}
+          />
+          <input
+            ref={localSearchInputRef}
+            type="text"
+            value={searchQuery}
+            placeholder="Find..."
+            aria-label="Search input"
+            onInput={(event) => onSearchChange(event.currentTarget.value)}
+          />
+          <ActionButton
+            className="find-next"
+            label="Find next"
+            markup={Icons.findNext}
+            onClick={onSearchNext}
+            disabled={!searchQuery}
+          />
+        </div>
+      </div>
     </Fragment>
   );
 }
