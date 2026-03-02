@@ -193,6 +193,19 @@ export default class AcodeX {
 
   selectionManager = null;
 
+  scrollTerminalToBottom() {
+    if (!this.$terminal) return;
+
+    const scroll = () => {
+      if (!this.$terminal) return;
+      this.$terminal.scrollToBottom();
+      this.$terminal.focus();
+    };
+
+    scroll();
+    window.requestAnimationFrame(scroll);
+  }
+
   constructor() {
     if (!appSettings.value[plugin.id]) {
       this._saveSetting();
@@ -1080,6 +1093,12 @@ export default class AcodeX {
           onFontSizeChange: (size) => this.applyTerminalFontSize(size),
         },
       );
+      window.setTimeout(() => {
+        this.scrollTerminalToBottom();
+      }, 0);
+      window.setTimeout(() => {
+        this.scrollTerminalToBottom();
+      }, 150);
     };
     this.socket.onclose = async (event) => {
       try {
@@ -1642,7 +1661,8 @@ export default class AcodeX {
       if (!dimensions?.cols || !dimensions?.rows) {
         return;
       }
-      this.$terminal.resize(dimensions.cols + 2, dimensions.rows + 1);
+      this.$terminal.resize(dimensions.cols, dimensions.rows);
+      this.scrollTerminalToBottom();
     } catch (error) {
       console.warn("AcodeX fitTerminal skipped:", error);
     }
