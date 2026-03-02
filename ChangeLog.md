@@ -1,5 +1,18 @@
 # Change Logs
 
+## `Update v3.3.0`
+
+- Improved the terminal header UI.
+- Refactored major parts of the codebase for better maintainability and stability.
+- Improved touch selection behaviour, handles, and overall selection UX.
+- Added terminal backend selection support between `axs` and Acode's `builtin` backend.
+- Improved compatibility of the GUI Viewer across different devices and VNC setups.
+- Fixed duplicate stacked alerts when multiple sessions disconnect after server close.
+- Fixed the initial terminal viewport issue where prompts could appear out of view after long MOTD output.
+- Integrated AcodeX theme selection with Acode's terminal theme registry, so shared terminal themes are available in AcodeX too.
+- Fixed selection manager crashes that could happen while restarting the terminal or switching/creating sessions quickly.
+- Fixed multiple bugs reported by users and improved overall reliability.
+
 ## `Update v3.2.0`
 
 - Integrate with the acode font system for better font handling and customs fonts stuffs.
@@ -161,7 +174,7 @@
 ## `Update v1.2.0`
 
 - fixed issue related to saving state
-- added color picker in plugin setting for themeing
+- added color picker in plugin setting for theming
 - now it will remember your terminal state for better experience
 - added two shortcut:
   - <kbd>Ctrl+I</kbd> - to clear the terminal
