@@ -8,7 +8,7 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "types": ["acode-plugin-types"],
+    "types": ["acode-plugin-types"]
   },
-  "exclude": ["./dist/**/*", "./postcss.config.js"],
+  "exclude": ["./dist/**/*", "./postcss.config.js"]
 }

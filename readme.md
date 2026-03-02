@@ -22,6 +22,7 @@
 ---
 
 ## Table of Contents
+
 - [Features](#-features)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -76,7 +77,6 @@
 - **Image Rendering**: Supports rendering images in the terminal (enable in settings).
 
 - **Font Ligatures**: Supports font ligatures in supported font family
-
 
 ## Prerequisites
 
@@ -179,7 +179,6 @@ To run GUI apps within AcodeX, follow the steps below:
 
 5. **Using the GUI Viewer**
    After setup, the GUI Viewer page will open. On this page, you’ll find multiple interactive elements such as:
-
    - **Display Variable Button**:
      This button copies the `DISPLAY` environment variable needed for running GUI apps.
 
@@ -203,7 +202,7 @@ To run GUI apps within AcodeX, follow the steps below:
 AcodeX provides some additional Keybindings for easy usability of terminal features.
 
 > [!Note]
-> These keybindings will only work if you will use these inside terminal only. except the * marked one
+> These keybindings will only work if you will use these inside terminal only. except the \* marked one
 
 Following are the supported Keybindings :
 
@@ -245,6 +244,7 @@ We value your feedback! Please provide any suggestions or feedback to help us im
 Stay tuned for more AI integrations and improvements coming soon 😊!
 
 ## API Docs
+
 The `acodex` plugin provides a set of api to interact with the AcodeX terminal.
 
 #### `execute(cmd: string, withEnter?: boolean = true) => void`
@@ -354,19 +354,21 @@ const isOpened = acodex.isTerminalOpened();
 acodex.maximiseTerminal();
 
 const session = await acodex.openTerminal();
-session.onmessage(data => console.log(data));
+session.onmessage((data) => console.log(data));
 session.write("ls");
 
 const sessionSocket = await acodex.createSession();
-sessionSocket.onmessage(data => console.log(data));
+sessionSocket.onmessage((data) => console.log(data));
 sessionSocket.write("ls");
 
 const changeSessionSocket = await acodex.changeSession("AcodeX2");
-changeSessionSocket.onmessage(data => console.log(data));
+changeSessionSocket.onmessage((data) => console.log(data));
 changeSessionSocket.write("ls");
 
 acodex.closeTerminal();
-const termReadablePath = acodex.convertAcodeUriToTermReadable("file://storage/emulated/0/myTheme/acode/file/path");
+const termReadablePath = acodex.convertAcodeUriToTermReadable(
+  "file://storage/emulated/0/myTheme/acode/file/path",
+);
 acodex.addTheme("myTheme", { background: "#fff", text: "#000" }); // you can find more colors in themes.js
 acodex.applyTheme("myTheme");
 ```
@@ -386,7 +388,6 @@ AcodeX is made possible by the use of:
 ## Authors
 
 - [@bajrangCoder](https://github.com/bajrangCoder) - AcodeX is created by Raunak Raj
-
 
 ## 🚀 Feature Requests
 
@@ -422,22 +423,25 @@ Your contributions are highly appreciated and welcome! You can contribute to the
 ### Steps to setup AcodeX locally
 
 1. Fork it and Clone the repo
+
 ```bash
 git clone https://github.com/bajrangCoder/acode-plugin-acodex.git
 ```
 
 2. navigate to acodex directory and install the dependency
+
 ```bash
 bun install
 ```
+
 3. For building the plugin zip
+
 ```bash
 bun run build
 ```
 
 > [!Warning]
 > You will need [acodex-server](https://github.com/bajrangCoder/AcodeX-server) NodeJS package to be installed and running on [Termux](https://termux.dev) to test the plugin.
-
 
 ### 💰 Contribute Financially
 
