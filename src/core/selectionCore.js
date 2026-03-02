@@ -73,6 +73,10 @@ export default class SelectionCore {
 
     this.selectionChangeDisposable = null;
     this.resizeDisposable = null;
+    this.orientationChangeTimeout = null;
+    this.resizeTimeoutId = null;
+    this.restoreFocusTimeout = null;
+    this.isDestroyed = false;
 
     this.init();
   }
@@ -138,6 +142,8 @@ export default class SelectionCore {
   }
 
   attachEventListeners() {
+    if (!this.canAccessTerminal()) return;
+
     this.boundHandlers.terminalTouchStart = this.onTerminalTouchStart.bind(this);
     this.boundHandlers.terminalTouchMove = this.onTerminalTouchMove.bind(this);
     this.boundHandlers.terminalTouchEnd = this.onTerminalTouchEnd.bind(this);
@@ -448,7 +454,13 @@ export default class SelectionCore {
   }
 
   onOrientationChange() {
-    setTimeout(() => {
+    if (this.isDestroyed) return;
+    if (this.orientationChangeTimeout) {
+      clearTimeout(this.orientationChangeTimeout);
+    }
+
+    this.orientationChangeTimeout = setTimeout(() => {
+      if (!this.canAccessTerminal()) return;
       this.updateCellDimensions();
       if (this.isSelecting) {
         this.updateHandlePositions();
@@ -483,7 +495,13 @@ export default class SelectionCore {
   }
 
   onTerminalResize(size) {
-    setTimeout(() => {
+    if (this.isDestroyed) return;
+    if (this.resizeTimeoutId) {
+      clearTimeout(this.resizeTimeoutId);
+    }
+
+    this.resizeTimeoutId = setTimeout(() => {
+      if (!this.canAccessTerminal()) return;
       this.updateCellDimensions();
       if (!this.isSelecting) return;
 
@@ -505,7 +523,7 @@ export default class SelectionCore {
       if (this.contextMenu && this.contextMenu.style.display === "flex") {
         this.hideContextMenu(true);
         setTimeout(() => {
-          if (this.isSelecting && this.options.showContextMenu) {
+          if (this.isSelecting && this.options.showContextMenu && this.canAccessTerminal()) {
             this.showContextMenu();
           }
         }, 100);
@@ -888,8 +906,8 @@ export default class SelectionCore {
     this.selectionProtected = false;
 
     if (shouldRestoreFocus && !this.isTerminalFocused()) {
-      setTimeout(() => {
-        if (!this.isSelecting) {
+      this.restoreFocusTimeout = setTimeout(() => {
+        if (!this.isSelecting && this.canAccessTerminal()) {
           this.terminal.focus?.();
         }
       }, 150);
@@ -904,6 +922,8 @@ export default class SelectionCore {
   }
 
   touchToTerminalCoords(touch) {
+    if (!this.canAccessTerminal()) return null;
+
     const rect = this.terminal.element.getBoundingClientRect();
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
@@ -931,6 +951,7 @@ export default class SelectionCore {
 
   terminalCoordsToPixels(coords) {
     if (!coords) return null;
+    if (!this.canAccessTerminal()) return null;
 
     if (!this.cellDimensions.width || !this.cellDimensions.height) {
       this.updateCellDimensions();
@@ -952,7 +973,13 @@ export default class SelectionCore {
   }
 
   updateCellDimensions() {
-    const dimensions = this.terminal?._core?._renderService?.dimensions;
+    if (!this.canAccessTerminal()) {
+      this.cellDimensions = { width: 0, height: 0 };
+      return;
+    }
+
+    const renderService = this.terminal._core?._renderService;
+    const dimensions = renderService?.dimensions;
     if (dimensions?.css?.cell) {
       this.cellDimensions = {
         width: dimensions.css.cell.width,
@@ -971,6 +998,8 @@ export default class SelectionCore {
   }
 
   isTerminalFocused() {
+    if (!this.canAccessTerminal()) return false;
+
     try {
       return (
         document.activeElement === this.terminal.element ||
@@ -983,6 +1012,8 @@ export default class SelectionCore {
   }
 
   getWordBoundsAt(coords) {
+    if (!this.canAccessTerminal()) return null;
+
     try {
       const buffer = this.terminal.buffer.active;
       const line = buffer.getLine(coords.row);
@@ -1104,23 +1135,47 @@ export default class SelectionCore {
   }
 
   updateHandles() {
+    if (!this.canAccessTerminal()) return;
     this.updateHandlePositions();
   }
 
   destroy() {
+    if (this.isDestroyed) return;
+    this.isDestroyed = true;
+
     this.forceClearSelection();
 
-    this.terminal.element.removeEventListener("touchstart", this.boundHandlers.terminalTouchStart);
-    this.terminal.element.removeEventListener("touchmove", this.boundHandlers.terminalTouchMove);
-    this.terminal.element.removeEventListener("touchend", this.boundHandlers.terminalTouchEnd);
+    if (this.orientationChangeTimeout) {
+      clearTimeout(this.orientationChangeTimeout);
+      this.orientationChangeTimeout = null;
+    }
 
-    this.startHandle.removeEventListener("touchstart", this.boundHandlers.handleTouchStart);
-    this.startHandle.removeEventListener("touchmove", this.boundHandlers.handleTouchMove);
-    this.startHandle.removeEventListener("touchend", this.boundHandlers.handleTouchEnd);
+    if (this.resizeTimeoutId) {
+      clearTimeout(this.resizeTimeoutId);
+      this.resizeTimeoutId = null;
+    }
 
-    this.endHandle.removeEventListener("touchstart", this.boundHandlers.handleTouchStart);
-    this.endHandle.removeEventListener("touchmove", this.boundHandlers.handleTouchMove);
-    this.endHandle.removeEventListener("touchend", this.boundHandlers.handleTouchEnd);
+    if (this.restoreFocusTimeout) {
+      clearTimeout(this.restoreFocusTimeout);
+      this.restoreFocusTimeout = null;
+    }
+
+    if (this.terminal?.element) {
+      this.terminal.element.removeEventListener(
+        "touchstart",
+        this.boundHandlers.terminalTouchStart,
+      );
+      this.terminal.element.removeEventListener("touchmove", this.boundHandlers.terminalTouchMove);
+      this.terminal.element.removeEventListener("touchend", this.boundHandlers.terminalTouchEnd);
+    }
+
+    this.startHandle?.removeEventListener("touchstart", this.boundHandlers.handleTouchStart);
+    this.startHandle?.removeEventListener("touchmove", this.boundHandlers.handleTouchMove);
+    this.startHandle?.removeEventListener("touchend", this.boundHandlers.handleTouchEnd);
+
+    this.endHandle?.removeEventListener("touchstart", this.boundHandlers.handleTouchStart);
+    this.endHandle?.removeEventListener("touchmove", this.boundHandlers.handleTouchMove);
+    this.endHandle?.removeEventListener("touchend", this.boundHandlers.handleTouchEnd);
 
     if (this.scrollElement) {
       this.scrollElement.removeEventListener("scroll", this.boundHandlers.terminalScroll);
@@ -1148,5 +1203,22 @@ export default class SelectionCore {
     if (this.selectionOverlay?.parentNode) {
       this.selectionOverlay.parentNode.removeChild(this.selectionOverlay);
     }
+
+    this.terminal = null;
+    this.terminalContent = null;
+    this.selectionOverlay = null;
+    this.startHandle = null;
+    this.endHandle = null;
+    this.contextMenu = null;
+  }
+
+  canAccessTerminal() {
+    return !!(
+      !this.isDestroyed &&
+      this.terminal &&
+      this.terminal.element &&
+      this.terminalContent &&
+      this.terminalContent.isConnected
+    );
   }
 }

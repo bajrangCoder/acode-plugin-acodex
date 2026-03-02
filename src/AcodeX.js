@@ -784,45 +784,37 @@ export default class AcodeX {
 
   async openViewerPage() {
     loader.showTitleLoader();
-    // regex for testing out the vncserver installed or not
-    const vncCmdNotFoundRegex =
-      /(?:bash|zsh|sh|.*):(?:\s*line \d+:)?\s*\w+:? command not found|not found/;
     try {
       if (!this.rfb) {
-        const result = await this.executeCommandOnPty("vncserver --help");
-
-        if (vncCmdNotFoundRegex.test(result.output)) {
+        const hasVncServer = await this.commandExistsOnPty("vncserver");
+        if (!hasVncServer) {
           loader?.removeTitleLoader();
           acode.alert(
             "AcodeX Error",
             "vncserver not found, First go head and read readme of acodex regarding 'Gui Setup'. To setup it",
           );
         } else {
-          // check for any running vnc server
-          const listRes = await this.executeCommandOnPty("vncserver -list");
-          // Check the output of `vncserver -list` to see if any server is running
-          if (/:\d+\s+\t+\d+/.test(listRes.output)) {
-            // If a server is already running, extract the display number
-            this.displayVariable = listRes.output.match(/:(\d+)/)[0];
-            this.connectVncServer(this.displayVariable);
-          } else if (/TigerVNC server sessions:\s+X DISPLAY #\tPROCESS ID/.test(listRes.output)) {
-            const startVncServerRes = await this.executeCommandOnPty("vncserver");
-
-            const newServerRegex = /New 'localhost:(\d+)/;
-            const newServerMatch = startVncServerRes.output.match(newServerRegex);
-            if (newServerMatch) {
-              this.displayVariable = `:${newServerMatch[1]}`;
-              this.connectVncServer(this.displayVariable);
-            } else {
-              loader?.removeTitleLoader();
+          const displayVariable = await this.resolveRunningVncDisplay();
+          if (!displayVariable) {
+            const hasVncPassword = await this.hasVncPasswordConfigured();
+            loader?.removeTitleLoader();
+            if (!hasVncPassword) {
               acode.alert(
-                "AcodeX Error",
-                "Failed to create new vnc server session, try creating it manually by executing: `vncserver` command",
+                "AcodeX Setup Required",
+                "No VNC password is configured yet. Run `vncpasswd` or `vncserver` manually once first, then reopen GUI Viewer.",
               );
+              return;
             }
-          } else {
-            throw new Error("Unexpected output from vncserver -list.");
+            const manualDisplay = await this.promptForVncDisplay();
+            if (!manualDisplay) {
+              return;
+            }
+            this.displayVariable = manualDisplay;
+            await this.connectVncServer(this.displayVariable);
+            return;
           }
+          this.displayVariable = displayVariable;
+          await this.connectVncServer(this.displayVariable);
         }
       } else {
         loader?.removeTitleLoader();
@@ -837,26 +829,19 @@ export default class AcodeX {
 
   async connectVncServer(displayNum) {
     try {
-      const wsProxyCmdNotFoundRegex =
-        /(?:bash|zsh|sh|.*):(?:\s*line \d+:)?\s*\w+:? command not found|not found/;
-      const res = await this.executeCommandOnPty("websockify_rs");
-      if (wsProxyCmdNotFoundRegex.test(res.output)) {
+      const hasWebsockify = await this.commandExistsOnPty("websockify_rs");
+      if (!hasWebsockify) {
         acode.alert(
           "AcodeX Warning",
           "websockify_rs not found, which acts as a proxy. Go ahead and install it(Check readme for guide).",
         );
+        loader?.removeTitleLoader();
+        return;
       }
-      // check if websockify is running
-      const websockifyProcess = await this.executeCommandOnPty(
-        "ps aux | grep websockify_rs | grep -v grep",
-      );
-      if (websockifyProcess.output === "") {
-        // start the websockify proxy
+      const proxyReady = await this.isWebSocketEndpointReachable("ws://localhost:6778/");
+      if (!proxyReady) {
         const port = 5900 + Number.parseInt(displayNum.split(":")[1]);
-        const originalSession = localStorage.getItem("AcodeX_Current_Session");
-        const sessionSocket = await this.createSession();
-        await sessionSocket.send(`websockify_rs localhost:6778 localhost:${port}\r`);
-        await this.changeSession(originalSession);
+        await this.startWebsockifyProxySession(port);
         await this.waitForWebsockifyToStart();
       }
       this.bindNoVnc();
@@ -872,10 +857,8 @@ export default class AcodeX {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     while (retries > 0) {
-      const websockifyCheck = await this.executeCommandOnPty(
-        "ps aux | grep websockify_rs | grep -v grep",
-      );
-      if (websockifyCheck.output !== "") {
+      const isReady = await this.isWebSocketEndpointReachable("ws://localhost:6778/");
+      if (isReady) {
         console.log("AcodeX: Websockify_rs started successfully.");
         return; // Exit the loop once websockify is detected
       }
@@ -953,6 +936,129 @@ export default class AcodeX {
 
     const result = await response.json();
     return result;
+  }
+
+  getCommandOutput(result) {
+    if (typeof result?.output === "string") {
+      return result.output.trim();
+    }
+
+    return "";
+  }
+
+  async commandExistsOnPty(command) {
+    const result = await this.executeCommandOnPty(
+      `command -v ${command} >/dev/null 2>&1 && echo __ACODEX_FOUND__`,
+    );
+    return this.getCommandOutput(result).includes("__ACODEX_FOUND__");
+  }
+
+  extractVncDisplay(output) {
+    const match = String(output).match(/:(\d+)/);
+    return match ? `:${match[1]}` : null;
+  }
+
+  extractVncDisplayFromListeningPorts(output) {
+    const matches = [...String(output).matchAll(/[:.]59(\d{2})\b/g)];
+    if (matches.length === 0) {
+      return null;
+    }
+
+    const displays = matches
+      .map((match) => Number.parseInt(match[1], 10))
+      .filter((display) => !Number.isNaN(display));
+
+    if (displays.length === 0) {
+      return null;
+    }
+
+    return `:${Math.min(...displays)}`;
+  }
+
+  async promptForVncDisplay(defaultDisplay = "1") {
+    const value = await acode.prompt("Enter VNC display number:", defaultDisplay, "text");
+    if (!value) return null;
+
+    const normalizedValue = value.trim().replace(/^:/, "");
+    if (!/^\d+$/.test(normalizedValue)) {
+      acode.alert("AcodeX Error", "Invalid VNC display number.");
+      return null;
+    }
+
+    return `:${normalizedValue}`;
+  }
+
+  async hasVncPasswordConfigured() {
+    const result = await this.executeCommandOnPty(
+      'test -f "${XDG_CONFIG_HOME:-$HOME/.config}/tigervnc/passwd" || test -f "$HOME/.config/tigervnc/passwd" || test -f "$HOME/.vnc/passwd" && echo __ACODEX_FOUND__',
+    );
+    return this.getCommandOutput(result).includes("__ACODEX_FOUND__");
+  }
+
+  async resolveRunningVncDisplay() {
+    const listResult = await this.executeCommandOnPty("vncserver -list 2>&1");
+    const listedDisplay = this.extractVncDisplay(this.getCommandOutput(listResult));
+    if (listedDisplay) {
+      return listedDisplay;
+    }
+
+    const processResult = await this.executeCommandOnPty(
+      "sh -lc '(ps -ef 2>/dev/null || ps aux 2>/dev/null) | grep -E \"X(vnc|tigervnc)\" | grep -v grep'",
+    );
+    const processDisplay = this.extractVncDisplay(this.getCommandOutput(processResult));
+    if (processDisplay) {
+      return processDisplay;
+    }
+
+    const listeningPortResult = await this.executeCommandOnPty(
+      'sh -lc "(ss -ltn 2>/dev/null || netstat -ltn 2>/dev/null)"',
+    );
+    return this.extractVncDisplayFromListeningPorts(this.getCommandOutput(listeningPortResult));
+  }
+
+  async isWebSocketEndpointReachable(url, timeout = 1500) {
+    return await new Promise((resolve) => {
+      let socket;
+      let settled = false;
+
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        try {
+          socket?.close();
+        } catch (error) {
+          console.warn("AcodeX websocket probe close failed:", error);
+        }
+        resolve(value);
+      };
+
+      const timer = window.setTimeout(() => finish(false), timeout);
+
+      try {
+        socket = new WebSocket(url);
+        socket.onopen = () => finish(true);
+        socket.onerror = () => finish(false);
+        socket.onclose = () => finish(false);
+      } catch (error) {
+        console.warn("AcodeX websocket probe failed:", error);
+        finish(false);
+      }
+    });
+  }
+
+  async startWebsockifyProxySession(port) {
+    const originalSession = localStorage.getItem("AcodeX_Current_Session");
+    const sessionSocket = await this.createSession();
+    if (!sessionSocket) {
+      throw new Error("Failed to create a terminal session for websockify_rs.");
+    }
+
+    sessionSocket.send(`websockify_rs localhost:6778 localhost:${port}\r`);
+
+    if (originalSession) {
+      await this.changeSession(originalSession);
+    }
   }
 
   async openTerminalPanel(termContainerHeight, port) {
