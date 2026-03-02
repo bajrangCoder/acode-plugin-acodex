@@ -188,6 +188,7 @@ export default class AcodeX {
   pid;
   terminal = null;
   socket = null;
+  hasShownServerDisconnectAlert = false;
   $fitAddon = undefined;
 
   selectionManager = null;
@@ -1053,6 +1054,7 @@ export default class AcodeX {
 
     this.socket = new WebSocket(`ws://${this.terminalServerHost}:${port}/terminals/${pid}`);
     this.socket.onopen = () => {
+      this.hasShownServerDisconnectAlert = false;
       this.$attachAddon = new AttachAddon(this.socket);
       this.$terminal.loadAddon(this.$attachAddon);
       this.$terminal.unicode.activeVersion = "11";
@@ -1088,8 +1090,7 @@ export default class AcodeX {
         return;
       } catch (error) {
         // server closed
-        this.removeTerminal();
-        acode.alert("AcodeX Server", "Disconnected from server because server gets closed 😞!");
+        await this.handleServerDisconnect();
       }
     };
     this.socket.onerror = (error) => {
@@ -1709,6 +1710,15 @@ export default class AcodeX {
     await this.$cacheFile.writeFile("");
   }
 
+  async handleServerDisconnect() {
+    const shouldShowAlert = !this.hasShownServerDisconnectAlert;
+    this.hasShownServerDisconnectAlert = true;
+    await this.removeTerminal();
+    if (shouldShowAlert) {
+      acode.alert("AcodeX Server", "Disconnected from server because server gets closed 😞!");
+    }
+  }
+
   async terminalCloseHandler() {
     const jsonData = await this.$cacheFile.readFile("utf8");
     let sessionsData = jsonData ? JSON.parse(jsonData) : [];
@@ -1780,8 +1790,7 @@ export default class AcodeX {
           }
         })
         .catch(async (error) => {
-          this.removeTerminal();
-          acode.alert("AcodeX Server", "Disconnected from server because server gets closed 😞!");
+          await this.handleServerDisconnect();
           console.error(`Error while closing terminal ${this.pid}: ${error}`);
         });
     }
