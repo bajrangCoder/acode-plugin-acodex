@@ -41,7 +41,6 @@ import {
   TERMINAL_BACKEND,
   TERMINAL_BACKENDS,
   TERMINAL_PADDING,
-  THEME_LIST,
 } from "./utils/constants.js";
 import * as helpers from "./utils/helpers.js";
 import { themes } from "./utils/themes.js";
@@ -57,6 +56,7 @@ const DialogBox = acode.require("dialogBox");
 const pageComponent = acode.require("page");
 const actionStack = acode.require("actionStack");
 const acodeFonts = acode.require("fonts");
+const terminalApi = acode.require("terminal");
 
 const { clipboard } = cordova.plugins;
 
@@ -192,6 +192,82 @@ export default class AcodeX {
   $fitAddon = undefined;
 
   selectionManager = null;
+  registeredSharedThemeNames = new Set();
+
+  get terminalThemesApi() {
+    return terminalApi?.themes;
+  }
+
+  normalizeTerminalTheme(theme) {
+    if (!theme || typeof theme !== "object") {
+      return null;
+    }
+
+    return {
+      background: theme.background,
+      foreground: theme.foreground,
+      cursor: theme.cursor || "#fff",
+      cursorAccent: theme.cursorAccent || theme.background || "#fff",
+      selectionBackground: theme.selectionBackground || theme.selection || "#ffffff40",
+      black: theme.black,
+      blue: theme.blue,
+      brightBlack: theme.brightBlack,
+      brightBlue: theme.brightBlue,
+      brightCyan: theme.brightCyan,
+      brightGreen: theme.brightGreen,
+      brightMagenta: theme.brightMagenta,
+      brightRed: theme.brightRed,
+      brightWhite: theme.brightWhite,
+      brightYellow: theme.brightYellow,
+      cyan: theme.cyan,
+      green: theme.green,
+      magenta: theme.magenta,
+      red: theme.red,
+      white: theme.white,
+      yellow: theme.yellow,
+    };
+  }
+
+  getThemeByName(themeName) {
+    const sharedTheme = this.terminalThemesApi?.get?.(themeName);
+    return (
+      this.normalizeTerminalTheme(sharedTheme) || this.normalizeTerminalTheme(themes[themeName])
+    );
+  }
+
+  getAvailableThemeNames() {
+    const sharedThemeNames = this.terminalThemesApi?.getNames?.() || [];
+    const localThemeNames = Object.keys(themes);
+    return [...new Set([...localThemeNames, ...sharedThemeNames])];
+  }
+
+  syncThemeSettings(themeName) {
+    const theme = this.getThemeByName(themeName) || this.getThemeByName(DEFAULT_THEME);
+    if (!theme) return;
+
+    this.settings.theme = themeName;
+    this.settings.background = theme.background;
+    this.settings.foreground = theme.foreground;
+    this.settings.cursor = theme.cursor;
+    this.settings.cursorAccent = theme.cursorAccent;
+    this.settings.selectionBackground = theme.selectionBackground;
+    this.settings.black = theme.black;
+    this.settings.blue = theme.blue;
+    this.settings.brightBlack = theme.brightBlack;
+    this.settings.brightBlue = theme.brightBlue;
+    this.settings.brightCyan = theme.brightCyan;
+    this.settings.brightGreen = theme.brightGreen;
+    this.settings.brightMagenta = theme.brightMagenta;
+    this.settings.brightRed = theme.brightRed;
+    this.settings.brightWhite = theme.brightWhite;
+    this.settings.brightYellow = theme.brightYellow;
+    this.settings.cyan = theme.cyan;
+    this.settings.green = theme.green;
+    this.settings.magenta = theme.magenta;
+    this.settings.red = theme.red;
+    this.settings.white = theme.white;
+    this.settings.yellow = theme.yellow;
+  }
 
   scrollTerminalToBottom() {
     if (!this.$terminal) return;
@@ -222,6 +298,10 @@ export default class AcodeX {
     }
     if (typeof this.settings?.terminalBackend === "undefined") {
       this.settings.terminalBackend = TERMINAL_BACKEND;
+      appSettings.update(false);
+    }
+    if (this.settings?.theme && this.settings.theme !== "custom") {
+      this.syncThemeSettings(this.settings.theme);
       appSettings.update(false);
     }
 
@@ -650,8 +730,18 @@ export default class AcodeX {
          * @param {object} colorSchema - The color schema of the new theme.
          */
         addTheme: (themeNme, colorSchema) => {
-          THEME_LIST.push(themeNme);
           themes[themeNme] = colorSchema;
+          const registered = this.terminalThemesApi?.register?.(
+            themeNme,
+            {
+              ...colorSchema,
+              selection: colorSchema.selectionBackground || colorSchema.selection,
+            },
+            plugin.id,
+          );
+          if (registered !== false) {
+            this.registeredSharedThemeNames.add(themeNme);
+          }
         },
 
         /**
@@ -1662,6 +1752,7 @@ export default class AcodeX {
   }
 
   _saveSetting() {
+    const defaultTheme = this.getThemeByName(DEFAULT_THEME);
     appSettings.value[plugin.id] = {
       port: 8767,
       serverHost: "localhost",
@@ -1688,27 +1779,27 @@ export default class AcodeX {
       scrollBack: SCROLLBACK,
       scrollSensitivity: SCROLL_SENSITIVITY,
       theme: DEFAULT_THEME,
-      background: themes[DEFAULT_THEME].background,
-      foreground: themes[DEFAULT_THEME].foreground,
-      cursor: themes[DEFAULT_THEME].cursor || "",
-      cursorAccent: themes[DEFAULT_THEME].cursorAccent || "",
-      selectionBackground: themes[DEFAULT_THEME].selectionBackground,
-      black: themes[DEFAULT_THEME].black,
-      blue: themes[DEFAULT_THEME].blue,
-      brightBlack: themes[DEFAULT_THEME].brightBlack,
-      brightBlue: themes[DEFAULT_THEME].brightBlue,
-      brightCyan: themes[DEFAULT_THEME].brightCyan,
-      brightGreen: themes[DEFAULT_THEME].brightGreen,
-      brightMagenta: themes[DEFAULT_THEME].brightMagenta,
-      brightRed: themes[DEFAULT_THEME].brightWhite,
-      brightWhite: themes[DEFAULT_THEME].brightWhite,
-      brightYellow: themes[DEFAULT_THEME].brightYellow,
-      cyan: themes[DEFAULT_THEME].cyan,
-      green: themes[DEFAULT_THEME].green,
-      magenta: themes[DEFAULT_THEME].magenta,
-      red: themes[DEFAULT_THEME].red,
-      white: themes[DEFAULT_THEME].white,
-      yellow: themes[DEFAULT_THEME].yellow,
+      background: defaultTheme.background,
+      foreground: defaultTheme.foreground,
+      cursor: defaultTheme.cursor,
+      cursorAccent: defaultTheme.cursorAccent,
+      selectionBackground: defaultTheme.selectionBackground,
+      black: defaultTheme.black,
+      blue: defaultTheme.blue,
+      brightBlack: defaultTheme.brightBlack,
+      brightBlue: defaultTheme.brightBlue,
+      brightCyan: defaultTheme.brightCyan,
+      brightGreen: defaultTheme.brightGreen,
+      brightMagenta: defaultTheme.brightMagenta,
+      brightRed: defaultTheme.brightRed,
+      brightWhite: defaultTheme.brightWhite,
+      brightYellow: defaultTheme.brightYellow,
+      cyan: defaultTheme.cyan,
+      green: defaultTheme.green,
+      magenta: defaultTheme.magenta,
+      red: defaultTheme.red,
+      white: defaultTheme.white,
+      yellow: defaultTheme.yellow,
     };
     appSettings.update(false);
   }
@@ -2106,6 +2197,10 @@ export default class AcodeX {
   }
 
   async destroy() {
+    this.registeredSharedThemeNames.forEach((themeName) => {
+      this.terminalThemesApi?.unregister?.(themeName, plugin.id);
+    });
+    this.registeredSharedThemeNames.clear();
     render(null, this.$terminalHeader);
     render(null, this.$showTermBtn);
     this.$style?.remove();
@@ -2160,29 +2255,7 @@ export default class AcodeX {
   }
 
   async applyTheme(themeName) {
-    const theme = themes[themeName];
-    this.settings.theme = themeName;
-    this.settings.background = theme.background;
-    this.settings.foreground = theme.foreground;
-    this.settings.cursor = theme.cursor || "#fff";
-    this.settings.cursorAccent = theme.cursorAccent || "#fff";
-    this.settings.selectionBackground = theme.selectionBackground;
-    this.settings.black = theme.black;
-    this.settings.blue = theme.blue;
-    this.settings.brightBlack = theme.brightBlack;
-    this.settings.brightBlue = theme.brightBlue;
-    this.settings.brightCyan = theme.brightCyan;
-    this.settings.brightGreen = theme.brightGreen;
-    this.settings.brightMagenta = theme.brightMagenta;
-    this.settings.brightRed = theme.brightRed;
-    this.settings.brightWhite = theme.brightWhite;
-    this.settings.brightYellow = theme.brightYellow;
-    this.settings.cyan = theme.cyan;
-    this.settings.green = theme.green;
-    this.settings.magenta = theme.magenta;
-    this.settings.red = theme.red;
-    this.settings.white = theme.white;
-    this.settings.yellow = theme.yellow;
+    this.syncThemeSettings(themeName);
     appSettings.update();
   }
 
@@ -2585,7 +2658,7 @@ export default class AcodeX {
         text: "Theme",
         value: this.settings.theme,
         info: "Theme of terminal.",
-        select: THEME_LIST,
+        select: this.getAvailableThemeNames(),
       },
     ];
   }
