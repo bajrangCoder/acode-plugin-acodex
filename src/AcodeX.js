@@ -1,49 +1,50 @@
+import RFB from "@novnc/novnc";
+import KeyTable from "@novnc/novnc/lib/input/keysym";
+import keysyms from "@novnc/novnc/lib/input/keysymdef";
+import { AttachAddon } from "@xterm/addon-attach";
+// xtermjs addons
+import { FitAddon } from "@xterm/addon-fit";
+import { ImageAddon } from "@xterm/addon-image";
+import { SearchAddon } from "@xterm/addon-search";
+import { Unicode11Addon } from "@xterm/addon-unicode11";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { WebglAddon } from "@xterm/addon-webgl";
+// xtermjs
+import { Terminal } from "@xterm/xterm";
+import { h, render } from "preact";
 import plugin from "../plugin.json";
-import style from "./styles/style.scss";
-import * as helpers from "./utils/helpers.js";
-import { themes } from "./utils/themes.js";
-import AIResponseHandler from "./services/AiService.js";
+import LigaturesAddon from "./addons/ligatures.js";
 import SelectionCore from "./core/selectionCore.js";
+import AIResponseHandler from "./services/AiService.js";
+import style from "./styles/style.scss";
+import { FloatingTerminalButton, TerminalShell } from "./ui/TerminalShell.jsx";
 import {
+	AI_MODEL,
 	ALLOW_TRANSPRANCY,
+	AVAILABLE_AI_MODELS,
 	CURSOR_BLINK,
 	CURSOR_INACTIVE_STYLE,
 	CURSOR_STYLE,
 	DEFAULT_THEME,
 	FONT_FAMILY,
+	FONT_LIGATURES,
 	FONT_SIZE,
 	FONT_WEIGHT,
-	SCROLLBACK,
+	FONTS_LIST,
+	GUI_VIEWER,
+	IMAGE_RENDERING,
 	SCROLL_SENSITIVITY,
+	SCROLLBACK,
+	SELECTION_HAPTICS,
+	showTerminalBtn,
+	showTerminalBtnSize,
+	TERMINAL_BACKEND,
+	TERMINAL_BACKENDS,
 	TERMINAL_PADDING,
 	THEME_LIST,
-	FONTS_LIST,
-	showTerminalBtnSize,
-	AI_MODEL,
-	AVAILABLE_AI_MODELS,
-	IMAGE_RENDERING,
-	GUI_VIEWER,
-	SELECTION_HAPTICS,
-	FONT_LIGATURES,
-	showTerminalBtn,
 } from "./utils/constants.js";
-
-import RFB from "@novnc/novnc";
-import KeyTable from "@novnc/novnc/lib/input/keysym";
-import keysyms from "@novnc/novnc/lib/input/keysymdef";
-import { h, render } from "preact";
-// xtermjs
-import { Terminal } from "@xterm/xterm";
-// xtermjs addons
-import { FitAddon } from "@xterm/addon-fit";
-import { WebglAddon } from "@xterm/addon-webgl";
-import { WebLinksAddon } from "@xterm/addon-web-links";
-import { Unicode11Addon } from "@xterm/addon-unicode11";
-import { AttachAddon } from "@xterm/addon-attach";
-import { SearchAddon } from "@xterm/addon-search";
-import { ImageAddon } from "@xterm/addon-image";
-import LigaturesAddon from "./addons/ligatures.js";
-import { FloatingTerminalButton, TerminalShell } from "./ui/TerminalShell.jsx";
+import * as helpers from "./utils/helpers.js";
+import { themes } from "./utils/themes.js";
 
 // acode commopents & api
 const confirm = acode.require("confirm");
@@ -208,6 +209,10 @@ export default class AcodeX {
 			this.settings.terminalPadding = TERMINAL_PADDING;
 			appSettings.update(false);
 		}
+		if (typeof this.settings?.terminalBackend === "undefined") {
+			this.settings.terminalBackend = TERMINAL_BACKEND;
+			appSettings.update(false);
+		}
 
 		this.uiState = {
 			sessionName: localStorage.getItem("AcodeX_Current_Session") || "AcodeX1",
@@ -277,12 +282,16 @@ export default class AcodeX {
 		this.renderUI();
 	}
 
-	handleOpenTerminalCommand() {
+	async handleOpenTerminalCommand() {
 		if (this.isTerminalOpened && this.isTerminalMinimized) {
 			this.maxmise();
 			return;
 		}
-		this.openTerminalPanel(270, this.settings.port);
+		try {
+			await this.openTerminalPanel(270, this.settings.port);
+		} catch (error) {
+			acode.alert("AcodeX Error", error.message);
+		}
 	}
 
 	handleToggleTerminalCommand() {
@@ -996,7 +1005,7 @@ export default class AcodeX {
 
 	async executeCommandOnPty(command) {
 		const response = await fetch(
-			`http://${this.settings.serverHost}:${this.settings.port}/execute-command`,
+			`http://${this.terminalServerHost}:${this.settings.port}/execute-command`,
 			{
 				method: "POST",
 				headers: {
@@ -1022,6 +1031,7 @@ export default class AcodeX {
 		 */
 
 		if (!port) return;
+		await this.ensureTerminalBackendReady();
 		if (!document.querySelector(".terminal-panel")) {
 			app.get("main").append(this.$terminalContainer, this.$showTermBtn);
 		}
@@ -1114,7 +1124,7 @@ export default class AcodeX {
 			if (!pid) return;
 			const cols = size.cols.toString();
 			const rows = size.rows.toString();
-			const url = `http://${this.settings.serverHost}:${port}/terminals/${pid}/resize`;
+			const url = `http://${this.terminalServerHost}:${port}/terminals/${pid}/resize`;
 
 			await fetch(url, {
 				method: "POST",
@@ -1130,7 +1140,7 @@ export default class AcodeX {
     });*/
 
 		this.socket = new WebSocket(
-			`ws://${this.settings.serverHost}:${port}/terminals/${pid}`,
+			`ws://${this.terminalServerHost}:${port}/terminals/${pid}`,
 		);
 		this.socket.onopen = () => {
 			this.$attachAddon = new AttachAddon(this.socket);
@@ -1165,7 +1175,7 @@ export default class AcodeX {
 		this.socket.onclose = async (event) => {
 			try {
 				const response = await fetch(
-					`http://${this.settings.serverHost}:${port}/`,
+					`http://${this.terminalServerHost}:${port}/`,
 				);
 				if (!response.ok) {
 					console.warn(
@@ -1537,7 +1547,12 @@ export default class AcodeX {
 		this.$ligatureAddon?.dispose();
 		this.$webglAddon?.dispose();
 		this.$terminal?.dispose();
-		this.socket?.close();
+		if (this.socket) {
+			this.socket.onopen = null;
+			this.socket.onclose = null;
+			this.socket.onerror = null;
+			this.socket.close();
+		}
 		this.socket = null;
 		this.$terminal = undefined;
 		this.$attachAddon = undefined;
@@ -1556,7 +1571,7 @@ export default class AcodeX {
 			const cols = this.$terminal.cols.toString();
 			const rows = this.$terminal.rows.toString();
 			const res = await fetch(
-				`http://${this.settings.serverHost}:${this.settings.port}/terminals`,
+				`http://${this.terminalServerHost}:${this.settings.port}/terminals`,
 				{
 					method: "POST",
 					headers: {
@@ -1587,7 +1602,7 @@ export default class AcodeX {
 				this.$terminalContainer.offsetHeight,
 			);
 			localStorage.removeItem("AcodeX_Current_Session");
-			window.toast("Start the acodex server in termux first!", 4000);
+			window.toast("Failed to connect to the selected terminal backend.", 4000);
 		}
 	}
 
@@ -1657,6 +1672,7 @@ export default class AcodeX {
 		appSettings.value[plugin.id] = {
 			port: 8767,
 			serverHost: "localhost",
+			terminalBackend: TERMINAL_BACKEND,
 			aiApiKey: "",
 			aiModel: AI_MODEL,
 			transparency: ALLOW_TRANSPRANCY,
@@ -1905,7 +1921,7 @@ export default class AcodeX {
 			);
 			if (!pidOfCurrentSession) return;
 			fetch(
-				`http://${this.settings.serverHost}:${this.settings.port}/terminals/${pidOfCurrentSession}/terminate`,
+				`http://${this.terminalServerHost}:${this.settings.port}/terminals/${pidOfCurrentSession}/terminate`,
 				{
 					method: "POST",
 				},
@@ -2295,6 +2311,104 @@ export default class AcodeX {
 		window.toast("Cache cleared 🔥", 3000);
 	}
 
+	get isBuiltinTerminalBackend() {
+		return this.settings.terminalBackend === "builtin";
+	}
+
+	get terminalServerHost() {
+		return this.isBuiltinTerminalBackend
+			? "localhost"
+			: this.settings.serverHost;
+	}
+
+	async ensureTerminalBackendReady() {
+		if (!this.isBuiltinTerminalBackend) return;
+
+		const builtinTerminal = window.Terminal;
+		if (
+			!builtinTerminal ||
+			typeof builtinTerminal.isInstalled !== "function" ||
+			typeof builtinTerminal.isAxsRunning !== "function" ||
+			typeof builtinTerminal.startAxs !== "function"
+		) {
+			throw new Error(
+				"Builtin terminal backend is unavailable in this Acode build.",
+			);
+		}
+
+		if (!(await builtinTerminal.isInstalled())) {
+			throw new Error(
+				"Builtin terminal backend is not installed. Install or set up Acode's terminal first.",
+			);
+		}
+
+		if (await builtinTerminal.isAxsRunning()) return;
+
+		await builtinTerminal.startAxs(false, () => {}, console.error);
+
+		for (let retry = 0; retry < 10; retry++) {
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+			if (await builtinTerminal.isAxsRunning()) return;
+		}
+
+		throw new Error("Failed to start the builtin terminal server.");
+	}
+
+	async resetTerminalBackendState() {
+		this.cleanupSelectionManager();
+		this.$attachAddon?.dispose();
+		this.$fitAddon?.dispose();
+		this.$unicode11Addon?.dispose();
+		this.$webLinkAddon?.dispose();
+		this.$searchAddon?.dispose();
+		this.$imageAddon?.dispose();
+		this.$ligatureAddon?.dispose();
+		this.$webglAddon?.dispose();
+		this.$terminal?.dispose();
+		if (this.socket) {
+			this.socket.onopen = null;
+			this.socket.onclose = null;
+			this.socket.onerror = null;
+			this.socket.close();
+		}
+		this.socket = null;
+		this.$terminal = undefined;
+		this.$attachAddon = undefined;
+		this.$fitAddon = undefined;
+		this.$unicode11Addon = undefined;
+		this.$webLinkAddon = undefined;
+		this.$searchAddon = undefined;
+		this.$imageAddon = undefined;
+		this.$ligatureAddon = undefined;
+		this.$webglAddon = undefined;
+		this.$terminalContent.innerHTML = "";
+		this.rfb?.disconnect();
+		this.rfb = undefined;
+		this.$terminalContainer?.classList.add("hide");
+		this.$showTermBtn?.classList.add("hide");
+		this.isTerminalMinimized = false;
+		this.isTerminalOpened = false;
+		localStorage.setItem(
+			"AcodeX_Terminal_Is_Minimised",
+			this.isTerminalMinimized,
+		);
+		localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+		if (this.$terminalContainer) {
+			this.$terminalContainer.style.height = this.previousTerminalHeight || "";
+			localStorage.setItem(
+				"AcodeX_Terminal_Cont_Height",
+				this.$terminalContainer.offsetHeight,
+			);
+		}
+		localStorage.removeItem("AcodeX_Current_Session");
+		await this.$cacheFile?.writeFile("");
+		this.setUiState({
+			sessionName: "AcodeX1",
+			searchVisible: false,
+			searchQuery: "",
+		});
+	}
+
 	get settingsObj() {
 		if (this.settings.theme === "custom") {
 			return {
@@ -2322,6 +2436,13 @@ export default class AcodeX {
 						required: true,
 					},
 				],
+			},
+			{
+				key: "terminalBackend",
+				text: "Terminal Backend",
+				value: this.settings.terminalBackend,
+				info: "Choose between external axs and Acode's builtin terminal backend.",
+				select: TERMINAL_BACKENDS,
 			},
 			{
 				key: "letterSpacing",
@@ -2354,7 +2475,7 @@ export default class AcodeX {
 				key: "serverHost",
 				text: "Server Host Name",
 				value: this.settings.serverHost,
-				info: "Hostname which is displayed on termux when starting the server",
+				info: "Hostname for the external axs server. Builtin backend always uses localhost.",
 				prompt: "Server Host Name",
 				promptType: "text",
 				promptOption: [
@@ -2821,6 +2942,16 @@ export default class AcodeX {
 					this.setupGUIViewerPage();
 				}
 				this.renderUI();
+				break;
+			case "terminalBackend":
+				if (this.settings[key] === value) break;
+				this.settings[key] = value;
+				appSettings.update();
+				await this.resetTerminalBackendState();
+				window.toast(
+					`Switched terminal backend to ${value}. Open AcodeX again to start a fresh session.`,
+					3000,
+				);
 				break;
 			case "showTerminalBtn":
 				this.settings[key] = value;
