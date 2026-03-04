@@ -10,7 +10,7 @@
 > [!Warning]
 > This plugin requires the [axs](https://github.com/bajrangCoder/acodex_server) to be installed and running on [Termux](https://termux.dev) or Directly use it with Acode's builtin terminal backend.
 
-[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **150k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX has almost every terminal feature and also it is more feature rich when it comes to rendering things compared termux etc (Thanks to xtermjs)
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **200k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX has almost every terminal feature and also it is more feature rich when it comes to rendering things compared termux etc (Thanks to xtermjs)
 
 > [!NOTE]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
