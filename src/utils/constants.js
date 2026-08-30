@@ -16,6 +16,19 @@ export const SELECTION_HAPTICS = true;
 export const FONT_LIGATURES = true;
 export const TERMINAL_BACKEND = "axs";
 export const TERMINAL_BACKENDS = ["axs", "builtin"];
+export const TERMINAL_VIEW = "xterm";
+export const TERMINAL_VIEWS = [
+  ["xterm", "xterm.js"],
+  ["rioterm", "RioTerm"],
+];
+export const RIO_RENDERER = "dom";
+export const RIO_RENDERERS = [
+  ["dom", "DOM (accessible)"],
+  ["canvas", "Canvas (performance)"],
+];
+export const RIO_LINE_HEIGHT = 1.3;
+export const RIO_DETECT_URLS = true;
+export const RIO_PREDICTIVE_ECHO = false;
 export const CURSOR_BLINK = true;
 export const CURSOR_STYLE = ["block", "underline", "bar"];
 export const CURSOR_INACTIVE_STYLE = ["outline", "block", "bar", "underline", "none"];

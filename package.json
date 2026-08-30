@@ -1,6 +1,6 @@
 {
   "name": "acode-plugin-acodex",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "Terminal support for Acode",
   "license": "MIT",
   "author": "Raunak Raj <bajrangcoders@gmail.com>",
@@ -25,7 +25,8 @@
     "acode-plugin-types": "^1.11.7-patch.2",
     "html-tag-js": "^1.9.2",
     "ollama": "^0.5.13",
-    "preact": "^10.27.2"
+    "preact": "^10.27.2",
+    "rioterm": "0.1.8"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

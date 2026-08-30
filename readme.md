@@ -10,7 +10,7 @@
 > [!Warning]
 > This plugin requires the [axs](https://github.com/bajrangCoder/acodex_server) to be installed and running on [Termux](https://termux.dev) or Directly use it with Acode's builtin terminal backend.
 
-[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **200k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX has almost every terminal feature and also it is more feature rich when it comes to rendering things compared termux etc (Thanks to xtermjs)
+[AcodeX](https://github.com/bajrangCoder/acode-plugin-acodex) is a powerful and AI integrated terminal plugin with **200k++ downloads** for [Acode](https://acode.foxdebug.com/) that enhances your coding productivity by adding in-app Termux terminal integration. With AcodeX, you can execute terminal commands directly from within the Acode app, eliminating the need to switch between apps for coding and terminal access. AcodeX offers both the established xterm.js view and a Rust/WASM-powered RioTerm view.
 
 > [!NOTE]
 > When starting a new terminal, be sure to adjust the terminal panel according to your screen. You can drag it to your desired position, and it will automatically adjust the columns and rows according to your screen size.
@@ -59,6 +59,10 @@
 - **Easy Directory Navigation**: Change directories with a single click for hassle-free navigation.
 
 - **Beautiful Themes**: Choose from 10+ stunning themes to personalize your coding environment.
+
+- **Two Terminal Views**: Keep using xterm.js or select RioTerm for its Rust/WASM core, built-in search, links, Unicode handling, clipboard support, and fit behavior.
+
+- **Accessible RioTerm DOM Renderer**: RioTerm defaults to real DOM text for assistive technology and platform selection, without AcodeX's custom selection handles. A canvas option is also available.
 
 - **Transparency Options**: Adjust panel transparency for a sleek, customized look.(it will take resources)
 
@@ -157,6 +161,17 @@ If you're an existing user and want to start using the new GUI features, follow 
 - The `✗` button is for closing the terminal.
 - The folder icon button on the terminal header is for navigating to opened files (in the editor) directory.
 
+### Choosing a terminal view
+
+Open AcodeX settings and choose **Terminal View**:
+
+- `xterm` keeps the existing xterm.js view and its addons.
+- `rioterm` enables RioTerm. Its supported settings are shown when you reopen the settings page. The `dom` renderer is the default accessible option; `canvas` enables the optional predictive-echo setting for high-latency connections.
+
+Both RioTerm renderers support AcodeX transparency. RioTerm also includes an Android soft-keyboard/IME bridge because mobile WebViews do not consistently emit desktop keyboard events.
+
+Existing AcodeX/xterm themes are translated automatically into RioTerm's complete theme format, including ANSI colors and selection colors.
+
 ## How to Run GUI Apps in AcodeX?
 
 To run GUI apps within AcodeX, follow the steps below:
@@ -219,7 +234,7 @@ Following are the supported Keybindings :
 - <kbd>Ctrl+5</kbd> : opens session 5 if exists
 - <kbd>Ctrl+Shift+I</kbd> : clear the terminal
 - <kbd>Ctrl+Shift+T</kbd> : Maximise/Minimise the terminal(works from terminal as well as from editor)
-- <kbd>Ctrl+a</kbd> : select all
+- <kbd>Ctrl+a</kbd> : select all (xterm.js view only; RioTerm leaves this shell shortcut unchanged)
 
 ### How to Use AI
 
@@ -382,6 +397,7 @@ Just add custom font through Acode's custom font manager and it will be listed i
 AcodeX is made possible by the use of:
 
 - [xtermjs](https://xtermjs.org/)
+- [RioTerm for the web](https://github.com/raphamorim/riotermjs)
 - [Termux](https://termux.dev/en/)
 - [noVnc](https://github.com/novnc/noVnc)
 

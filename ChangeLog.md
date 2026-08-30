@@ -1,5 +1,19 @@
 # Change Logs
 
+## `v3.4.0`
+
+- Added RioTerm as a second terminal view with DOM and canvas renderers.
+- Added an xterm.js-to-RioTerm theme compatibility shim so built-in, shared, and custom themes work in both views.
+- Added RioTerm-specific settings for renderer, line height, URL detection, and canvas predictive echo while hiding unsupported xterm-only settings.
+- Integrated RioTerm's built-in fit, search, links, clipboard, Unicode, byte transport, and accessibility-focused DOM output.
+- RioTerm uses its own/native selection behavior and does not load AcodeX's custom xterm.js selection manager.
+- Added an automatic xterm.js fallback if RioTerm or its WASM binary cannot initialize.
+- Embedded RioTerm's WASM bytes in the plugin bundle so Acode's HTTP bridge does not need to fetch or compile a separate asset.
+- Fixed terminal termination requests for Acode's advanced-http bridge and corrected RioTerm-specific focus restoration paths.
+- Added an Android/WebView `beforeinput` and IME composition bridge for RioTerm's hidden input so soft-keyboard text, Enter, Backspace, and paste reach the PTY.
+
+
+
 ## `Update v3.3.0`
 
 - Improved the terminal header UI.

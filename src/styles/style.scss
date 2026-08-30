@@ -252,6 +252,41 @@
   .terminal-content .xterm-screen {
     touch-action: pan-y;
   }
+
+  .terminal-content.rioterm-view {
+    touch-action: none;
+  }
+
+  .rioterm-mount {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: inherit;
+    box-sizing: border-box;
+    overscroll-behavior: contain;
+    touch-action: none;
+  }
+
+  .rioterm-mount > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    height: 100%;
+  }
+
+  .rioterm-dom {
+    user-select: text;
+    -webkit-user-select: text;
+    -webkit-touch-callout: default;
+  }
+
+  .rioterm-canvas canvas {
+    display: block;
+    touch-action: none;
+  }
 }
 
 .show-terminal-btn {

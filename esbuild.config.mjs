@@ -1,11 +1,13 @@
 import * as esbuild from "esbuild";
 import { sassPlugin } from "esbuild-sass-plugin";
 import { exec } from "node:child_process";
-import { cpSync, mkdirSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
-function syncXtermCss() {
+function syncTerminalAssets() {
   mkdirSync("dist", { recursive: true });
   cpSync("node_modules/@xterm/xterm/css/xterm.css", "dist/xterm.css");
+  rmSync("dist/librio_wasm_bg.wasm", { force: true });
 }
 
 const isServe = process.argv.includes("--serve");
@@ -26,11 +28,46 @@ const zipPlugin = {
   name: "zip-plugin",
   setup(build) {
     build.onStart(() => {
-      syncXtermCss();
+      syncTerminalAssets();
     });
 
     build.onEnd(() => {
       packZip();
+    });
+  },
+};
+
+const rioCompatPlugin = {
+  name: "rio-compat",
+  setup(build) {
+    build.onResolve({ filter: /^rioterm-wasm$/ }, () => ({
+      path: resolve("node_modules/rioterm/wasm/librio_wasm_bg.wasm"),
+    }));
+
+    build.onLoad({ filter: /node_modules[\\/]rioterm[\\/]dist[\\/]index\.js$/ }, (args) => {
+      let source = readFileSync(args.path, "utf8");
+      const opaqueContext = 'this.canvas.getContext("2d", { alpha: false })';
+      const transparentContext = 'this.canvas.getContext("2d", { alpha: true })';
+      const rowStart = `    const ctx = this.ctx;
+    const y = row * ch;
+    const base = row * snap.cols * CELL_WORDS;`;
+      const transparentRowStart = `    const ctx = this.ctx;
+    const y = row * ch;
+    ctx.clearRect(0, y, snap.cols * cw, ch);
+    const base = row * snap.cols * CELL_WORDS;`;
+
+      if (!source.includes(opaqueContext) || !source.includes(rowStart)) {
+        throw new Error("RioTerm canvas internals changed; update the transparency patch.");
+      }
+      source = source
+        .replace(opaqueContext, transparentContext)
+        .replace(rowStart, transparentRowStart);
+
+      return {
+        contents: source,
+        loader: "js",
+        resolveDir: dirname(args.path),
+      };
     });
   },
 };
@@ -43,7 +80,10 @@ const buildConfig = {
   logLevel: "info",
   color: true,
   outdir: "dist",
-  plugins: [zipPlugin, sassPlugin()],
+  loader: {
+    ".wasm": "binary",
+  },
+  plugins: [rioCompatPlugin, zipPlugin, sassPlugin()],
 };
 
 // Main function to handle both serve and production builds

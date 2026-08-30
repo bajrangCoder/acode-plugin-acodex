@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "acode-plugin-acodex",
@@ -17,6 +18,7 @@
         "html-tag-js": "^1.9.2",
         "ollama": "^0.5.13",
         "preact": "^10.27.2",
+        "rioterm": "0.1.8",
       },
       "devDependencies": {
         "esbuild": "^0.25.0",
@@ -230,6 +232,8 @@
     "readdirp": ["readdirp@4.1.2", "", {}, "sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg=="],
 
     "resolve": ["resolve@1.22.10", "", { "dependencies": { "is-core-module": "2.16.1", "path-parse": "1.0.7", "supports-preserve-symlinks-flag": "1.0.0" }, "bin": { "resolve": "bin/resolve" } }, "sha512-NPRy+/ncIMeDlTAsuqwKIiferiawhefFJtkNSW0qZJEqMEb+qBt/77B/jGeeek+F0uOeN05CDa6HXbbIgtVX4w=="],
+
+    "rioterm": ["rioterm@0.1.8", "", {}, "sha512-JIy+x8Y1qt4mUm9KavsWeF2XtIEr0xBSiJTzx3bI0Oiv6ZK1W/+S+3GEcYHiOz4aMNx9C6niH5BesqiQ4RYbew=="],
 
     "safe-buffer": ["safe-buffer@5.1.2", "", {}, "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g=="],
 

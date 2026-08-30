@@ -12,6 +12,8 @@ import { WebglAddon } from "@xterm/addon-webgl";
 // xtermjs
 import { Terminal } from "@xterm/xterm";
 import { h, render } from "preact";
+import { initWasm as initRioWasm, open as openRioTerm } from "rioterm";
+import rioWasmBytes from "rioterm-wasm";
 import plugin from "../plugin.json";
 import LigaturesAddon from "./addons/ligatures.js";
 import SelectionCore from "./core/selectionCore.js";
@@ -38,11 +40,19 @@ import {
   SELECTION_HAPTICS,
   showTerminalBtn,
   showTerminalBtnSize,
+  RIO_DETECT_URLS,
+  RIO_LINE_HEIGHT,
+  RIO_PREDICTIVE_ECHO,
+  RIO_RENDERER,
+  RIO_RENDERERS,
   TERMINAL_BACKEND,
   TERMINAL_BACKENDS,
   TERMINAL_PADDING,
+  TERMINAL_VIEW,
+  TERMINAL_VIEWS,
 } from "./utils/constants.js";
 import * as helpers from "./utils/helpers.js";
+import { xtermThemeToRioTheme } from "./utils/rioTheme.js";
 import { themes } from "./utils/themes.js";
 
 // acode commopents & api
@@ -192,7 +202,35 @@ export default class AcodeX {
   $fitAddon = undefined;
 
   selectionManager = null;
+  $rioHandle = null;
+  $rioRenderer = null;
+  $rioResizeObserver = null;
+  $rioInput = null;
+  $rioInputFocusTarget = null;
+  $rioTouchStartHandler = null;
+  $rioTouchMoveHandler = null;
+  $rioInputTouchEndHandler = null;
+  $rioTouchCancelHandler = null;
+  $rioMouseDownGuard = null;
+  rioTouchGesture = null;
+  rioLastTouchEnd = 0;
+  $rioBeforeInputHandler = null;
+  $rioInputHandler = null;
+  $rioCompositionStartHandler = null;
+  $rioCompositionEndHandler = null;
+  rioInputIsComposing = false;
+  suppressTerminalFocusUntil = 0;
+  $terminalKeydownTarget = null;
+  terminalInputDisposable = null;
+  terminalClipboardDisposable = null;
+  activeTerminalPid = null;
+  terminalRestartPromise = null;
+  terminalRestartQueued = false;
   registeredSharedThemeNames = new Set();
+
+  get isRioTerminalView() {
+    return this.settings.terminalView === "rioterm";
+  }
 
   get terminalThemesApi() {
     return terminalApi?.themes;
@@ -274,12 +312,252 @@ export default class AcodeX {
 
     const scroll = () => {
       if (!this.$terminal) return;
-      this.$terminal.scrollToBottom();
-      this.$terminal.focus();
+      if (this.isRioTerminalView) {
+        this.$terminal.scrollLines(-this.$terminal.historySize());
+      } else {
+        this.$terminal.scrollToBottom();
+      }
     };
 
     scroll();
     window.requestAnimationFrame(scroll);
+  }
+
+  focusTerminal() {
+    if (Date.now() < this.suppressTerminalFocusUntil) return;
+    if (this.isRioTerminalView) {
+      this.$rioHandle?.focus();
+    } else {
+      this.$terminal?.focus();
+    }
+  }
+
+  hasRioNativeSelection() {
+    if (this.settings.rioRenderer !== "dom") return false;
+    const selection = window.getSelection?.();
+    return Boolean(
+      selection &&
+      !selection.isCollapsed &&
+      selection.toString() &&
+      (this.$rioMount?.contains(selection.anchorNode) ||
+        this.$rioMount?.contains(selection.focusNode)),
+    );
+  }
+
+  releaseRioFocus(suppressMs = 0) {
+    if (suppressMs > 0) {
+      this.suppressTerminalFocusUntil = Math.max(
+        this.suppressTerminalFocusUntil,
+        Date.now() + suppressMs,
+      );
+    }
+    if (this.$rioInput === document.activeElement) this.$rioInput.blur();
+  }
+
+  setupRioInputBridge() {
+    const input = this.$rioMount?.querySelector("textarea");
+    if (!input) {
+      console.warn("AcodeX could not locate RioTerm's input element.");
+      return;
+    }
+
+    this.$rioInput = input;
+    this.$rioInputFocusTarget = this.$rioMount;
+    input.setAttribute("aria-label", "Terminal input");
+    input.setAttribute("inputmode", "text");
+    input.setAttribute("enterkeyhint", "enter");
+
+    this.$rioTouchStartHandler = (event) => {
+      if (event.touches.length !== 1) {
+        this.rioTouchGesture = null;
+        return;
+      }
+
+      const touch = event.touches[0];
+      this.rioTouchGesture = {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        lastY: touch.clientY,
+        remainder: 0,
+        startedAt: Date.now(),
+        scrolling: false,
+      };
+    };
+    this.$rioTouchMoveHandler = (event) => {
+      const gesture = this.rioTouchGesture;
+      if (!gesture || event.touches.length !== 1 || this.hasRioNativeSelection()) return;
+
+      const touch = event.touches[0];
+      const distanceX = Math.abs(touch.clientX - gesture.startX);
+      const distanceY = Math.abs(touch.clientY - gesture.startY);
+      if (!gesture.scrolling) {
+        // A stationary/slow touch belongs to the browser's native long-press
+        // selection. Only claim an intentional vertical swipe.
+        if (Date.now() - gesture.startedAt >= 300 || distanceY < 8 || distanceY <= distanceX) {
+          return;
+        }
+        gesture.scrolling = true;
+      }
+
+      const cellHeight = Math.max(1, this.$rioRenderer?.cellHeight || 1);
+      // Follow direct-manipulation semantics: content moves with the finger.
+      // Dragging down reveals older scrollback; dragging up returns to live output.
+      gesture.remainder += (touch.clientY - gesture.lastY) / cellHeight;
+      gesture.lastY = touch.clientY;
+      const lines = Math.trunc(gesture.remainder);
+      if (lines !== 0) {
+        gesture.remainder -= lines;
+        const { col, row } = this.$rioRenderer.cellAt(touch.clientX, touch.clientY);
+        this.$terminal?.scrollWheel(lines, col, row, 0);
+      }
+      if (event.cancelable) event.preventDefault();
+    };
+    this.$rioInputTouchEndHandler = (event) => {
+      const gesture = this.rioTouchGesture;
+      this.rioTouchGesture = null;
+      this.rioLastTouchEnd = Date.now();
+      if (!gesture || gesture.scrolling || this.hasRioNativeSelection()) return;
+
+      const touch = event.changedTouches[0];
+      const distance = touch
+        ? Math.hypot(touch.clientX - gesture.startX, touch.clientY - gesture.startY)
+        : Number.POSITIVE_INFINITY;
+      if (Date.now() - gesture.startedAt < 300 && distance < 8) {
+        this.suppressTerminalFocusUntil = 0;
+        // Rio's documented focus surface is the focus() function returned by
+        // open(). A short tap invokes it once; there is no blur/refocus loop.
+        this.$rioHandle?.focus();
+      }
+    };
+    this.$rioTouchCancelHandler = () => {
+      this.rioTouchGesture = null;
+      this.rioLastTouchEnd = Date.now();
+    };
+    this.$rioMouseDownGuard = (event) => {
+      // Android WebView can synthesize a mouse sequence after touchend. Rio's
+      // own mousedown handler would focus again and start a second selection.
+      if (Date.now() - this.rioLastTouchEnd >= 750) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    this.$rioInputFocusTarget.addEventListener("touchstart", this.$rioTouchStartHandler, {
+      passive: true,
+    });
+    this.$rioInputFocusTarget.addEventListener("touchmove", this.$rioTouchMoveHandler, {
+      passive: false,
+    });
+    this.$rioInputFocusTarget.addEventListener("touchend", this.$rioInputTouchEndHandler, {
+      passive: true,
+    });
+    this.$rioInputFocusTarget.addEventListener("touchcancel", this.$rioTouchCancelHandler, {
+      passive: true,
+    });
+    this.$rioInputFocusTarget.addEventListener("mousedown", this.$rioMouseDownGuard, true);
+
+    this.$rioCompositionStartHandler = () => {
+      this.rioInputIsComposing = true;
+    };
+    this.$rioCompositionEndHandler = (event) => {
+      this.rioInputIsComposing = false;
+      if (event.data) this.$terminal?.input(event.data);
+      input.value = "";
+    };
+    this.$rioBeforeInputHandler = (event) => {
+      if (event.isComposing || this.rioInputIsComposing) return;
+
+      let data = event.data;
+      if (event.inputType === "insertLineBreak" || event.inputType === "insertParagraph") {
+        data = "\r";
+      } else if (event.inputType === "deleteContentBackward") {
+        data = "\x7f";
+      } else if (event.inputType === "insertFromPaste") {
+        if (data) this.$terminal?.paste(data);
+        if (event.cancelable) event.preventDefault();
+        input.value = "";
+        return;
+      } else if (event.inputType === "insertCompositionText") {
+        return;
+      }
+
+      if (!data) return;
+      this.$terminal?.input(data);
+      if (event.cancelable) event.preventDefault();
+      input.value = "";
+    };
+    this.$rioInputHandler = () => {
+      if (this.rioInputIsComposing || !input.value) return;
+      this.$terminal?.input(input.value);
+      input.value = "";
+    };
+
+    input.addEventListener("compositionstart", this.$rioCompositionStartHandler);
+    input.addEventListener("compositionend", this.$rioCompositionEndHandler);
+    input.addEventListener("beforeinput", this.$rioBeforeInputHandler);
+    input.addEventListener("input", this.$rioInputHandler);
+  }
+
+  cleanupRioInputBridge() {
+    this.releaseRioFocus();
+    if (this.$rioInputFocusTarget && this.$rioTouchStartHandler) {
+      this.$rioInputFocusTarget.removeEventListener("touchstart", this.$rioTouchStartHandler);
+    }
+    if (this.$rioInputFocusTarget && this.$rioTouchMoveHandler) {
+      this.$rioInputFocusTarget.removeEventListener("touchmove", this.$rioTouchMoveHandler);
+    }
+    if (this.$rioInputFocusTarget && this.$rioInputTouchEndHandler) {
+      this.$rioInputFocusTarget.removeEventListener("touchend", this.$rioInputTouchEndHandler);
+    }
+    if (this.$rioInputFocusTarget && this.$rioTouchCancelHandler) {
+      this.$rioInputFocusTarget.removeEventListener("touchcancel", this.$rioTouchCancelHandler);
+    }
+    if (this.$rioInputFocusTarget && this.$rioMouseDownGuard) {
+      this.$rioInputFocusTarget.removeEventListener("mousedown", this.$rioMouseDownGuard, true);
+    }
+    if (this.$rioInput) {
+      if (this.$rioCompositionStartHandler) {
+        this.$rioInput.removeEventListener("compositionstart", this.$rioCompositionStartHandler);
+      }
+      if (this.$rioCompositionEndHandler) {
+        this.$rioInput.removeEventListener("compositionend", this.$rioCompositionEndHandler);
+      }
+      if (this.$rioBeforeInputHandler) {
+        this.$rioInput.removeEventListener("beforeinput", this.$rioBeforeInputHandler);
+      }
+      if (this.$rioInputHandler) {
+        this.$rioInput.removeEventListener("input", this.$rioInputHandler);
+      }
+    }
+    this.$rioInput = null;
+    this.$rioInputFocusTarget = null;
+    this.$rioTouchStartHandler = null;
+    this.$rioTouchMoveHandler = null;
+    this.$rioInputTouchEndHandler = null;
+    this.$rioTouchCancelHandler = null;
+    this.$rioMouseDownGuard = null;
+    this.rioTouchGesture = null;
+    this.rioLastTouchEnd = 0;
+    this.$rioBeforeInputHandler = null;
+    this.$rioInputHandler = null;
+    this.$rioCompositionStartHandler = null;
+    this.$rioCompositionEndHandler = null;
+    this.rioInputIsComposing = false;
+  }
+
+  clearTerminalDisplay() {
+    if (!this.$terminal) return;
+    if (this.isRioTerminalView) {
+      this.$terminal.write("\x1b[2J\x1b[3J\x1b[H");
+    } else {
+      this.$terminal.clear();
+    }
+  }
+
+  getTerminalCols() {
+    return this.isRioTerminalView ? this.$terminal?.options.cols : this.$terminal?.cols;
+  }
+
+  getTerminalRows() {
+    return this.isRioTerminalView ? this.$terminal?.options.rows : this.$terminal?.rows;
   }
 
   constructor() {
@@ -298,6 +576,22 @@ export default class AcodeX {
     }
     if (typeof this.settings?.terminalBackend === "undefined") {
       this.settings.terminalBackend = TERMINAL_BACKEND;
+      appSettings.update(false);
+    }
+    const viewDefaults = {
+      terminalView: TERMINAL_VIEW,
+      rioRenderer: RIO_RENDERER,
+      rioLineHeight: RIO_LINE_HEIGHT,
+      rioDetectUrls: RIO_DETECT_URLS,
+      rioPredictiveEcho: RIO_PREDICTIVE_ECHO,
+    };
+    let addedViewDefaults = false;
+    for (const [key, value] of Object.entries(viewDefaults)) {
+      if (typeof this.settings?.[key] !== "undefined") continue;
+      this.settings[key] = value;
+      addedViewDefaults = true;
+    }
+    if (addedViewDefaults) {
       appSettings.update(false);
     }
     if (this.settings?.theme && this.settings.theme !== "custom") {
@@ -413,25 +707,39 @@ export default class AcodeX {
 
   handleToggleSearch() {
     const nextSearchVisible = !this.uiState.searchVisible;
+    if (nextSearchVisible && this.isRioTerminalView) this.releaseRioFocus();
     this.setUiState({
       searchVisible: nextSearchVisible,
       searchQuery: nextSearchVisible ? this.uiState.searchQuery : "",
     });
 
     if (!nextSearchVisible) {
-      this.$searchAddon?.clearDecorations();
-      this.$searchAddon?.clearActiveDecoration();
+      if (this.isRioTerminalView) {
+        this.$terminal?.clearSelection();
+      } else {
+        this.$searchAddon?.clearDecorations();
+        this.$searchAddon?.clearActiveDecoration();
+      }
+      this.focusTerminal();
     }
   }
 
   handleSearchChange(value) {
     this.setUiState({ searchQuery: value });
     if (!value) {
-      this.$searchAddon?.clearDecorations();
-      this.$searchAddon?.clearActiveDecoration();
+      if (this.isRioTerminalView) {
+        this.$terminal?.clearSelection();
+      } else {
+        this.$searchAddon?.clearDecorations();
+        this.$searchAddon?.clearActiveDecoration();
+      }
       return;
     }
-    this.$searchAddon?.findNext(value);
+    if (this.isRioTerminalView) {
+      this.$terminal?.findNext(value);
+    } else {
+      this.$searchAddon?.findNext(value);
+    }
   }
 
   handleResize() {
@@ -468,9 +776,15 @@ export default class AcodeX {
       const currentY = Number.parseInt(this.$showTermBtn.style.bottom);
       this.$showTermBtn.style.bottom = `${Math.max(0, Math.min(maxY, currentY))}px`;
     }
+    this.fitTerminal();
   }
 
-  handleBackButton() {
+  handleBackButton(event) {
+    if (this.isRioTerminalView && this.$rioInput === document.activeElement) {
+      this.releaseRioFocus(750);
+      event?.preventDefault?.();
+      return;
+    }
     if (!this.$page || !document.contains(this.$page)) return;
     this.rfb?.disconnect();
     this.$page.querySelector(".gui-viewer-canvas").innerHTML = "";
@@ -748,9 +1062,14 @@ export default class AcodeX {
          * Applies a specified theme to the terminal.
          * @param {string} themeNme - The name of the theme to apply.
          */
-        applyTheme: (themeNme) => {
-          this.settings.theme = themeNme;
-          appSettings.update();
+        applyTheme: async (themeNme) => {
+          await this.applyTheme(themeNme);
+          if (!this.$terminal) return;
+          if (this.isRioTerminalView) {
+            await this.restartTerminalView();
+          } else {
+            this.$terminal.options.theme = this.terminalThemeObj;
+          }
         },
       });
     } catch (err) {
@@ -1151,6 +1470,22 @@ export default class AcodeX {
     }
   }
 
+  applyTerminalTransparencyStyles() {
+    if (!this.$terminalContainer || !this.$terminalHeader) return;
+    if (this.settings.transparency) {
+      this.$terminalContainer.style.background = "transparent";
+      this.$terminalContainer.style.backdropFilter = `blur(${this.settings.blurValue})`;
+      this.$terminalHeader.style.background = helpers.transparentColor(this.$terminalHeader);
+      this.$terminalHeader.style.backdropFilter = `blur(${this.settings.blurValue})`;
+      return;
+    }
+
+    this.$terminalContainer.style.background = "var(--popup-background-color)";
+    this.$terminalContainer.style.backdropFilter = "";
+    this.$terminalHeader.style.background = "var(--primary-color)";
+    this.$terminalHeader.style.backdropFilter = "";
+  }
+
   async openTerminalPanel(termContainerHeight, port) {
     /**
      * Opens the floating terminal panel.
@@ -1172,15 +1507,7 @@ export default class AcodeX {
     this.$terminalContent.style.height = "100%";
     await acodeFonts.loadFont(this.settings.fontFamily);
 
-    if (this.settings.transparency) {
-      this.$terminalContainer.style.background = "transparent";
-      this.$terminalContainer.style.backdropFilter = `blur(${this.settings.blurValue})`;
-      this.$terminalHeader.style.background = helpers.transparentColor(this.$terminalHeader);
-      this.$terminalHeader.style.backdropFilter = `blur(${this.settings.blurValue})`;
-    } else {
-      this.$terminalContainer.style.background = "var(--popup-background-color)";
-      this.$terminalHeader.style.background = "var(--primary-color)";
-    }
+    this.applyTerminalTransparencyStyles();
     let socket;
     if (localStorage.getItem("AcodeX_Current_Session")) {
       socket = await this.changeSession(localStorage.getItem("AcodeX_Current_Session"), true);
@@ -1191,7 +1518,86 @@ export default class AcodeX {
     return socket;
   }
 
+  async createTerminal(port) {
+    if (this.isRioTerminalView) {
+      try {
+        return await this.createRioTerminal(port);
+      } catch (error) {
+        console.error("AcodeX failed to start RioTerm; falling back to xterm.js:", error);
+        this.cleanupRioInputBridge();
+        this.$rioResizeObserver?.disconnect();
+        this.$rioHandle?.dispose();
+        this.$rioHandle = null;
+        this.$rioRenderer = null;
+        this.$rioMount = null;
+        this.$terminal = undefined;
+        this.$terminalContent.classList.remove("rioterm-view");
+        this.$terminalContent.innerHTML = "";
+        this.settings.terminalView = "xterm";
+        appSettings.update(false);
+        window.toast("RioTerm could not start, so AcodeX switched back to xterm.js.", 4000);
+      }
+    }
+    return this.createXtermTerminal(port);
+  }
+
+  async createRioTerminal() {
+    this.$terminalContent.classList.add("rioterm-view");
+    const rioMount = tag("div", {
+      className: `rioterm-mount rioterm-${this.settings.rioRenderer}`,
+      ariaLabel: "Rio terminal",
+    });
+    this.$terminalContent.append(rioMount);
+    this.$rioMount = rioMount;
+
+    await initRioWasm(rioWasmBytes);
+    this.$rioHandle = await openRioTerm(rioMount, {
+      renderer: this.settings.rioRenderer,
+      fit: false,
+      // Mobile WebViews need focus to come from a real touch/mouse gesture.
+      autoFocus: false,
+      scrollback: Number(this.settings.scrollBack) || SCROLLBACK,
+      fontSize: Number(this.settings.fontSize) || FONT_SIZE,
+      fontFamily: `${this.settings.fontFamily}, Fira Code, monospace`,
+      lineHeight: Number(this.settings.rioLineHeight) || RIO_LINE_HEIGHT,
+      cursorStyle: this.settings.cursorStyle,
+      theme: this.rioTerminalThemeObj,
+      detectUrls: this.settings.rioDetectUrls !== false,
+      predictiveEcho: this.settings.rioRenderer === "canvas" && this.settings.rioPredictiveEcho,
+      linkHandler: {
+        activate: async (uri) => {
+          const linkOpenConfirm = await confirm(
+            "AcodeX Link",
+            `Do you want to open ${uri} in browser?`,
+          );
+          if (linkOpenConfirm) {
+            system.openInBrowser(uri);
+          }
+        },
+      },
+    });
+    this.$terminal = this.$rioHandle.terminal;
+    this.$rioRenderer = this.$rioHandle.renderer;
+    if (this.settings.rioRenderer === "dom") {
+      Object.assign(this.$rioRenderer.element.style, {
+        userSelect: "text",
+        webkitUserSelect: "text",
+        webkitTouchCallout: "default",
+      });
+    }
+    this.setupRioInputBridge();
+    this._setTerminalPadding(this.settings.terminalPadding);
+    this.fitTerminal();
+
+    if (typeof ResizeObserver === "function") {
+      this.$rioResizeObserver = new ResizeObserver(() => this.fitTerminal());
+      this.$rioResizeObserver.observe(rioMount);
+    }
+    this._updateTerminalHeight();
+  }
+
   async createXtermTerminal(port) {
+    this.$terminalContent.classList.remove("rioterm-view");
     this.$terminal = this.terminalObj;
     this.$fitAddon = new FitAddon();
     this.$webglAddon = new WebglAddon();
@@ -1241,20 +1647,220 @@ export default class AcodeX {
     this._updateTerminalHeight();
   }
 
-  async attachSocketToXterm(port, pid) {
-    this.$terminal.onResize(async (size) => {
-      if (!pid) return;
-      const cols = size.cols.toString();
-      const rows = size.rows.toString();
-      const url = `http://${this.terminalServerHost}:${port}/terminals/${pid}/resize`;
+  async attachSocketToTerminal(port, pid) {
+    if (this.isRioTerminalView) {
+      return this.attachSocketToRioTerm(port, pid);
+    }
+    return this.attachSocketToXterm(port, pid);
+  }
 
+  async postTerminalResize(port, pid, cols, rows) {
+    if (!pid || !cols || !rows) return;
+    const url = `http://${this.terminalServerHost}:${port}/terminals/${pid}/resize`;
+    try {
       await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ cols, rows }),
+        body: JSON.stringify({ cols: String(cols), rows: String(rows) }),
       });
+    } catch (error) {
+      console.warn("AcodeX terminal resize failed:", error);
+    }
+  }
+
+  bindTerminalShortcuts() {
+    const shortcutHandler = (event) => this.handleTerminalShortcut(event);
+    if (this.isRioTerminalView) {
+      this.$terminalKeydownTarget = this.$terminalContent;
+      this.$terminalKeydownHandler = (event) => {
+        if (!shortcutHandler(event)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      this.$terminalKeydownTarget.addEventListener("keydown", this.$terminalKeydownHandler, true);
+      return;
+    }
+
+    this.$terminal.attachCustomKeyEventHandler((event) => !shortcutHandler(event));
+  }
+
+  handleTerminalShortcut(event) {
+    if (event.type !== "keydown") return false;
+    const key = event.key.toLowerCase();
+
+    if (event.ctrlKey && key === "n") {
+      this.createSession();
+      return true;
+    }
+    if (event.ctrlKey && key === "w") {
+      this.closeTerminal();
+      return true;
+    }
+    if (event.ctrlKey && event.shiftKey && key === "t") {
+      if (!this.isTerminalMinimized) this.minimise();
+      return true;
+    }
+    if (event.ctrlKey && event.shiftKey && key === "v") {
+      clipboard.paste((text) => this.$terminal?.paste(text));
+      return true;
+    }
+    if (event.ctrlKey && /^[1-5]$/.test(event.key)) {
+      const sessionIndex = Number(event.key) - 1;
+      this.withSessions((sessions) => {
+        const selectedSession = sessions[sessionIndex];
+        if (selectedSession) this.changeSession(selectedSession.name);
+      });
+      return true;
+    }
+    if (event.ctrlKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+      this.withSessions((sessions) => {
+        const currentIndex = sessions.findIndex(
+          (session) => session.name === localStorage.getItem("AcodeX_Current_Session"),
+        );
+        const direction = event.key === "ArrowLeft" ? -1 : 1;
+        const selectedSession = sessions[currentIndex + direction];
+        if (selectedSession) this.changeSession(selectedSession.name);
+      });
+      return true;
+    }
+    if (event.ctrlKey && (event.key === "+" || event.key === "=")) {
+      const newFontSize = (Number(this.settings.fontSize) || FONT_SIZE) + 1;
+      this.applyTerminalFontSize(newFontSize);
+      return true;
+    }
+    if (event.ctrlKey && event.key === "-") {
+      const newFontSize = (Number(this.settings.fontSize) || FONT_SIZE) - 1;
+      if (newFontSize >= 1) this.applyTerminalFontSize(newFontSize);
+      return true;
+    }
+    if (event.ctrlKey && event.shiftKey && key === "c") {
+      const selectedText = this.$terminal?.getSelection();
+      if (selectedText) {
+        clipboard.copy(selectedText);
+        window.toast("Copied ✅", 3000);
+      }
+      this.focusTerminal();
+      return true;
+    }
+    if (event.ctrlKey && event.shiftKey && key === "i") {
+      this.clearTerminalDisplay();
+      this.socket?.send("clear\r");
+      return true;
+    }
+    if (!this.isRioTerminalView && event.ctrlKey && key === "a") {
+      this.$terminal?.selectAll();
+      return true;
+    }
+    return false;
+  }
+
+  async withSessions(callback) {
+    try {
+      const jsonData = await this.$cacheFile.readFile("utf8");
+      callback(jsonData ? JSON.parse(jsonData) : []);
+    } catch (error) {
+      console.warn("AcodeX failed to read sessions for shortcut:", error);
+    }
+  }
+
+  bindTerminalInputTracking() {
+    let userInputBuffer = "";
+    let isCursorAtStartOfLine = true;
+    const decoder = new TextDecoder();
+
+    this.terminalInputDisposable = this.$terminal.onData((input) => {
+      const data = typeof input === "string" ? input : decoder.decode(input);
+      if (data === "\x7F") {
+        userInputBuffer = userInputBuffer.trim() === "" ? "" : userInputBuffer.slice(0, -1);
+        isCursorAtStartOfLine = userInputBuffer.trim() === "";
+        return;
+      }
+
+      const filteredData = helpers.filterTermInputData(data);
+      userInputBuffer += filteredData;
+      if (filteredData.startsWith("#") && isCursorAtStartOfLine) {
+        this.openAIPromptPopup();
+      }
+      if (data === "\r") {
+        if (userInputBuffer.trim().toLowerCase() === "exit") {
+          this.terminalCloseHandler();
+        }
+        userInputBuffer = "";
+        isCursorAtStartOfLine = true;
+      } else {
+        isCursorAtStartOfLine = userInputBuffer.trim() === "";
+      }
+    });
+  }
+
+  async writeRioSocketData(data) {
+    if (!this.$terminal) return;
+    if (data instanceof Blob) {
+      this.$terminal.write(new Uint8Array(await data.arrayBuffer()));
+      return;
+    }
+    if (data instanceof ArrayBuffer) {
+      this.$terminal.write(new Uint8Array(data));
+      return;
+    }
+    if (ArrayBuffer.isView(data)) {
+      this.$terminal.write(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+      return;
+    }
+    this.$terminal.write(data);
+  }
+
+  async attachSocketToRioTerm(port, pid) {
+    this.activeTerminalPid = pid;
+    this.$lastRioSize = null;
+    this.socket = new WebSocket(`ws://${this.terminalServerHost}:${port}/terminals/${pid}`);
+    this.socket.binaryType = "arraybuffer";
+
+    this.socket.onmessage = (event) => {
+      this.writeRioSocketData(event.data).catch((error) => {
+        console.error("AcodeX RioTerm write failed:", error);
+      });
+    };
+    this.socket.onopen = () => {
+      this.hasShownServerDisconnectAlert = false;
+      this.$rioDataDisposable = this.$terminal.onData((bytes) => {
+        if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(bytes);
+      });
+      this.terminalClipboardDisposable = this.$terminal.onClipboardWrite((text) => {
+        clipboard.copy(text);
+      });
+      this.bindTerminalShortcuts();
+      this.bindTerminalInputTracking();
+      this._updateTerminalHeight();
+      localStorage.setItem("AcodeX_Is_Opened", this.isTerminalOpened);
+      localStorage.setItem("AcodeX_Terminal_Cont_Height", this.$terminalContainer.offsetHeight);
+      if (localStorage.getItem("AcodeX_Terminal_Is_Minimised") === "true") {
+        this.minimise();
+      }
+      window.setTimeout(() => this.scrollTerminalToBottom(), 0);
+      window.setTimeout(() => this.scrollTerminalToBottom(), 150);
+    };
+    this.socket.onclose = async () => {
+      try {
+        const response = await fetch(`http://${this.terminalServerHost}:${port}/`);
+        if (!response.ok) {
+          console.warn("Server responded with an error:", response.status, response.statusText);
+        }
+      } catch (error) {
+        await this.handleServerDisconnect();
+      }
+    };
+    this.socket.onerror = (error) => {
+      acode.alert("AcodeX Error", JSON.stringify(error));
+    };
+  }
+
+  async attachSocketToXterm(port, pid) {
+    this.activeTerminalPid = pid;
+    this.$terminal.onResize(async (size) => {
+      await this.postTerminalResize(port, pid, size.cols, size.rows);
     });
 
     /*this.$terminal.onTitleChange(title => {
@@ -1289,6 +1895,8 @@ export default class AcodeX {
           onFontSizeChange: (size) => this.applyTerminalFontSize(size),
         },
       );
+      this.bindTerminalShortcuts();
+      this.bindTerminalInputTracking();
       window.setTimeout(() => {
         this.scrollTerminalToBottom();
       }, 0);
@@ -1311,144 +1919,6 @@ export default class AcodeX {
     this.socket.onerror = (error) => {
       acode.alert("AcodeX Error", JSON.stringify(error));
     };
-
-    // custom Keybindings
-    this.$terminal.attachCustomKeyEventHandler(async (e) => {
-      if (e.type === "keydown") {
-        const jsonData = await this.$cacheFile.readFile("utf8");
-        const sessionsData = jsonData ? JSON.parse(jsonData) : [];
-        if (e.ctrlKey && (e.key === "N" || e.key === "n")) {
-          // ctrl+n
-          this.createSession();
-          return false;
-        }
-        if (e.ctrlKey && (e.key === "W" || e.key === "w")) {
-          // ctrl+w
-          this.closeTerminal();
-          return false;
-        }
-        if (e.ctrlKey && e.shiftKey && (e.key === "T" || e.key === "t")) {
-          // ctrl+shift+t
-          if (!this.isTerminalMinimized) {
-            this.minimise();
-          }
-          return false;
-        }
-        if (e.ctrlKey && e.shiftKey && (e.key === "V" || e.key === "v")) {
-          // ctrl+shift+v
-          clipboard.paste((text) => {
-            this.$terminal?.paste(text);
-          });
-          return false;
-        }
-        if (e.ctrlKey && e.keyCode >= 49 && e.keyCode <= 53) {
-          // ctrl+1 to ctrl+5
-          // 49 is the keyCode for '1', 50 for '2', and so on
-          const sessionIndex = e.keyCode - 49;
-          if (sessionsData.length > sessionIndex) {
-            const selectedSession = sessionsData[sessionIndex];
-            this.changeSession(selectedSession.name);
-            return false;
-          }
-        }
-        if (e.ctrlKey && e.key === "ArrowLeft") {
-          // Ctrl+ArrowLeft
-          const currentIndex = sessionsData.findIndex(
-            (session) => session.name === localStorage.getItem("AcodeX_Current_Session"),
-          );
-          if (currentIndex > 0) {
-            const previousSession = sessionsData[currentIndex - 1];
-            this.changeSession(previousSession.name);
-            return false;
-          }
-        }
-        if (e.ctrlKey && e.key === "ArrowRight") {
-          // Ctrl+ArrowRight
-          const currentIndex = sessionsData.findIndex(
-            (session) => session.name === localStorage.getItem("AcodeX_Current_Session"),
-          );
-          if (currentIndex < sessionsData.length - 1) {
-            const nextSession = sessionsData[currentIndex + 1];
-            this.changeSession(nextSession.name);
-            return false;
-          }
-        }
-        if (e.ctrlKey && e.key === "+") {
-          // Ctrl + Plus(+)
-          const newFontSize = this.$terminal.options.fontSize + 1;
-          this.applyTerminalFontSize(newFontSize);
-          return false;
-        }
-        if (e.ctrlKey && e.key === "-") {
-          // Ctrl + Minus(-)
-          const newFontSize = this.$terminal.options.fontSize - 1;
-          if (newFontSize < 1) return false;
-          this.applyTerminalFontSize(newFontSize);
-          return false;
-        }
-        if (e.ctrlKey && e.shiftKey && (e.key === "c" || e.key === "C")) {
-          // currently its not added because acode ctrl key remove focus from terminal while using ctrl key
-          // Ctrl + shift + c
-          if (!this.$terminal?.hasSelection()) return;
-          const selectedStr = this.$terminal?.getSelection();
-          if (selectedStr) clipboard.copy(selectedStr);
-          window.toast("Copied ✅", 3000);
-          this.$terminal.focus();
-          return false;
-        }
-        if (e.ctrlKey && e.shiftKey && (e.key === "i" || e.key === "I")) {
-          this.$terminal?.clear();
-          this.socket?.send("clear\r");
-          return false;
-        }
-        if (e.ctrlKey && (e.key === "a" || e.key === "A")) {
-          this.$terminal?.selectAll();
-          return false;
-        }
-      }
-    });
-
-    // listener on terminal data for ai integration and exit command handling
-    let userInputBuffer = "";
-    let isCursorAtStartOfLine = true;
-    this.$terminal.onData((data) => {
-      // Handle backspace (\x7F)
-      if (data === "\x7F") {
-        if (userInputBuffer.trim() === "") {
-          // If the buffer is empty, the cursor is still at the start of the line
-          isCursorAtStartOfLine = true;
-        } else {
-          // Remove the last character from the buffer
-          userInputBuffer = userInputBuffer.slice(0, -1);
-          // Update the cursor position based on the content of the buffer
-          isCursorAtStartOfLine = userInputBuffer.trim() === "";
-        }
-        return;
-      }
-
-      // Filter out non-printable characters and control sequences
-      const filteredData = helpers.filterTermInputData(data);
-      userInputBuffer += filteredData;
-
-      // Check if the input starts with '#' and it's at the beginning of a line
-      if (filteredData.startsWith("#") && isCursorAtStartOfLine) {
-        this.openAIPromptPopup();
-      }
-
-      if (data === "\r") {
-        if (userInputBuffer.trim().toLowerCase() === "exit") {
-          console.log("Exiting current session...");
-          // Handle "exit" command
-          this.terminalCloseHandler();
-        }
-        userInputBuffer = "";
-        // Reset cursor position when Enter is pressed
-        isCursorAtStartOfLine = true;
-      }
-
-      // Update cursor position based on the content of the buffer
-      isCursorAtStartOfLine = userInputBuffer.trim() === "";
-    });
   }
 
   async getOllamaModel(aiResponseHandler) {
@@ -1594,7 +2064,7 @@ export default class AcodeX {
     let sessionsData = jsonData ? JSON.parse(jsonData) : [];
 
     if (sessionsData.length === 0) {
-      await this.createXtermTerminal(this.settings.port);
+      await this.createTerminal(this.settings.port);
       pid = await this._generateProcessId();
       if (!pid) return;
       sessionsData = [{ name: "AcodeX1", pid: pid }];
@@ -1615,7 +2085,7 @@ export default class AcodeX {
       const nextSessionNumber = highestSessionNumber + 1;
       const nextSessionName = `AcodeX${nextSessionNumber}`;
 
-      await this.createXtermTerminal(this.settings.port);
+      await this.createTerminal(this.settings.port);
       pid = await this._generateProcessId();
       if (!pid) return;
       sessionsData.push({ name: nextSessionName, pid });
@@ -1623,7 +2093,7 @@ export default class AcodeX {
 
     await Promise.all([
       this.$cacheFile.writeFile(sessionsData),
-      this.attachSocketToXterm(this.settings.port, pid),
+      this.attachSocketToTerminal(this.settings.port, pid),
     ]);
     this._updateTerminalHeight();
     localStorage.setItem("AcodeX_Current_Session", sessionsData[sessionsData.length - 1].name);
@@ -1638,6 +2108,18 @@ export default class AcodeX {
 
   _hideTerminalSession() {
     this.cleanupSelectionManager();
+    this.cleanupRioInputBridge();
+    this.terminalInputDisposable?.dispose?.();
+    this.terminalClipboardDisposable?.dispose?.();
+    this.$rioDataDisposable?.dispose?.();
+    this.$rioResizeObserver?.disconnect();
+    if (this.$terminalKeydownTarget && this.$terminalKeydownHandler) {
+      this.$terminalKeydownTarget.removeEventListener(
+        "keydown",
+        this.$terminalKeydownHandler,
+        true,
+      );
+    }
     this.$attachAddon?.dispose();
     this.$fitAddon?.dispose();
     this.$unicode11Addon?.dispose();
@@ -1646,15 +2128,31 @@ export default class AcodeX {
     this.$imageAddon?.dispose();
     this.$ligatureAddon?.dispose();
     this.$webglAddon?.dispose();
-    this.$terminal?.dispose();
+    if (this.$rioHandle) {
+      this.$rioHandle.dispose();
+    } else {
+      this.$terminal?.dispose();
+    }
     if (this.socket) {
       this.socket.onopen = null;
       this.socket.onclose = null;
       this.socket.onerror = null;
+      this.socket.onmessage = null;
       this.socket.close();
     }
     this.socket = null;
     this.$terminal = undefined;
+    this.$rioHandle = null;
+    this.$rioRenderer = null;
+    this.$rioMount = null;
+    this.$rioResizeObserver = null;
+    this.$rioDataDisposable = null;
+    this.$terminalKeydownTarget = null;
+    this.$terminalKeydownHandler = null;
+    this.terminalInputDisposable = null;
+    this.terminalClipboardDisposable = null;
+    this.activeTerminalPid = null;
+    this.$lastRioSize = null;
     this.$attachAddon = undefined;
     this.$fitAddon = undefined;
     this.$unicode11Addon = undefined;
@@ -1663,13 +2161,14 @@ export default class AcodeX {
     this.$imageAddon = undefined;
     this.$ligatureAddon = undefined;
     this.$webglAddon = undefined;
+    this.$terminalContent.classList.remove("rioterm-view");
     this.$terminalContent.innerHTML = "";
   }
 
   async _generateProcessId() {
     try {
-      const cols = this.$terminal.cols.toString();
-      const rows = this.$terminal.rows.toString();
+      const cols = this.getTerminalCols().toString();
+      const rows = this.getTerminalRows().toString();
       const res = await fetch(`http://${this.terminalServerHost}:${this.settings.port}/terminals`, {
         method: "POST",
         headers: {
@@ -1698,7 +2197,7 @@ export default class AcodeX {
 
   async changeSession(sessionName, isFirst = false) {
     if (isFirst) {
-      await this.createXtermTerminal(this.settings.port);
+      await this.createTerminal(this.settings.port);
       const pid = await this._getPidBySessionName(sessionName);
       if (!pid) {
         if (!this.$terminalContainer.classList.contains("hide"))
@@ -1714,7 +2213,7 @@ export default class AcodeX {
         window.toast("Oops! Something went wrong in the Core 😔", 4000);
         return;
       }
-      await this.attachSocketToXterm(this.settings.port, pid);
+      await this.attachSocketToTerminal(this.settings.port, pid);
       localStorage.setItem("AcodeX_Current_Session", sessionName);
       this.setUiState({ sessionName, searchVisible: false, searchQuery: "" });
       return this.socket;
@@ -1723,8 +2222,8 @@ export default class AcodeX {
     const pid = await this._getPidBySessionName(sessionName);
     if (!pid) return;
     this._hideTerminalSession();
-    await this.createXtermTerminal(this.settings.port);
-    await this.attachSocketToXterm(this.settings.port, pid);
+    await this.createTerminal(this.settings.port);
+    await this.attachSocketToTerminal(this.settings.port, pid);
     localStorage.setItem("AcodeX_Current_Session", sessionName);
     this.setUiState({ sessionName, searchVisible: false, searchQuery: "" });
     return this.socket;
@@ -1757,6 +2256,11 @@ export default class AcodeX {
       port: 8767,
       serverHost: "localhost",
       terminalBackend: TERMINAL_BACKEND,
+      terminalView: TERMINAL_VIEW,
+      rioRenderer: RIO_RENDERER,
+      rioLineHeight: RIO_LINE_HEIGHT,
+      rioDetectUrls: RIO_DETECT_URLS,
+      rioPredictiveEcho: RIO_PREDICTIVE_ECHO,
       aiApiKey: "",
       aiModel: AI_MODEL,
       transparency: ALLOW_TRANSPRANCY,
@@ -1821,18 +2325,14 @@ export default class AcodeX {
   }
 
   _setTerminalPadding(padding) {
-    if (!this.$terminal?.element) {
-      return;
-    }
+    const terminalElement = this.$rioMount || this.$terminal?.element;
+    if (!terminalElement) return;
     const numericPadding = Number(padding);
     const safePadding = Number.isNaN(numericPadding) ? 0 : Math.max(0, numericPadding);
     const paddingValue = `${safePadding}px`;
-    const terminalElement = this.$terminal.element;
     terminalElement.style.boxSizing = "border-box";
     terminalElement.style.padding = paddingValue;
-    if (this.$fitAddon) {
-      this.fitTerminal();
-    }
+    this.fitTerminal();
   }
 
   _updateTerminalHeight() {
@@ -1843,6 +2343,30 @@ export default class AcodeX {
   }
 
   fitTerminal() {
+    if (
+      this.isRioTerminalView &&
+      this.$rioRenderer &&
+      this.$rioMount?.isConnected &&
+      !this.$terminalContainer?.classList.contains("hide")
+    ) {
+      try {
+        const padding = Math.max(0, Number(this.settings.terminalPadding) || 0);
+        const width = Math.max(1, this.$rioMount.clientWidth - padding * 2);
+        const height = Math.max(1, this.$rioMount.clientHeight - padding * 2);
+        this.$rioRenderer.fit(width, height);
+        const cols = this.getTerminalCols();
+        const rows = this.getTerminalRows();
+        const sizeKey = `${cols}x${rows}`;
+        if (this.activeTerminalPid && this.$lastRioSize !== sizeKey) {
+          this.$lastRioSize = sizeKey;
+          this.postTerminalResize(this.settings.port, this.activeTerminalPid, cols, rows);
+        }
+      } catch (error) {
+        console.warn("AcodeX RioTerm fit skipped:", error);
+      }
+      return;
+    }
+
     if (
       !this.$fitAddon ||
       !this.$terminal ||
@@ -1866,13 +2390,25 @@ export default class AcodeX {
   }
 
   applyTerminalFontSize(fontSize) {
-    if (!this.$terminal) return;
-
     const parsedFontSize = Number(fontSize);
     if (Number.isNaN(parsedFontSize)) return;
 
     const minFontSize = 1;
     const clampedFontSize = Math.max(minFontSize, parsedFontSize);
+
+    if (this.isRioTerminalView) {
+      if (Number(this.settings.fontSize) === clampedFontSize) return;
+      this.settings.fontSize = clampedFontSize;
+      appSettings.update(false);
+      this.restartTerminalView();
+      return;
+    }
+
+    if (!this.$terminal) {
+      this.settings.fontSize = clampedFontSize;
+      appSettings.update(false);
+      return;
+    }
 
     if (this.$terminal.options.fontSize === clampedFontSize) return;
 
@@ -1882,6 +2418,33 @@ export default class AcodeX {
     }
     this.settings.fontSize = clampedFontSize;
     appSettings.update(false);
+  }
+
+  async restartTerminalView() {
+    this.terminalRestartQueued = true;
+    if (this.terminalRestartPromise) return this.terminalRestartPromise;
+
+    this.terminalRestartPromise = (async () => {
+      while (this.terminalRestartQueued) {
+        this.terminalRestartQueued = false;
+        if (!this.isTerminalOpened || !this.$terminal) continue;
+        const sessionName = localStorage.getItem("AcodeX_Current_Session");
+        if (!sessionName) continue;
+        const pid = await this._getPidBySessionName(sessionName);
+        if (!pid) continue;
+
+        this._hideTerminalSession();
+        await this.createTerminal(this.settings.port);
+        await this.attachSocketToTerminal(this.settings.port, pid);
+        this.setUiState({ sessionName, searchVisible: false, searchQuery: "" });
+      }
+    })();
+
+    try {
+      await this.terminalRestartPromise;
+    } finally {
+      this.terminalRestartPromise = null;
+    }
   }
 
   async _getLastSessionName() {
@@ -1908,6 +2471,7 @@ export default class AcodeX {
     /*
      * removes terminal in case of any issue
      */
+    if (this.$terminal) this._hideTerminalSession();
     if (!this.$terminalContainer.classList.contains("hide"))
       this.$terminalContainer.style.opacity = 1;
     this.$terminalContainer.classList.add("hide");
@@ -1993,6 +2557,12 @@ export default class AcodeX {
         `http://${this.terminalServerHost}:${this.settings.port}/terminals/${pidOfCurrentSession}/terminate`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Acode's advanced-http fetch bridge requires POST data to be a
+          // non-empty string even when the endpoint does not use a payload.
+          body: "{}",
         },
       )
         .then(async (response) => {
@@ -2001,14 +2571,14 @@ export default class AcodeX {
           } else {
             acode.alert(
               "AcodeX Error",
-              `Failed to close terminal ${this.pid}. Trying to force close it...`,
+              `Failed to close terminal ${pidOfCurrentSession}. Trying to force close it...`,
             );
             this.removeTerminal();
           }
         })
         .catch(async (error) => {
           await this.handleServerDisconnect();
-          console.error(`Error while closing terminal ${this.pid}: ${error}`);
+          console.error(`Error while closing terminal ${pidOfCurrentSession}: ${error}`);
         });
     }
   }
@@ -2126,6 +2696,7 @@ export default class AcodeX {
      */
     try {
       if (!this.isTerminalMinimized) {
+        if (this.isRioTerminalView) this.releaseRioFocus();
         this.previousTerminalHeight = window.getComputedStyle(this.$terminalContainer).height;
         localStorage.setItem("AcodeX_Terminal_Cont_Height", this.$terminalContainer.offsetHeight);
         this.$terminalContainer.style.height = "0px";
@@ -2159,6 +2730,7 @@ export default class AcodeX {
       this.isTerminalMinimized = false;
       localStorage.setItem("AcodeX_Terminal_Is_Minimised", this.isTerminalMinimized);
       this._updateTerminalHeight();
+      this.focusTerminal();
       const selection = this.$terminal?.getSelection();
       if (selection && selection.length > 0) {
         this.selectionManager?.updateHandles();
@@ -2168,12 +2740,20 @@ export default class AcodeX {
 
   _findPreviousMatchofSearch() {
     const searchInput = this.uiState.searchQuery;
-    this.$searchAddon?.findPrevious(searchInput);
+    if (this.isRioTerminalView) {
+      this.$terminal?.findPrevious(searchInput);
+    } else {
+      this.$searchAddon?.findPrevious(searchInput);
+    }
   }
 
   _findNextMatchofSearch() {
     const searchInput = this.uiState.searchQuery;
-    this.$searchAddon?.findNext(searchInput);
+    if (this.isRioTerminalView) {
+      this.$terminal?.findNext(searchInput);
+    } else {
+      this.$searchAddon?.findNext(searchInput);
+    }
   }
 
   async _cdToActiveDir() {
@@ -2186,6 +2766,7 @@ export default class AcodeX {
         return;
       }
       this.socket.send(`cd "${realPath}"\r`);
+      this.focusTerminal();
     }
   }
 
@@ -2201,6 +2782,7 @@ export default class AcodeX {
       this.terminalThemesApi?.unregister?.(themeName, plugin.id);
     });
     this.registeredSharedThemeNames.clear();
+    if (this.$terminal) this._hideTerminalSession();
     render(null, this.$terminalHeader);
     render(null, this.$showTermBtn);
     this.$style?.remove();
@@ -2287,6 +2869,10 @@ export default class AcodeX {
     };
   }
 
+  get rioTerminalThemeObj() {
+    return xtermThemeToRioTheme(this.terminalThemeObj);
+  }
+
   get terminalObj() {
     const termObj = new Terminal({
       allowTransparency: this.settings.transparency,
@@ -2295,7 +2881,7 @@ export default class AcodeX {
       cursorBlink: this.settings.cursorBlink,
       cursorStyle: this.settings.cursorStyle,
       cursorInactiveStyle: this.settings.cursorInactiveStyle,
-      scrollBack: this.settings.scrollBack,
+      scrollback: this.settings.scrollBack,
       scrollSensitivity: this.settings.scrollSensitivity,
       fontSize: this.settings.fontSize,
       fontFamily: `${this.settings.fontFamily}, Fira Code, monospace`,
@@ -2351,33 +2937,7 @@ export default class AcodeX {
   }
 
   async resetTerminalBackendState() {
-    this.cleanupSelectionManager();
-    this.$attachAddon?.dispose();
-    this.$fitAddon?.dispose();
-    this.$unicode11Addon?.dispose();
-    this.$webLinkAddon?.dispose();
-    this.$searchAddon?.dispose();
-    this.$imageAddon?.dispose();
-    this.$ligatureAddon?.dispose();
-    this.$webglAddon?.dispose();
-    this.$terminal?.dispose();
-    if (this.socket) {
-      this.socket.onopen = null;
-      this.socket.onclose = null;
-      this.socket.onerror = null;
-      this.socket.close();
-    }
-    this.socket = null;
-    this.$terminal = undefined;
-    this.$attachAddon = undefined;
-    this.$fitAddon = undefined;
-    this.$unicode11Addon = undefined;
-    this.$webLinkAddon = undefined;
-    this.$searchAddon = undefined;
-    this.$imageAddon = undefined;
-    this.$ligatureAddon = undefined;
-    this.$webglAddon = undefined;
-    this.$terminalContent.innerHTML = "";
+    if (this.$terminal) this._hideTerminalSession();
     this.rfb?.disconnect();
     this.rfb = undefined;
     this.$terminalContainer?.classList.add("hide");
@@ -2400,20 +2960,20 @@ export default class AcodeX {
   }
 
   get settingsObj() {
-    if (this.settings.theme === "custom") {
-      return {
-        list: this.settingsList.concat(this.settingsListWithThemeColor),
-        cb: (key, value) => this.settingsSaveCallback(key, value),
-      };
-    }
+    const pluginInstance = this;
     return {
-      list: this.settingsList,
+      get list() {
+        const list = pluginInstance.settingsList;
+        return pluginInstance.settings.theme === "custom"
+          ? list.concat(pluginInstance.settingsListWithThemeColor)
+          : list;
+      },
       cb: (key, value) => this.settingsSaveCallback(key, value),
     };
   }
 
   get settingsList() {
-    return [
+    const list = [
       {
         key: "port",
         text: "Server Port",
@@ -2433,6 +2993,46 @@ export default class AcodeX {
         value: this.settings.terminalBackend,
         info: "Choose between external axs and Acode's builtin terminal backend.",
         select: TERMINAL_BACKENDS,
+      },
+      {
+        key: "terminalView",
+        text: "Terminal View",
+        value: this.settings.terminalView,
+        info: "Choose xterm.js or the faster Rust/WASM-powered RioTerm view.",
+        select: TERMINAL_VIEWS,
+      },
+      {
+        key: "rioRenderer",
+        text: "RioTerm Renderer",
+        value: this.settings.rioRenderer,
+        info: "DOM uses real text and native accessible selection; canvas prioritizes rendering throughput.",
+        select: RIO_RENDERERS,
+      },
+      {
+        key: "rioLineHeight",
+        text: "RioTerm Line Height",
+        value: this.settings.rioLineHeight,
+        info: "Line-height multiplier supported by RioTerm.",
+        prompt: "RioTerm Line Height",
+        promptType: "number",
+        promptOption: [
+          {
+            match: /^(?:\d+\.?\d*|\.\d+)$/,
+            required: true,
+          },
+        ],
+      },
+      {
+        key: "rioDetectUrls",
+        text: "RioTerm URL Detection",
+        info: "Detect plain-text links in addition to OSC 8 hyperlinks.",
+        checkbox: this.settings.rioDetectUrls !== false,
+      },
+      {
+        key: "rioPredictiveEcho",
+        text: "RioTerm Predictive Echo",
+        info: "Canvas-only local prediction for a more responsive terminal on high-latency connections.",
+        checkbox: !!this.settings.rioPredictiveEcho,
       },
       {
         key: "letterSpacing",
@@ -2661,6 +3261,32 @@ export default class AcodeX {
         select: this.getAvailableThemeNames(),
       },
     ];
+
+    const rioOnlySettings = new Set([
+      "rioRenderer",
+      "rioLineHeight",
+      "rioDetectUrls",
+      "rioPredictiveEcho",
+    ]);
+    const xtermOnlySettings = new Set([
+      "letterSpacing",
+      "fontWeight",
+      "imageRendering",
+      "selectionHaptics",
+      "fontLigatures",
+      "cursorBlink",
+      "cursorInactiveStyle",
+      "scrollSensitivity",
+    ]);
+
+    return list.filter((setting) => {
+      if (!this.isRioTerminalView) return !rioOnlySettings.has(setting.key);
+      if (xtermOnlySettings.has(setting.key)) return false;
+      if (setting.key === "rioPredictiveEcho" && this.settings.rioRenderer !== "canvas") {
+        return false;
+      }
+      return true;
+    });
   }
 
   get settingsListWithThemeColor() {
@@ -2822,14 +3448,43 @@ export default class AcodeX {
         break;
 
       case "theme":
-        this.applyTheme(value);
+        await this.applyTheme(value);
         if (value === "custom") {
           acode.alert("AcodeX Warning", "Restart the app please");
         }
         if (this.$terminal) {
-          this.$terminal.options.theme = this.terminalThemeObj;
+          if (this.isRioTerminalView) {
+            await this.restartTerminalView();
+          } else {
+            this.$terminal.options.theme = this.terminalThemeObj;
+          }
         }
         break;
+      case "terminalView":
+        if (this.settings[key] === value) break;
+        this.settings[key] = value;
+        appSettings.update();
+        await this.restartTerminalView();
+        window.toast(
+          `Switched to ${value === "rioterm" ? "RioTerm" : "xterm.js"}. Reopen settings to see supported options.`,
+          3000,
+        );
+        break;
+      case "rioRenderer":
+      case "rioDetectUrls":
+      case "rioPredictiveEcho":
+        this.settings[key] = value;
+        appSettings.update();
+        if (this.isRioTerminalView) await this.restartTerminalView();
+        break;
+      case "rioLineHeight": {
+        const parsedLineHeight = Number(value);
+        if (!Number.isFinite(parsedLineHeight) || parsedLineHeight <= 0) break;
+        this.settings[key] = parsedLineHeight;
+        appSettings.update();
+        if (this.isRioTerminalView) await this.restartTerminalView();
+        break;
+      }
       case "clearCache":
         this.clearCache();
         break;
@@ -2848,12 +3503,14 @@ export default class AcodeX {
         } catch (error) {
           console.warn(`Failed to load font ${value}:`, error);
         }
-        if (this.$terminal) {
+        this.settings[key] = value;
+        appSettings.update();
+        if (this.$terminal && this.isRioTerminalView) {
+          await this.restartTerminalView();
+        } else if (this.$terminal) {
           this.$terminal.options.fontFamily = value;
           this.$terminal.refresh(0, this.$terminal.rows - 1);
         }
-        this.settings[key] = value;
-        appSettings.update();
         break;
       case "fontWeight":
         if (this.$terminal) {
@@ -2874,7 +3531,7 @@ export default class AcodeX {
         if (Number.isNaN(parsedPadding)) break;
         const clampedPadding = Math.max(0, parsedPadding);
         this.settings[key] = clampedPadding;
-        if (this.$terminal?.element) {
+        if (this.$terminal) {
           this._setTerminalPadding(clampedPadding);
         }
         appSettings.update();
@@ -2888,11 +3545,18 @@ export default class AcodeX {
         appSettings.update();
         break;
       case "cursorStyle":
-        if (this.$terminal) {
-          this.$terminal.options.cursorStyle = value;
-        }
         this.settings[key] = value;
         appSettings.update();
+        if (this.$terminal && this.isRioTerminalView) {
+          await this.restartTerminalView();
+        } else if (this.$terminal) {
+          this.$terminal.options.cursorStyle = value;
+        }
+        break;
+      case "scrollBack":
+        this.settings[key] = value;
+        appSettings.update();
+        if (this.$terminal) await this.restartTerminalView();
         break;
       case "cursorInactiveStyle":
         if (this.$terminal) {
@@ -2900,6 +3564,12 @@ export default class AcodeX {
         }
         this.settings[key] = value;
         appSettings.update();
+        break;
+      case "transparency":
+        this.settings[key] = value;
+        appSettings.update();
+        this.applyTerminalTransparencyStyles();
+        if (this.$terminal) await this.restartTerminalView();
         break;
       case "imageRendering":
         if (this.$terminal) {
@@ -2965,6 +3635,39 @@ export default class AcodeX {
           this.selectionManager.options.hapticFeedback = !!value;
         }
         appSettings.update();
+        if (
+          this.$terminal &&
+          this.settings.theme === "custom" &&
+          [
+            "background",
+            "foreground",
+            "selectionBackground",
+            "cursor",
+            "cursorAccent",
+            "black",
+            "blue",
+            "brightBlack",
+            "brightBlue",
+            "brightCyan",
+            "brightGreen",
+            "brightMagenta",
+            "brightRed",
+            "brightWhite",
+            "brightYellow",
+            "cyan",
+            "green",
+            "magenta",
+            "red",
+            "white",
+            "yellow",
+          ].includes(key)
+        ) {
+          if (this.isRioTerminalView) {
+            await this.restartTerminalView();
+          } else {
+            this.$terminal.options.theme = this.terminalThemeObj;
+          }
+        }
     }
   }
 
