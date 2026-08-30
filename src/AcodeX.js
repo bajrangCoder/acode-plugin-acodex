@@ -1815,7 +1815,8 @@ export default class AcodeX {
   async attachSocketToRioTerm(port, pid) {
     this.activeTerminalPid = pid;
     this.$lastRioSize = null;
-    this.socket = new WebSocket(`ws://${this.terminalServerHost}:${port}/terminals/${pid}`);
+    const rioWsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    this.socket = new WebSocket(`${rioWsProtocol}://${this.terminalServerHost}:${port}/terminals/${pid}`);
     this.socket.binaryType = "arraybuffer";
 
     this.socket.onmessage = (event) => {
@@ -1844,7 +1845,8 @@ export default class AcodeX {
     };
     this.socket.onclose = async () => {
       try {
-        const response = await fetch(`http://${this.terminalServerHost}:${port}/`);
+        const protocol = window.location.protocol === "https:" ? "https" : "http";
+        const response = await fetch(`${protocol}://${this.terminalServerHost}:${port}/`);
         if (!response.ok) {
           console.warn("Server responded with an error:", response.status, response.statusText);
         }
@@ -1867,7 +1869,8 @@ export default class AcodeX {
       this.$terminalTitle.textContent = `${this.$terminalTitle.textContent} - ${title}`
     });*/
 
-    this.socket = new WebSocket(`ws://${this.terminalServerHost}:${port}/terminals/${pid}`);
+    const xtermWsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    this.socket = new WebSocket(`${xtermWsProtocol}://${this.terminalServerHost}:${port}/terminals/${pid}`);
     this.socket.onopen = () => {
       this.hasShownServerDisconnectAlert = false;
       this.$attachAddon = new AttachAddon(this.socket);
